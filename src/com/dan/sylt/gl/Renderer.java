@@ -663,7 +663,7 @@ public final class Renderer implements GLEventListener {
         gl.glBindTexture(GL.GL_TEXTURE_2D, tex[0]);
         gl.glTexStorage2D(GL.GL_TEXTURE_2D, 1, GL4.GL_R8UI, n, n);
         gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
-        gl.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0, n, n, GL4.GL_RED_INTEGER, GL.GL_UNSIGNED_BYTE, ByteBuffer.wrap(k.klasse));
+        gl.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0, n, n, GL4.GL_RED_INTEGER, GL.GL_UNSIGNED_BYTE, ByteBuffer.wrap(k.texturWerte()));
         gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4);
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
         gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);

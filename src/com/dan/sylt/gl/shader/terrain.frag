@@ -66,7 +66,7 @@ void main() {
 
     // Art weich an den Rändern: die vier nächsten Zellen, bilinear gewichtet; im Kern nah zu 1 m aus dem Luftbild
     vec3 alb = vec3(0.0);
-    float sand = 0.0;
+    float sand = 0.0, band = 0.0;   // band: Anteil des Kliffs (seit Phase 4, nur dort die Wand)
     bool imKern = uKlasseOn == 1 && insideOf(p, uKernGrid, uKernN) > 0.5 && vDist < 3000.0;
     vec2 u = imKern ? (p - uKernGrid.xy) / uKernGrid.z - 0.5 : (p - uGrid.xy) / uGrid.z - 0.5;
     ivec2 i0 = ivec2(floor(u));
@@ -78,9 +78,20 @@ void main() {
             ivec2 q = clamp(i0 + ivec2(c, b), ivec2(0), ivec2(nmax));
             uint a = imKern ? texelFetch(uKlasse, q, 0).r : (drin ? texelFetch(uSource, q, 0).r : (vWorld.y < 0.0 ? 1u : 9u));
             float wt = (c == 0 ? 1.0 - fr.x : fr.x) * (b == 0 ? 1.0 - fr.y : fr.y);
+            if (imKern) { band += (a & 32u) != 0u ? wt : 0.0; a &= 31u; }
             alb += artColor(a, p, pxm) * wt;
             sand += sandShare(a) * wt;
         }
+    // das Band des Kliffs auch in der Ferne (sonst verlöre das Kliff aus mehr als 3 km seine Wand)
+    if (!imKern && uKlasseOn == 1 && insideOf(p, uKernGrid, uKernN) > 0.5) {
+        vec2 uk = (p - uKernGrid.xy) / uKernGrid.z - 0.5;
+        ivec2 k0 = ivec2(floor(uk));
+        vec2 fk = uk - vec2(k0);
+        for (int b = 0; b <= 1; b++)
+            for (int c = 0; c <= 1; c++)
+                band += (texelFetch(uKlasse, clamp(k0 + ivec2(c, b), ivec2(0), ivec2(int(uKernN) - 1)), 0).r & 32u) != 0u
+                        ? (c == 0 ? 1.0 - fk.x : fk.x) * (b == 0 ? 1.0 - fk.y : fk.y) : 0.0;
+    }
     // Übergang von 1 m zu 10 m nach der Entfernung: weit draußen im Kern die Art des Hauptrasters
     if (imKern && vDist > 2000.0) {
         vec2 u2 = (p - uGrid.xy) / uGrid.z - 0.5;
@@ -113,7 +124,7 @@ void main() {
 
     // steile Wand: das Kliff in Schichten [G]: unten heller Kaolinsand, darüber rot oxidierter Geschiebelehm, oben
     // eine dünne Lage Flugsand und die Grasnarbe; Phase 4 ersetzt das durch das Schichtprofil aus cliff (F14 A)
-    float wand = smoothstep(0.75, 0.45, n.y) * (1.0 - step(vWorld.y, 1.0));
+    float wand = smoothstep(0.75, 0.45, n.y) * (1.0 - step(vWorld.y, 1.0)) * (uKlasseOn == 1 ? band : 0.0);
     if (wand > 0.0) {
         float rel = clamp((vWorld.y - 3.0) / 25.0, 0.0, 1.0);
         float bandRausch = fleck(vec2(p.x + p.y, vWorld.y * 6.0), 2.0, pxm);

@@ -36,6 +36,17 @@ public final class KernKarte {
     public final float[] albedo = new float[Terrain.ART.length * 3];
     /** Woher die Farben kommen (für das HUD). */
     public final String eichung;
+    /**
+     * Seit Phase 4: das Band des Kliffs je Kernzelle (1 = zwischen Fuß und Kante aus {@code daten/kliff/kante.csv}, mit
+     * {@link #BAND_RAND} m Rand); null ohne Kante. Nur dort malt das Gelände die Wand (Befund Phase 3: rote Flecken auf
+     * allen steilen Dünen).
+     */
+    public byte[] kliffband;
+    /** Zeilen des Bands mit Wand. */
+    public int bandZeilen;
+    public static final double BAND_RAND = 12;
+    /** Flag im Wert der Klassentextur für das Band (die Art bleibt in den unteren 5 Bit). */
+    public static final int BAND_BIT = 32;
 
     private KernKarte(byte[] klasse, float[] alb, String eichung) {
         this.klasse = klasse;
@@ -62,7 +73,44 @@ public final class KernKarte {
         } catch (IOException | RuntimeException e) {
             System.err.println("Kernkarte: " + e.getMessage());
         }
-        return new KernKarte(k, albedo(fp), fp == null ? "Farben aus Phase 1 (kein Luftbild)" : "Farben am DOP20 geeicht (Sand 0,40)");
+        KernKarte kk = new KernKarte(k, albedo(fp), fp == null ? "Farben aus Phase 1 (kein Luftbild)" : "Farben am DOP20 geeicht (Sand 0,40)");
+        kk.band(new File(new File(daten, "kliff"), "kante.csv"));
+        return kk;
+    }
+
+    /** Das Band des Kliffs aus der Kante (je Meter Nord: Ost von Fuß und Kante). */
+    void band(File csv) {
+        if (!csv.isFile()) return;
+        try {
+            byte[] b = new byte[Terrain.KN * Terrain.KN];
+            int zeilen = 0;
+            for (String l : Files.readAllLines(csv.toPath())) {
+                if (l.startsWith("#") || l.startsWith("nord")) continue;
+                String[] f = l.split(";", -1);
+                if (f.length < 5 || f[1].isEmpty() || f[3].isEmpty()) continue;
+                double nord = Double.parseDouble(f[0]), fuss = Double.parseDouble(f[1]), kante = Double.parseDouble(f[3]);
+                double[] a = Site.fromUtm(Math.min(fuss, kante) - BAND_RAND, nord), c = Site.fromUtm(Math.max(fuss, kante) + BAND_RAND, nord);
+                int j = (int) Math.floor(a[1] - Terrain.KZ0);
+                if (j < 0 || j >= Terrain.KN) continue;
+                int i0 = Math.max(0, (int) Math.floor(a[0] - Terrain.KX0)), i1 = Math.min(Terrain.KN - 1, (int) Math.floor(c[0] - Terrain.KX0));
+                for (int i = i0; i <= i1; i++) b[j * Terrain.KN + i] = 1;
+                zeilen++;
+            }
+            if (zeilen > 0) { kliffband = b; bandZeilen = zeilen; }
+        } catch (IOException | RuntimeException e) {
+            System.err.println("Kliffband: " + e.getMessage());
+        }
+    }
+
+    /** Die Werte der Klassentextur: Art, im Band des Kliffs mit {@link #BAND_BIT}; „Kliff“ außerhalb des Bands wird Düne. */
+    public byte[] texturWerte() {
+        if (kliffband == null) return klasse;
+        byte[] o = klasse.clone();
+        for (int k = 0; k < o.length; k++) {
+            if (kliffband[k] != 0) o[k] = (byte) (o[k] | BAND_BIT);
+            else if (o[k] == Terrain.KLIFF) o[k] = Terrain.DUENE;   // steile, rötliche Dünenflanken sind kein Kliff
+        }
+        return o;
     }
 
     /** Albedo je Art aus den Farben des Luftbilds (oder ohne). */

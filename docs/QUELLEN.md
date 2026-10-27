@@ -34,3 +34,12 @@ Quellenvermerk: **© Bundesanstalt für Wasserbau (BAW), EasyGSH-DB** (mFUND-Pro
 - Lage der Türme: Wikipedia (Quermarkenfeuer Rotes Kliff 54°57′56″ N 8°20′16″ O; Leuchtturm Kampen 54°56′46″ N 8°20′27″ O), am bDOM bestätigt (1 m).
 - Gezeiten Kampen (West): https://de.tideschart.com/Denmark/South-Denmark/Tonder-Kommune/Kampen-(West)/ (Phase 7a).
 - Vorlagen in `templates/` (RotesKliff1–5, Leuchturm1–4, Kampen1–4): Bilder des Nutzers, nur zum Abgleich.
+
+
+## Geologie des Roten Kliffs (Phase 4, Schichtprofil in `Cliff.rotesKliff()`)
+
+- Wikipedia (en): Rotes Kliff – rund 30 m hoch, von Risgap (Wenningstedt) bis Haus Kliffende; rostroter Geschiebelehm der Saale-Eiszeit, Geschiebe aus Flint, Rhombenporphyr, Rapakivi-Granit; seit Ende der 1970er Sandvorspülungen, das Kliff heute großteils hinter Dünen. https://en.wikipedia.org/wiki/Rotes_Kliff
+- Nordfriisk Instituut, Nordfriesland-Lexikon: rund 4,5 km lang, fast 30 m mächtige Grundmoräne, Landverlust 1 bis 4 m im Jahr. https://www.nordfriiskinstituut.eu/futuur/nordfrieslandlexikon/rotes-kliff/
+- GeoTours Sylt: Geschiebelehm, darüber Steinsohle, dunkelbrauner Bodenhorizont (Atlantikum), Flugsand und Dünen; bis 28 m. https://geotourssylt.de/geologie/rotes-kliff.html
+- Universität Kiel, Lackfilmprofile Sylt: Saale-Moräne mit verwitterten Geschieben und Kaolinsandschollen; an der Grenze Pliozän/Pleistozän bei Wenningstedt Kaolinsand unter Geschiebelehm mit Eisenschwarte; Eisen-Humus-Podsol und Steinsohle an der Oberfläche der Moräne. https://web.ifg.uni-kiel.de/Museum/museumsfuehrer/GeoSH/unterkapitel1.html
+- Mächtigkeiten der Deckschichten, Farben und die Lage der Kaolinsand-Oberkante sind gesetzt [G nach RotesKliff1–5]; Limonitsandstein und Glimmerton stehen am Morsum-Kliff an, nicht am Roten Kliff.

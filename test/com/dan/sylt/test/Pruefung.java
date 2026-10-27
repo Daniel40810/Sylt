@@ -258,6 +258,18 @@ public final class Pruefung {
         boolean alleUnter = true;
         for (float v : kk.albedo) alleUnter &= v > 0 && v < 0.96;
         check(alleUnter, "Albedo jeder Art zwischen 0 und 0,95");
+        if (kk.hatKarte() && kk.kliffband != null) {
+            byte[] tw = kk.texturWerte();
+            long inBand = 0, kliffAussen = 0;
+            for (int qq = 0; qq < tw.length; qq++) {
+                if ((tw[qq] & com.dan.sylt.scene.KernKarte.BAND_BIT) != 0) inBand++;
+                else if (tw[qq] == Terrain.KLIFF) kliffAussen++;
+            }
+            double[] fuss = Site.fromUtm(456_724.5, 6_089_604.5), heide = Site.fromUtm(457_400, 6_089_604.5);
+            int i1 = (int) Math.floor(fuss[0] - Terrain.KX0) + 20, j1 = (int) Math.floor(fuss[1] - Terrain.KZ0), i2 = (int) Math.floor(heide[0] - Terrain.KX0);
+            check(kliffAussen == 0 && (tw[j1 * Terrain.KN + i1] & com.dan.sylt.scene.KernKarte.BAND_BIT) != 0 && (tw[j1 * Terrain.KN + i2] & com.dan.sylt.scene.KernKarte.BAND_BIT) == 0,
+                    f("Band des Kliffs aus kante.csv: %d Zeilen, %.2f km², nur dort die Wand; „Kliff“ außerhalb zur Düne (Befund Phase 3)", kk.bandZeilen, inBand / 1e6));
+        }
         check(com.dan.ground.Biome.sylt().entries.stream().anyMatch(eb -> eb.plant.name.equals("Strandhafer"))
                 && com.dan.ground.Biome.sylt().entries.stream().anyMatch(eb -> eb.plant.name.equals("Kartoffelrose")), "Biom Sylt mit Strandhafer, Krähenbeere, Besenheide, Kartoffelrose");
         byte[] mask = com.dan.sylt.gl.Meer.binnen(r3.terrain);
