@@ -22,7 +22,7 @@ float vn(vec2 x) {
 void main() {
     vec3 d = viewRay(vUV);
     // Strahl gegen die gekrümmte Wasserfläche y = uLevel − r²/2R' (r waagerecht vom Auge): a t² + b t + c = 0
-    float R = EARTH_R / 0.87;
+    float R = EARTH_R;   // wie terrain.vert und com.dan.ocean (seit Phase 3 ohne Lichtbrechung)
     float hh = dot(d.xz, d.xz);
     float a = hh / (2.0 * R), b = d.y, c = uCam.y - uLevel;
     float t;

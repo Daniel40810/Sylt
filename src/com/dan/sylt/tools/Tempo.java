@@ -25,7 +25,8 @@ import java.util.Locale;
  * Schalter (als -D… aus Ant oder als Umgebungsvariable in Großbuchstaben): {@code ansicht} = Name oder Taste einer
  * Ansicht (AmKliff, Treppe, Kliffkante, Spuelsaum, Quermarkenfeuer, KampenerLeuchtturm, UweDuene, Bohlenweg, Vogelauge),
  * {@code kamera} = x,z,Richtung,Neigung,Höhe über Grund (frei stehend), {@code hud} = kurz|voll|aus,
- * {@code marken} = an|aus (in Phase 1 an), {@code meer} = aus, {@code pegel} = m über NHN (von Hand).
+ * {@code marken} = an|aus (seit Phase 3 aus), {@code meer} = aus, {@code pegel} = m über NHN (von Hand), seit Phase 3
+ * {@code wolken} = aus, {@code boden} = aus, {@code bedeckung} = Achtel.
  */
 public final class Tempo {
     private Tempo() { }
@@ -62,6 +63,10 @@ public final class Tempo {
         if ("aus".equals(opt("marken"))) r.showMarks = false;
         if ("an".equals(opt("marken"))) r.showMarks = true;
         if ("aus".equals(opt("meer"))) r.showMeer = false;
+        if ("aus".equals(opt("wolken"))) r.showClouds = false;
+        if ("aus".equals(opt("boden"))) r.showGround = false;
+        String bd = opt("bedeckung");
+        if (bd != null && !bd.isBlank()) r.wiring.oktas = Double.parseDouble(bd.replace(',', '.'));
         String pg = opt("pegel");
         if (pg != null && !pg.isBlank()) r.wiring.pegel = Double.parseDouble(pg.replace(',', '.'));
         String an = opt("ansicht"), ka = opt("kamera");
@@ -77,7 +82,9 @@ public final class Tempo {
         }
         d.addGLEventListener(r);
         d.display();   // init
-        for (int i = 0; i < 20; i++) { r.step(1 / 60.0); d.display(); }
+        r.step(1 / 60.0);
+        r.wetter.sky.updateNow();   // Phase 3: das Licht des Himmels sofort, nicht im Hintergrund
+        for (int i = 0; i < 40; i++) { r.step(1 / 60.0); d.display(); }
         double best = Double.MAX_VALUE, sum = 0;
         for (int i = 0; i < frames; i++) {
             long t0 = System.nanoTime();

@@ -1,0 +1,143 @@
+Picked up JAVA_TOOL_OPTIONS: -javaagent:/opt/cowork-node-tools/node_modules/@anthropic-ai/sandbox-runtime/vendor/java-proxy-agent/srt-proxy-agent.jar
+Sylt Phase 3 · Prüfung ohne Grafikkarte
+
+— Raum und Orte (F2 A)
+  ok    Ursprung am Quermarkenfeuer: Turm bei x 3,0, z -4,0 m
+  ok    Quermarkenfeuer aus 54°57′56″ N 8°20′16″ O: E 457603 N 6091174 (Prompt ≈ 457 605 / 6 091 171)
+  ok    Kampener Leuchtturm aus 54°56′46″ N 8°20′27″ O: E 457770 N 6089007 (Prompt ≈ 457 778 / 6 089 003)
+  ok    UTM hin und zurück auf 1 mm
+  ok    Quermarkenfeuer liegt im Kern
+  ok    Kampener Leuchtturm liegt im Kern
+  ok    Uwe-Düne liegt im Kern
+  ok    Kliffkante liegt im Kern
+  ok    Kern 2,3 × 3,6 km (F1 A)
+  ok    Fernfeld 16 × 16 km (F1 A)
+  ok    Kimm aus 30 m: 21,0 km
+
+— Bühne gegen die Profile der BAW (Werkbuch 2.3)
+  ok    Wasserlinie bei N 6088000, E 455972: 0,00 m NHN
+  ok    8 km draußen bei N 6088000: -13,8 m (BAW −13,2 bis −14,1 m)
+  ok    Wasserlinie bei N 6089500, E 456591: 0,00 m NHN
+  ok    8 km draußen bei N 6089500: -13,8 m (BAW −13,2 bis −14,1 m)
+  ok    Wasserlinie bei N 6091000, E 457231: 0,00 m NHN
+  ok    8 km draußen bei N 6091000: -13,8 m (BAW −13,2 bis −14,1 m)
+  ok    Wasserlinie bei N 6092500, E 457875: 0,00 m NHN
+  ok    8 km draußen bei N 6092500: -13,8 m (BAW −13,2 bis −14,1 m)
+  ok    Riff 450 m vor dem Strand: -2,6 m (BAW bei Wenningstedt −2,2 m)
+  ok    Kliffoberkante bei N 6 089 500: 28,6 m (BAW +23 bis +32 m)
+  ok    Kliffoberkante bei N 6 088 000: 18,8 m (BAW +17 bis +21 m)
+  ok    die Wand ist steil: bis 5,4 m je m (über 50°)
+  ok    Uwe-Düne: 56,1 m (52,5 m)
+  ok    Watt im Osten: -1,4 m
+  ok    nördlich der Insel See
+
+— Gelände
+  ok    NHN genau ein 16-Bit-Wert
+  ok    Stufe unter 1 mm
+  ok    Raster decken Fernfeld und Kern
+  ok    Mip-Stufen für Fernring und Kern: log2(10)
+    Bühne gerechnet in 1,3 s: Bühne (Phase 1, keine Höhendaten) · Kern aus der Bühne zu 1 m · See 50 %, Watt 36 %, Heide 6 %, Siedlung 3 %, Wiese 3 %
+  ok    ohne daten/gelaende: Bühne, der Kern aus der Bühne zu 1 m
+  ok    Kern trifft die Bühne an den Zellmitten auf 0,0008 m
+  ok    die Wand im Gelände: bis 2,9 m Anstieg je m (im 10-m-Raster allein wäre sie ein Hang)
+  ok    Gelände trifft die Bühne an den Zellmitten auf 0,0008 m
+  ok    Höhenbereich im Kern -11,1 bis 56,2 m
+  ok    Arten: See, Strand, Kliff, Düne, Heide vorhanden
+
+— Detailstufen (CDLOD)
+  ok    Niedrig: 64 Knoten, 163.776 Punkte
+  ok    Mittel: 74 Knoten, 215.434 Punkte
+  ok    Hoch: 89 Knoten, 263.129 Punkte
+  ok    Ultra: 109 Knoten, 350.765 Punkte
+  ok    feinste Stufe 1 m Punktabstand (Kern)
+
+— Ansichten und Kamera
+  ok    1 Am Kliff: Auge 3,6 m über NHN, 1,7 m über Grund/Wasser, Blick 018°
+  ok    2 Treppe: Auge 18,5 m über NHN, 1,7 m über Grund/Wasser, Blick 192°
+  ok    3 Kliffkante: Auge 30,3 m über NHN, 1,7 m über Grund/Wasser, Blick 258°
+  ok    4 Spülsaum: Auge 1,6 m über NHN, 1,5 m über Grund/Wasser, Blick 292°
+  ok    5 Quermarkenfeuer: Auge 10,6 m über NHN, 1,7 m über Grund/Wasser, Blick 045°
+  ok    6 Kampener Leuchtturm: Auge 18,2 m über NHN, 1,7 m über Grund/Wasser, Blick 090°
+  ok    7 Uwe-Düne: Auge 57,8 m über NHN, 1,7 m über Grund/Wasser, Blick 270°
+  ok    8 Bohlenweg: Auge 8,8 m über NHN, 1,7 m über Grund/Wasser, Blick 320°
+  ok    9 Vogelauge: Auge 600,0 m über NHN, 600,0 m über Grund/Wasser, Blick 074°
+  ok    Kliffkante steht oben: Grund 28,6 m
+  ok    Spülsaum an der Wasserlinie: Grund +0,05 m
+  ok    Namen ohne Umlaute und Tasten
+  ok    Grundansicht von See auf die Küste, Blick 062°
+
+— Uhr und Sonne am Start
+  ok    Start 20.7.2026 20:30 MESZ
+  ok    Sonne am Start 8,9° hoch aus 293° (tief über der See)
+  ok    Sonnenuntergang 21.6. um 22:09 MESZ
+  ok    Licht am Abend von Westen auf die Wand
+
+— Verdrahtung der Hüllen
+  ok    surf sieht See und Land über Surf.Bed und Surf.Level
+  ok    Sylter See bricht vor dem Strand: 3169 m vom Startpunkt
+  ok    Pegel von Hand geht durch (+1 m Wasser)
+  ok    Wind 14 m/s: nasser Strand fliegt nicht, oberer Strand schon
+    Brandung (Hülle): See H_s 1,0 m, T_p 8 s aus 285° · Pegel +0,00 m NHN · H 1,09 m in 3,6 m Wasser
+    Flugsand (Hülle): Wind 14 m/s aus 270° · u* 0,50 m/s, Schwelle hier 0,37 m/s · fliegt: 7,6 g/(m·s)
+
+— Aufbereitete Daten (Phase 2, Werkbuch 2.4)
+    daten/ vollständig: 17 Dateien, 207 MB, aufbereitet 2026-10-27 11:31:30.
+  ok    INHALT.txt: alle Prüfsummen stimmen
+  ok    Gelände aus daten/gelaende: DGM1 2024 (138 Kacheln) + BAW 2015–2021
+  ok    Uwe-Düne im DGM1: 50,5 m (52,5 m mit Plattform)
+  ok    Grund am Kampener Leuchtturm 27,4 m (Site 27,4 m)
+  ok    Wasserlinie bei N 6084000: 0,02 m NHN
+  ok    Wasserlinie bei N 6086000: 0,00 m NHN
+  ok    Wasserlinie bei N 6088000: 0,05 m NHN
+  ok    Wasserlinie bei N 6089000: 0,01 m NHN
+  ok    Wasserlinie bei N 6090000: 0,07 m NHN
+  ok    Wasserlinie bei N 6091000: 0,03 m NHN
+  ok    Wasserlinie bei N 6092500: 0,02 m NHN
+  ok    Wasserlinie bei N 6094000: 0,07 m NHN
+  ok    Wasserlinie bei N 6097000: 0,01 m NHN
+  ok    8 km draußen (BAW): -13,7 m
+  ok    Ansicht Kliffkante oben: Grund 26,6 m
+  ok    Ansicht Spülsaum an der Wasserlinie: +0,07 m
+  ok    keine Naht an den Kacheln des DGM1: Rand 99 % 0,41 m, Mitte 0,38 m, Überschuss im Mittel +0,002 m
+  ok    DGM1 → BAW ohne Stufe: 99 % unter 0,22 m
+  ok    Bandkanten Kern → Hauptraster 0,000 m, Hauptraster → Fernring 0,009 m
+  ok    Kliff: 3074 m mit Wand, höchste 35,4 m
+  ok    Klassen im Kern: Strand 1,7 %, Kliff 0,19 %, Heide 22,4 %, Dach 1,4 %
+
+— Grundbild (Phase 3): Himmel, Wolken, See, Farben, Bodendecke
+  ok    com.dan.sky und die Uhr sehen dieselbe Sonne: 9,03° gegen 8,93°
+  ok    Wolken am Start: 3/8 Cumulus (Sommerabend wie RotesKliff2)
+  ok    See und Brandung mit derselben Dünung: 1,0 m, 8 s aus 285°
+  ok    See mit dem Wind der Verdrahtung
+  ok    Albedo: Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19
+  ok    Albedo jeder Art zwischen 0 und 0,95
+  ok    Biom Sylt mit Strandhafer, Krähenbeere, Besenheide, Kartoffelrose
+  ok    See draußen und Watt im Osten mit der See verbunden; 15 % des Hauptrasters Land oder Binnensenke
+  ok    Nässe des Sands: unter Wasser 1,00, oben am Strand 0,22 (Sand)
+  ok    Durchgänge Himmel, Gelände, Boden, Meer, Wolken, Nachbearbeitung, HUD
+  ok    Marken im Grundbild aus (M schaltet sie an)
+
+— Renderer.jar und Shader
+  ok    Renderer.jar: 40 Packages in Renderer.jar, alle 23 gebrauchten da, dazu surf, dune, beacon
+  ok    neu: surf ✓ · dune ✓ · beacon ✓
+  ok    Shader fullscreen.vert im Jar
+  ok    Shader sky.frag im Jar
+  ok    Shader terrain.vert im Jar
+  ok    Shader terrain.frag im Jar
+  ok    Shader fullscreen.vert im Jar
+  ok    Shader meer.frag im Jar
+  ok    Shader fullscreen.vert im Jar
+  ok    Shader post.frag im Jar
+  ok    Shader fullscreen.vert im Jar
+  ok    Shader overlay.frag im Jar
+  ok    Shader fullscreen.vert im Jar
+  ok    Shader lum.frag im Jar
+  ok    com.dan.surf.demo.SurfCheck: Alles in Ordnung.
+  ok    com.dan.dune.demo.DuneCheck: Alles in Ordnung.
+
+— Regel 2.4: die App liest nie aus C:\Daten
+  ok    kein Laufzeitcode öffnet C:\Daten (nur Werkzeuge in com.dan.sylt.tools, ab Phase 2)
+  ok    die App benutzt keine Werkzeuge (Rohdaten, Aufbereitung) zur Laufzeit
+
+112 Prüfungen in 6,7 s
+ERGEBNIS: alles in Ordnung

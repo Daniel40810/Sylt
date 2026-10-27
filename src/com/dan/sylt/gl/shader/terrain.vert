@@ -30,7 +30,9 @@ void main() {
     vNormal = normalize(vec3(hx0 - hx1, 2.0 * e, hz0 - hz1));
     vWorld = world;
     vDist = d;
-    // Erdkrümmung mit normaler Lichtbrechung: in 10 km liegt der Boden 6,8 m tiefer als seine Höhe sagt, in 100 km 680 m
+    // Erdkrümmung: in 10 km liegt der Boden 7,8 m tiefer als seine Höhe sagt, in 100 km 785 m. Seit Phase 3 ohne die
+    // Lichtbrechung (k = 0,13), wie com.dan.ocean (surface.vert, d²/2R): sonst lägen See und Strand in der Ferne
+    // gegeneinander verschoben (in 20 km um 4 m), und der Grund schaute über die Wasserlinie.
     vec2 dh = world.xz - uCam.xz;
-    gl_Position = uVP * vec4(world.x, world.y - dot(dh, dh) / (2.0 * EARTH_R / 0.87), world.z, 1.0);
+    gl_Position = uVP * vec4(world.x, world.y - dot(dh, dh) / (2.0 * EARTH_R), world.z, 1.0);
 }

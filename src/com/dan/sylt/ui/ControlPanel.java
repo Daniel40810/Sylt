@@ -49,14 +49,16 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
     private final JLabel dateLbl = label(""), timeLbl = label(""), sunLbl = small(""), camLbl = small(""), perfLbl = small(""), computeLbl = small(""),
             glLbl = small(""), physLbl = small(""), gelLbl = small(""), hudLbl = small(""), scaleLbl = label(""), qualLbl = small(""), pkgLbl = small(""),
             pegelLbl = label(""), surfLbl = small(""), hsLbl = label(""), tpLbl = label(""), dirLbl = label(""), duneLbl = small(""), windLbl = label(""),
-            windDirLbl = label(""), dbLbl = small("");
+            windDirLbl = label(""), dbLbl = small(""), oktasLbl = label(""), highLbl = label(""), sichtLbl = label(""), wetterLbl = small("");
     private final FSlider time = new FSlider(0, 24 * 60 - 1, (int) (SceneClock.START_HOUR * 60)), scaleSl = new FSlider(50, 100, 85), expSl = new FSlider(-30, 30, 0),
             pegelSl = new FSlider(-150, 400, 0), hsSl = new FSlider(1, 60, 10), tpSl = new FSlider(3, 16, 8), dirSl = new FSlider(180, 360, 285),
-            windSl = new FSlider(0, 30, 6), windDirSl = new FSlider(0, 359, 270);
+            windSl = new FSlider(0, 30, 6), windDirSl = new FSlider(0, 359, 270), oktasSl = new FSlider(0, 8, 3), highSl = new FSlider(0, 100, 35),
+            sichtSl = new FSlider(2, 80, 40);
     private final FCheckBox free = new FCheckBox("Frei fliegen (F)"), orbit = new FCheckBox("Von selbst kreisen (R)"),
             marks = new FCheckBox("Marken (UTM-Raster, Höhenlinien, Wasserlinie, Kern, Orte)"), autoBox = new FCheckBox("Auflösung selbst regeln"),
-            meerBox = new FCheckBox("See zeigen (Platzhalter bis Phase 3)");
-    private FComboBox lapseBox, qualBox, hudBox;
+            meerBox = new FCheckBox("See zeigen (com.dan.ocean)"), wolkenBox = new FCheckBox("Wolken zeigen (com.dan.cloud)"),
+            bodenBox = new FCheckBox("Bodendecke zeigen (com.dan.ground, Biom Sylt)");
+    private FComboBox lapseBox, qualBox, hudBox, artBox;
     private boolean fromScene;
     private int ticks;
     private JPanel target = this;
@@ -149,9 +151,40 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
                 + "12 Uhr MEZ im Süden. Himmel, Sonne, Mond und Sterne rechnet ab Phase 3 com.dan.sky.</body></html>"));
 
         // ============================================================== WETTER (Phase 3)
-        block("WETTER", false);
-        put(small("<html><body style='width:215px'>Kommt mit Phase 3: Wetterregie (com.dan.weather) mit Lagen wie Sommerabend, Westwind, "
-                + "Ablandig, Sturm und Sturmflut, Himmel aus com.dan.sky, Wolken aus com.dan.cloud.</body></html>"));
+        block("WETTER", true);
+        put(wetterLbl);
+        put(oktasLbl);
+        put(oktasSl);
+        oktasSl.addChangeListener(e -> { if (!fromScene) r.wiring.oktas = oktasSl.getValue(); labels(); });
+        put(label("Art der unteren Wolken"));
+        artBox = new FComboBox(com.dan.cloud.CloudType.values());
+        artBox.setSelectedItem(r.wiring.cloudType);
+        artBox.addActionListener(e -> { if (!fromScene) r.wiring.cloudType = (com.dan.cloud.CloudType) artBox.getSelectedItem(); view.requestFocusInWindow(); });
+        put(artBox);
+        put(highLbl);
+        put(highSl);
+        highSl.addChangeListener(e -> { if (!fromScene) r.wiring.highCover = highSl.getValue() / 100.0; labels(); });
+        put(sichtLbl);
+        put(sichtSl);
+        sichtSl.addChangeListener(e -> { if (!fromScene) r.wiring.visibilityKm = sichtSl.getValue(); labels(); });
+        JPanel lagen = grid(2), lagen2 = grid(2);
+        FButton abend = new FButton("Sommerabend"), heiter = new FButton("Heiter"), bedeckt = new FButton("Bedeckt"), grau = new FButton("Grau");
+        abend.addActionListener(e -> wetter(3, com.dan.cloud.CloudType.CUMULUS, 0.35, 40));
+        heiter.addActionListener(e -> wetter(1, com.dan.cloud.CloudType.CUMULUS, 0.1, 60));
+        bedeckt.addActionListener(e -> wetter(6, com.dan.cloud.CloudType.STRATOCUMULUS, 0.3, 25));
+        grau.addActionListener(e -> wetter(8, com.dan.cloud.CloudType.STRATUS, 0, 8));
+        lagen.add(abend); lagen.add(heiter); lagen2.add(bedeckt); lagen2.add(grau);
+        put(lagen);
+        put(lagen2);
+        wolkenBox.setSelected(r.showClouds);
+        wolkenBox.addActionListener(e -> { r.showClouds = wolkenBox.isSelected(); view.requestFocusInWindow(); });
+        put(wolkenBox);
+        bodenBox.setSelected(r.showGround);
+        bodenBox.addActionListener(e -> { r.showGround = bodenBox.isSelected(); view.requestFocusInWindow(); });
+        put(bodenBox);
+        put(small("<html><body style='width:215px'>Seit Phase 3: Himmel aus com.dan.sky (Sonne, Mond, Sterne, Streuung über 54,9° N), "
+                + "Wolken aus com.dan.cloud mit Schatten, Bodendecke um das Auge aus com.dan.ground. Die Wetterregie mit Lagen bis zur "
+                + "Sturmflut (com.dan.weather) kommt mit Phase 13.</body></html>"));
 
         // ============================================================== SEE
         block("SEE", true);
@@ -162,7 +195,8 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         meerBox.addActionListener(e -> { r.showMeer = meerBox.isSelected(); view.requestFocusInWindow(); });
         put(meerBox);
         put(small("<html><body style='width:215px'>Pegel von Hand (m über NHN). Ab Phase 7a kommt er aus Tide.westerland() (F25 A) mit "
-                + "Windstau; die offene See aus com.dan.ocean ab Phase 3.</body></html>"));
+                + "Windstau. Die offene See (com.dan.ocean, seit Phase 3) nimmt den Wind aus SAND und die Dünung aus BRANDUNG; "
+                + "der Grund ist das Gelände.</body></html>"));
 
         // ============================================================== BRANDUNG (Hülle)
         block("BRANDUNG", true);
@@ -258,7 +292,7 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         shaders.addActionListener(e -> { r.requestShaderReload(); view.requestFocusInWindow(); });
         pic.add(photo); pic.add(shaders);
         put(pic);
-        put(small("<html><body style='width:215px'>Fotos gehen nach docs/status. Marken: weiß der Rand des Fernfelds, gold der Kern "
+        put(small("<html><body style='width:215px'>Fotos gehen nach docs/status. Marken (seit Phase 3 aus, M): weiß der Rand des Fernfelds, gold der Kern "
                 + "(dort ab Phase 2 das DGM1 zu 1 m), blau das 1-km-Raster in UTM und die Höhenlinien alle 5 m, hellblau die Wasserlinie NHN 0; "
                 + "die Orte weiß (Türme), sandfarben (Dünen), hell (Orte), blau (Strand), rot (Kliff).</body></html>"));
         sub("Gelände");
@@ -277,6 +311,7 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         for (FCollapsiblePanel p : zu) p.setExpanded(false, false);
         add(Box.createVerticalGlue());
         view.setKeyAction(java.awt.event.KeyEvent.VK_F1, () -> javax.swing.SwingUtilities.invokeLater(this::tasten));
+        view.setKeyAction(java.awt.event.KeyEvent.VK_M, () -> javax.swing.SwingUtilities.invokeLater(() -> { r.showMarks = !r.showMarks; marks.setSelected(r.showMarks); }));
         view.setKeyAction(java.awt.event.KeyEvent.VK_SPACE, () -> javax.swing.SwingUtilities.invokeLater(() ->
                 lapseBox.setSelectedIndex(clock.lapse == 0 ? 1 : 0)));
         syncFromScene();
@@ -287,6 +322,15 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
             if (ticks++ % 2 == 0) technik();
             nachmessen();
         }).start();
+    }
+
+    private void wetter(double oktas, com.dan.cloud.CloudType art, double hoch, double sicht) {
+        r.wiring.oktas = oktas;
+        r.wiring.cloudType = art;
+        r.wiring.highCover = hoch;
+        r.wiring.visibilityKm = sicht;
+        syncFromScene();
+        view.requestFocusInWindow();
     }
 
     private void seegang(com.dan.surf.Surf p) {
@@ -369,7 +413,7 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
                 + "<b>Szene</b><br>Links ziehen: drehen · rechts ziehen: verschieben · Rad, Bild↑/↓, +/−: zoomen<br>"
                 + "Pfeile: drehen · W A S D: gleiten · Q/E: ab und auf (frei) · Umschalt: schneller<br>"
                 + "F: frei fliegen · R: von selbst kreisen · Pos1: Grundansicht · H: HUD kurz, voll, aus<br>"
-                + "Leertaste: Uhr anhalten und weiter · F12: Foto nach docs/status · F5: Shader neu laden<br>"
+                + "Leertaste: Uhr anhalten und weiter · F12: Foto nach docs/status · F5: Shader neu laden · M: Marken an und aus<br>"
                 + "Ansichten: " + an + "<br><br>"
                 + "<b>Fenster</b><br>F1: diese Übersicht · F11: nur die Szene (Bedienfeld und Statuszeile weg und wieder da)</body></html>",
                 "Sylt · Tasten", com.dan.foptionpane.FOptionPane.INFORMATION_MESSAGE);
@@ -388,6 +432,10 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         if (!dirSl.getValueIsAdjusting()) dirSl.setValue((int) Math.round(r.wiring.surf.seaFromDeg));
         if (!windSl.getValueIsAdjusting()) windSl.setValue((int) Math.round(r.wiring.windSpeed));
         if (!windDirSl.getValueIsAdjusting()) windDirSl.setValue((int) Math.round(r.wiring.windFromDeg));
+        if (!oktasSl.getValueIsAdjusting()) oktasSl.setValue((int) Math.round(r.wiring.oktas));
+        if (!highSl.getValueIsAdjusting()) highSl.setValue((int) Math.round(r.wiring.highCover * 100));
+        if (!sichtSl.getValueIsAdjusting()) sichtSl.setValue((int) Math.round(r.wiring.visibilityKm));
+        if (artBox != null && artBox.getSelectedItem() != r.wiring.cloudType) artBox.setSelectedItem(r.wiring.cloudType);
         fromScene = false;
         labels();
     }
@@ -412,6 +460,11 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         txt(windLbl, String.format(Locale.GERMAN, "Wind in 10 m: %.0f m/s", r.wiring.windSpeed));
         txt(windDirLbl, String.format(Locale.GERMAN, "aus %03.0f° (%s)", r.wiring.windFromDeg, compass(r.wiring.windFromDeg)));
         txt(duneLbl, "<html><body style='width:215px'>" + esc(r.wiring.duneZeile(r.camera.eye[0], r.camera.eye[2])) + "</body></html>");
+        txt(oktasLbl, String.format(Locale.GERMAN, "Bedeckung %.0f/8", r.wiring.oktas));
+        txt(highLbl, String.format(Locale.GERMAN, "Hoher Schleier %.0f %%", r.wiring.highCover * 100));
+        txt(sichtLbl, String.format(Locale.GERMAN, "Sicht %.0f km", r.wiring.visibilityKm));
+        txt(wetterLbl, "<html><body style='width:215px'>" + esc(String.format(Locale.GERMAN, "%s · Sonne am Auge %.0f %%%s", r.wiring.wetterZeile(),
+                r.cloudShade() * 100, r.skyRunning() ? "" : " · Himmel nicht gestartet")) + "</body></html>");
     }
 
     private void technik() {

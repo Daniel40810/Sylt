@@ -1,0 +1,280 @@
+Microsoft Windows [Version 10.0.26300.9711]
+(c) Microsoft Corporation. Alle Rechte vorbehalten.
+
+C:\Users\Dan40810\Documents\NetBeansProjects\Sylt>ant aufbereitung
+Buildfile: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build.xml
+
+-pre-init:
+
+-init-private:
+
+-pre-init-libraries:
+
+-init-private-libraries:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-init-modules-supported:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-ap-cmdline-properties:
+
+-init-macrodef-modulename:
+
+-init-source-module-properties:
+
+-init-macrodef-javac-with-module:
+
+-init-macrodef-javac-with-processors:
+
+-init-macrodef-javac-without-processors:
+
+-init-macrodef-javac:
+
+-init-macrodef-test-impl:
+
+-init-macrodef-junit-init:
+
+-init-test-properties:
+
+-init-macrodef-junit-prototype-with-module:
+
+-init-macrodef-junit-prototype-without-module:
+
+-init-macrodef-junit-single:
+
+-init-macrodef-junit-batch:
+
+-init-macrodef-junit:
+
+-init-macrodef-junit-impl:
+
+-init-macrodef-testng:
+
+-init-macrodef-testng-impl:
+
+-init-macrodef-test:
+
+-init-macrodef-junit-debug-impl:
+
+-init-macrodef-test-debug-junit:
+
+-init-macrodef-testng-debug:
+
+-init-macrodef-testng-debug-impl:
+
+-init-macrodef-test-debug-testng:
+
+-init-macrodef-test-debug:
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+
+-init-macrodef-debug:
+
+-init-macrodef-java-with-module:
+
+-init-macrodef-java-with-unnamed-module:
+
+-init-macrodef-java-without-module:
+
+-init-macrodef-java:
+
+-init-presetdef-jar:
+
+-init-ap-cmdline-supported:
+
+-init-ap-cmdline:
+
+init:
+
+-deps-jar-init:
+
+deps-jar:
+
+-warn-already-built-jar:
+[propertyfile] Updating property file: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build\built-jar.properties
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-copy-persistence-xml:
+
+-compile-depend:
+
+-do-compile:
+
+check-packages:
+     [exec] check-packages: Renderer.jar mit 40 Packages (Quelle: Projekt Renderer)
+     [exec]   Package        Klassen  README  Java
+     [exec]   ocean          27       ok      21
+     [exec]   wave           20       ok      21
+     [exec]   tide           11       ok      21
+     [exec]   mudflat        11       ok      21
+     [exec]   spray          16       ok      21
+     [exec]   cliff          21       ok      21
+     [exec]   fracture       38       ok      21
+     [exec]   reed           12       ok      21
+     [exec]   wind           14       ok      21
+     [exec]   sky            43       ok      21
+     [exec]   cloud          16       ok      21
+     [exec]   rain           12       ok      21
+     [exec]   fog            25       ok      21
+     [exec]   weather        14       ok      21
+     [exec]   lightning      24       ok      21
+     [exec]   flock          42       ok      21
+     [exec]   soundscape     53       ok      21
+     [exec]   season         17       ok      21
+     [exec]   kino           11       ok      21
+     [exec]   store          23       ok      21
+     [exec]   ground         24       ok      21
+     [exec]   weathering     10       ok      21
+     [exec]   wetglass       10       ok      21
+     [exec]   surf           13       ok      21
+     [exec]   dune           11       ok      21
+     [exec]   beacon         27       ok      21
+     [exec] check-packages: alle 26 gebrauchten Packages in Renderer.jar, dazu Kern, Darstellung, Shader und Prüfklassen von surf und dune (Hüllen seit Phase 1) und beacon (aus Lighthouse, F18 A).
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-check-module-main-class:
+
+-set-module-main-class:
+
+-pre-pre-jar:
+
+-do-jar-create-manifest:
+
+-do-jar-copy-manifest:
+     [copy] Copying 1 file to C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build
+
+-do-jar-set-mainclass:
+
+-do-jar-set-profile:
+
+-do-jar-set-splashscreen:
+
+-check-do-mkdist:
+
+-do-jar-jar:
+
+-init-macrodef-copylibs:
+
+-do-jar-copylibs:
+ [copylibs] Copy libraries to C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\dist\lib.
+     [echo] To run this application from the command line without Ant, try:
+     [echo] C:\Program Files\Java\jdk-21/bin/java -jar "C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\dist\Sylt.jar"
+
+-do-jar-delete-manifest:
+
+-do-jar-without-libraries:
+
+-do-jar-with-libraries:
+
+-post-jar:
+
+-do-jar:
+
+-pre-deploy:
+
+-check-jlink:
+
+-do-deploy:
+
+-post-deploy:
+
+deploy:
+
+jar:
+
+aufbereitung:
+     [java] === Sylt Aufbereitung 2026-10-27T12:04:36 · Schritte baw, gelaende, kante, luftbild, bauten, inhalt
+     [java] Rohdaten C:\Daten\Sylt · BAW templates\rasters_BAW\sylt_topo_10m.tif (Zuschnitt)
+     [java] --- baw
+     [java] BAW: topography_max_z_2015-2021_ger.tif: 21021 × 21431 Pixel, 1 × 32 Bit, 10,00 m, Ost 312895?523105, Nord 5898795?6113105, EPSG 25832
+     [java]   templates\rasters_BAW\sylt_topo_10m.tif: 2053 × 2053 Pixel zu 10 m, Ost 446585?467115, Nord 6079535?6100065, -30,42 ? 50,17 m, 0 % ohne Wert
+     [java]   templates\rasters_BAW\sylt_topo_100m.tif: 1024 × 1024 Zellen zu 100 m, -34,41 ? 38,63 m, 46 % ohne Wert ·0,7 s
+     [java]     baw fertig in 0,7 s
+     [java] --- gelaende
+     [java] DGM1: 369 Kacheln, davon 225 ab 2020 gültig, 144 ältere übergangen
+     [java]   DGM1 20 Kacheln gelesen ?
+     [java]   DGM1 40 Kacheln gelesen ?
+     [java]   DGM1 60 Kacheln gelesen ?
+     [java]   DGM1 80 Kacheln gelesen ?
+     [java]   DGM1 100 Kacheln gelesen ?
+     [java]   DGM1 120 Kacheln gelesen ?
+     [java] DGM1: 138 Kacheln im Hauptraster gelesen (16 im Kern), 138.000.000 Punkte, davon 61.384.233 Wasserfläche
+     [java] Kern: 50 % DGM1, 23 % Wasserfläche und 27 % ohne Kachel aus der BAW; DGM1 ? BAW im Mittel 0,24 m (Betrag)
+     [java] Fernring: 47 % aus der BAW, 27 % nördlich der BAW fortgesetzt, 25 % Festland gestaltet [G]
+     [java]   DGM1 2024 (138 Kacheln) + BAW 2015?2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 16 %, Strand 0 %, Kliff 0 %
+     [java]   Nähte: an den Kachelrändern im Kern springt das Gelände 99 % unter 0,41 m, auf den Mittellinien der Kacheln 99 % unter 0,38 m (Rauheit), am Rand im Mittel +0,002 m mehr; DGM1 ? BAW 99 % unter 0,22 m (größte 0,50 m); Kern ? Hauptraster 0,000 m, Hauptraster ? Fernring 0,009 m (Sprung je Schritt an den Bandkanten)
+     [java]   Uwe-Düne: Gipfel 50,6 m NHN bei O 457133, N 6089903 (Schätzung Phase 1: O 457133, N 6089904, 52,5 m)
+     [java]   Quermarkenfeuer: Grund 15,1 m NHN (geschätzt 15 m)
+     [java]   Kampener Leuchtturm: Grund 27,4 m NHN (geschätzt 27 m)
+     [java]   Uwe-Düne: Grund 50,5 m NHN (geschätzt 51 m)
+     [java]   Kliffkante: Grund 27,1 m NHN (geschätzt 27 m)
+     [java]   Risgap (Wenningstedt): Grund 4,9 m NHN (geschätzt 5 m)
+     [java]   Haus Kliffende: Grund 16,3 m NHN (geschätzt 17 m)
+     [java]   Strand am Kliff: Grund 2,0 m NHN (geschätzt 3 m)
+     [java]   Kampen: Grund 15,7 m NHN (geschätzt 16 m)
+     [java] Gelände: daten\gelaende · 11,6 s
+     [java]     gelaende fertig in 12,0 s
+     [java] --- kante
+     [java] Kliff aus dem DGM1: 3074 m mit Wand ? 5 m zwischen N 6087775 und N 6091723
+     [java] bDOM: 18 Kacheln im Kern gelesen, fehlen (See): 454/6087, 454/6088, 454/6089, 454/6090, 454/6091, 455/6090,455/6091
+     [java]   Kliff: 3074 m lang (N 6087775?6091723), Wand im Mittel 17,6 m, höchste 35,4 m bei N 6089979; Kante aus dem bDOM an 1162 Zeilen, im Mittel 0,75 m neben der aus dem DGM1
+     [java]   Band zu 20 cm: 19845 × 500 Werte (0 % ohne Wert)
+     [java]   Quermarkenfeuer: höchster Punkt 10,2 m über Grund (Grund 15,1 m NHN) bei O 457603, N 6091174, 1 m von derSchätzung
+     [java]   Kampener Leuchtturm: höchster Punkt 38,2 m über Grund (Grund 27,4 m NHN) bei O 457770, N 6089007, 1 m vonder Schätzung
+     [java]   Bewuchs: 13,5 % des Kerns über 0,4 m, 5,6 % über 3 m (Gebüsch, Häuser)
+     [java] Kante: daten/kliff, daten/kern/bewuchs.u8 · 3,3 s
+     [java]     kante fertig in 3,3 s
+     [java] --- luftbild
+     [java]   DOP20 25 Kacheln gelesen ?
+     [java]   DOP20 50 Kacheln gelesen ?
+     [java]   DOP20 75 Kacheln gelesen ?
+     [java]   DOP20 100 Kacheln gelesen ?
+     [java]   DOP20 125 Kacheln gelesen ?
+     [java]   DOP20 150 Kacheln gelesen ?
+     [java]   DOP20: 156 Kacheln gelesen (0 nur schwarz-weiß übergangen, 8 _bw im Ordner)
+     [java]   Klassen im Kern: See 31,8 %, Watt 1,8 %, Strand 1,7 %, nasser Sand 0,2 %, Kliff 0,2 %, Düne 5,5 %, Heide 22,4 %, Gebüsch 5,5 %, Wiese 11,0 %, Weg 1,2 %, Strandhafer 1,5 %, Dach 1,4 %
+     [java]   Hauptraster: 33 % der Zellen mit Luftbild, 387.330 Arten gegenüber gelaende geändert; DGM1 2024 (138 Kacheln) + BAW 2015?2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+     [java] Luftbild: daten/kern/luftbild.rgbi, klasse.u8, farben.properties, daten/gelaende/art.u8 · 15,9 s
+     [java]     luftbild fertig in 15,9 s
+     [java] --- bauten
+     [java]   LOD2: 108 ZIP/XML, 2 verschiedene Inhalte (106 doppelt), Kacheln 455_6085, 464_6100; 1097 Gebäude mit derMitte im Fernfeld, 50.409 Dreiecke
+     [java]   LOD2: 84 Kacheln mit Land im Fernfeld fehlen, Liste mit Links in docs\LOD2_nachladen.txt
+     [java] Bauten: daten/bauten · 0,7 s
+     [java]     bauten fertig in 0,7 s
+     [java] --- inhalt
+     [java] INHALT.txt: 17 Dateien, 187,7 MB
+     [java]     inhalt fertig in 0,2 s
+     [java] === fertig in 32,8 s
+
+BUILD SUCCESSFUL
+Total time: 35 seconds
+
+C:\Users\Dan40810\Documents\NetBeansProjects\Sylt>

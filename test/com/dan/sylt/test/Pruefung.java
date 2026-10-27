@@ -28,10 +28,11 @@ import java.util.Locale;
 import java.util.stream.Stream;
 
 /**
- * Prüfung der App ohne Grafikkarte und ohne Datenbank (Ant-Target {@code pruefung}), Stand Phase 2: Raum und Orte,
+ * Prüfung der App ohne Grafikkarte und ohne Datenbank (Ant-Target {@code pruefung}), Stand Phase 3: Raum und Orte,
  * die Bühne gegen die Profile der BAW, das Gelände (16-Bit-Werte, Raster, Höhe gleich Bühne), die Auswahl der
  * Detailstufen, Ansichten und Kamera, Uhr und Sonne am Start, die Verdrahtung der Hüllen von surf und dune, Renderer.jar
- * mit den neuen Packages, die Shader-Dateien, die aufbereiteten Daten (Prüfsummen, Gelände, Nähte, Kliff, Klassen) und
+ * mit den neuen Packages, die Shader-Dateien, die aufbereiteten Daten (Prüfsummen, Gelände, Nähte, Kliff, Klassen), das
+ * Grundbild (Himmel, Wolken, See, Albedo, Biom, Nässe des Sands) und
  * die Regel aus dem Werkbuch 2.4 (kein Laufzeitcode liest C:\Daten oder benutzt die Werkzeuge).
  * Endet mit „ERGEBNIS: alles in Ordnung“ oder der Zahl der Fehler (Rückgabewert 1).
  */
@@ -239,6 +240,41 @@ public final class Pruefung {
             check(c[Terrain.STRAND] > 0 && c[Terrain.KLIFF] > 0 && c[Terrain.HEIDE] > 0 && c[Terrain.DACH] > 0 && c[Terrain.SEE] > 0,
                     f("Klassen im Kern: Strand %.1f %%, Kliff %.2f %%, Heide %.1f %%, Dach %.1f %%", 100.0 * c[3] / kls.length, 100.0 * c[5] / kls.length, 100.0 * c[7] / kls.length, 100.0 * c[13] / kls.length));
         }
+
+        teil("Grundbild (Phase 3): Himmel, Wolken, See, Farben, Bodendecke");
+        Renderer r3 = new Renderer(clock, Terrain.load(Terrain.defaultDir()));
+        r3.step(1 / 60.0);
+        com.dan.sky.Sky.State sst = r3.wetter.sky.updateNow();
+        double[] sc = clock.sun();
+        check(Math.abs(sst.sunAlt - sc[0]) < 0.6, f("com.dan.sky und die Uhr sehen dieselbe Sonne: %.2f° gegen %.2f°", sst.sunAlt, sc[0]));
+        check(r3.wetter.clouds.oktas == 3 && r3.wetter.clouds.type == com.dan.cloud.CloudType.CUMULUS, "Wolken am Start: 3/8 Cumulus (Sommerabend wie RotesKliff2)");
+        com.dan.ocean.Ocean oc = r3.meer.ocean;
+        check(Math.abs(oc.swellHeight - r3.wiring.surf.hs) < 1e-9 && Math.abs(oc.swellFromDeg - r3.wiring.surf.seaFromDeg) < 1e-9 && Math.abs(oc.swellPeriod - r3.wiring.surf.tp) < 1e-9,
+                f("See und Brandung mit derselben Dünung: %.1f m, %.0f s aus %03.0f°", oc.swellHeight, oc.swellPeriod, oc.swellFromDeg));
+        check(Math.abs(oc.windSpeed - r3.wiring.windSpeed) < 1e-9 && oc.windFromDeg == r3.wiring.windFromDeg, "See mit dem Wind der Verdrahtung");
+        com.dan.sylt.scene.KernKarte kk = r3.karte;
+        double aS = kk.albedoLum(Terrain.STRAND), aH = kk.albedoLum(Terrain.HEIDE), aW = kk.albedoLum(Terrain.WIESE), aN = kk.albedoLum(Terrain.NASS);
+        check(Math.abs(aS - 0.40) < 0.01 && aH > 0.05 && aH < 0.16 && aW > 0.05 && aW < 0.25 && aN < aS, f("Albedo: %s", kk.describe()));
+        boolean alleUnter = true;
+        for (float v : kk.albedo) alleUnter &= v > 0 && v < 0.96;
+        check(alleUnter, "Albedo jeder Art zwischen 0 und 0,95");
+        check(com.dan.ground.Biome.sylt().entries.stream().anyMatch(eb -> eb.plant.name.equals("Strandhafer"))
+                && com.dan.ground.Biome.sylt().entries.stream().anyMatch(eb -> eb.plant.name.equals("Kartoffelrose")), "Biom Sylt mit Strandhafer, Krähenbeere, Besenheide, Kartoffelrose");
+        byte[] mask = com.dan.sylt.gl.Meer.binnen(r3.terrain);
+        double[] off = Site.fromUtm(Site.wasserlinieE(6_089_500) - 8000, 6_089_500), wattO = Site.fromUtm(463_000, 6_090_000);
+        int iO = (int) Math.floor((off[0] - Terrain.X0) / Terrain.CELL), jO = (int) Math.floor((off[1] - Terrain.Z0) / Terrain.CELL);
+        int iW = (int) Math.floor((wattO[0] - Terrain.X0) / Terrain.CELL), jW = (int) Math.floor((wattO[1] - Terrain.Z0) / Terrain.CELL);
+        long binnen = 0;
+        for (byte b : mask) if (b != 0) binnen++;
+        check(mask[jO * Terrain.N + iO] == 0 && mask[jW * Terrain.N + iW] == 0, f("See draußen und Watt im Osten mit der See verbunden; %.0f %% des Hauptrasters Land oder Binnensenke", 100.0 * binnen / mask.length));
+        if (r3.terrain.measured() && r3.naesse != null) {
+            com.dan.mudflat.WetField wf = r3.naesse.feld;
+            double[] unten = Site.fromUtm(Site.wasserlinieE(6_089_500) - 20, 6_089_500), oben = Site.fromUtm(Site.wasserlinieE(6_089_500) + 60, 6_089_500);
+            check(wf.wetnessAt(unten[0], unten[1]) > 0.99 && wf.wetnessAt(oben[0], oben[1]) < 0.3 && wf.sedimentAt(oben[0], oben[1]) < 0.01,
+                    f("Nässe des Sands: unter Wasser %.2f, oben am Strand %.2f (Sand)", wf.wetnessAt(unten[0], unten[1]), wf.wetnessAt(oben[0], oben[1])));
+        }
+        check(Renderer.PASSES.length == 7 && Quality.MITTEL.groundRadius > 10 && Quality.MITTEL.ocean == com.dan.ocean.Ocean.Quality.MEDIUM, "Durchgänge " + String.join(", ", Renderer.PASSES));
+        check(!r3.showMarks || Boolean.getBoolean("sylt.marken"), "Marken im Grundbild aus (M schaltet sie an)");
 
         teil("Renderer.jar und Shader");
         List<String> pk = Bibliothek.pakete();

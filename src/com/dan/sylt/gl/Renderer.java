@@ -1,14 +1,26 @@
 package com.dan.sylt.gl;
 
+import com.dan.cloud.Clouds;
+import com.dan.cloud.gl.CloudGl;
+import com.dan.ground.Biome;
+import com.dan.ground.Meadow;
+import com.dan.ground.gl.GroundGl;
+import com.dan.mudflat.gl.MudflatGl;
+import com.dan.sky.Sky;
+import com.dan.sky.gl.SkyGl;
 import com.dan.sylt.app.Bibliothek;
 import com.dan.sylt.camera.Ansichten;
 import com.dan.sylt.camera.Camera;
 import com.dan.sylt.scene.Buehne;
+import com.dan.sylt.scene.Daten;
+import com.dan.sylt.scene.KernKarte;
 import com.dan.sylt.scene.Physik;
 import com.dan.sylt.scene.SceneClock;
 import com.dan.sylt.scene.Site;
 import com.dan.sylt.scene.Sun;
 import com.dan.sylt.scene.Terrain;
+import com.dan.sylt.wiring.Bodendecke;
+import com.dan.sylt.wiring.Strandnaesse;
 import com.dan.sylt.wiring.Wiring;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.GL;
@@ -30,19 +42,22 @@ import java.util.Locale;
 import java.util.function.Consumer;
 
 /**
- * Die Engine auf der Grafikkarte, übernommen aus Brocken und entschlackt (F6 A): alles, was zum Berg gehörte (Wind,
- * Nebel, Raueis, Wald, Fels, Bahn, Gipfel, Menschen, Klang, Regie), ist heraus; geblieben ist das Gerüst, an das die
- * Phasen 3 bis 19 ihre Durchgänge hängen. Je Bild in Phase 1:
+ * Die Engine auf der Grafikkarte, übernommen aus Brocken und entschlackt (F6 A); seit Phase 3 das Grundbild mit den
+ * Packages aus {@code Renderer.jar}. Je Bild:
  * <ol>
- * <li><b>Himmel</b>: der Verlauf nach der Sonnenhöhe ({@code sky.frag}, Platzhalter bis {@code com.dan.sky} in Phase 3)
- * in einen HDR-Puffer (RGBA16F, umgekehrte 32F-Tiefe).</li>
+ * <li><b>Himmel</b>: {@code com.dan.sky} (Streuung, Sonne, Mond, Sterne) in einen HDR-Puffer (RGBA16F, umgekehrte
+ * 32F-Tiefe), dazu das Rundumbild mit Wolken (Spiegelung, Dunst, Himmelslicht) und die Schattenkarte der Wolken
+ * ({@link Wetter}); ohne {@code com.dan.sky} der Verlauf aus Phase 1 ({@code sky.frag}).</li>
  * <li><b>Gelände</b>: Kern, Hauptraster und Fernring aus {@link Terrain} als CDLOD ({@link TerrainLod}), im Kern bis 1 m
- * Punktabstand, mit Erdkrümmung; Farben nach der Art des Grunds, das Kliff in zwei Schichten, darauf zuschaltbar die
- * Marken ({@code terrain.frag}, {@code marken.glsl}). Ohne {@code daten/gelaende} die Bühne ({@link Buehne}).</li>
- * <li><b>Meer</b>: die See als Platzhalter ({@code meer.frag}, bis {@code ocean} in Phase 3): Wasserfläche im Pegel mit
- * Erdkrümmung, also der richtigen Kimm, Farbe nach der Wassertiefe, Spiegelung, Glitzer und ein Schaumsaum; ins Farbziel,
- * gegen die Tiefe des Geländes mit Spielraum (am flachen Strand flimmert sonst die Wasserlinie).</li>
- * <li><b>Nachbearbeitung</b>: Belichtung nach der Sonnenhöhe, Filmkurve, Gamma.</li>
+ * Punktabstand, mit Erdkrümmung; Farben nach der Art des Grunds (im Kern zu 1 m aus dem Luftbild, {@link KernKarte}),
+ * am DOP20 geeicht; Strand und Watt aus {@code com.dan.mudflat} (Nässe nach dem Pegel, {@link Strandnaesse}); das Kliff
+ * mit Grundmaterial; Wolkenschatten; zuschaltbar die Marken.</li>
+ * <li><b>Boden</b>: Bodendecke um das Auge aus {@code com.dan.ground} mit dem Biom „Sylt“ (Strandhafer, Silbergras,
+ * Krähenbeere, Besenheide, Kartoffelrose, F13 A), nur zu Fuß.</li>
+ * <li><b>Meer</b>: die offene See aus {@code com.dan.ocean} mit dem Gelände als Grund ({@link Meer}); ohne Compute der
+ * Platzhalter aus Phase 1 ({@code meer.frag}).</li>
+ * <li><b>Wolken</b>: {@code com.dan.cloud} nach dem Gelände mit seiner Tiefe (aus Brocken).</li>
+ * <li><b>Nachbearbeitung</b>: Belichtung aus der Augenanpassung an Himmel und Bild ({@link Belichtung}), Filmkurve.</li>
  * <li><b>HUD</b>: Tempo (Bilder/s, Zeit der Grafikkarte je Durchgang, Prozessor), Uhr, Sonne, Kamera, Ort in UTM.</li>
  * </ol>
  * Geblieben aus Brocken: Qualitätsstufen mit Auflösungsregelung, Zeitmessung jedes Durchgangs auf der Grafikkarte
@@ -52,10 +67,10 @@ import java.util.function.Consumer;
  */
 public final class Renderer implements GLEventListener {
     public static final int MIN_MAJOR = 4, MIN_MINOR = 3;
-    public static final String VERSION = "Phase 2";
+    public static final String VERSION = "Phase 3";
     /** Phase des Stands (für Ansichten und Bedienfeld). */
-    public static final int PHASE = 2;
-    public static final String[] PASSES = {"Himmel", "Gelände", "Meer", "Nachbearbeitung", "HUD"};
+    public static final int PHASE = 3;
+    public static final String[] PASSES = {"Himmel", "Gelände", "Boden", "Meer", "Wolken", "Nachbearbeitung", "HUD"};
     private static final int MARKS = PASSES.length + 1;
     /** Nah- und Fernebene (m): bis über den Fernring. */
     static final double NEAR = 0.3, FAR = 120_000;
@@ -71,6 +86,31 @@ public final class Renderer implements GLEventListener {
     public final Wiring wiring;
     /** Phase 15: der Kinomodus (com.dan.kino); bis dahin nur der Anschluss für die Tasten der Szene. */
     public final com.dan.kino.Kino kino = new com.dan.kino.Kino();
+    /** Phase 3: Himmel und Wolken, die See, die Arten des Kerns zu 1 m, die Nässe des Sands, die Bodendecke. */
+    public final Wetter wetter = new Wetter();
+    public final Meer meer = new Meer();
+    public final KernKarte karte;
+    public final Strandnaesse naesse;
+    public final Meadow meadow;
+    private final GroundGl groundGl = new GroundGl();
+    private final MudflatGl mudGl = new MudflatGl();
+    private final Belichtung belichtung = new Belichtung();
+    private boolean groundOk;
+    private int klasseTex;
+    /** Ebenen zum Abschalten (Bedienfeld). */
+    public volatile boolean showClouds = true, showGround = true, showOcean = true;
+    /** Belichtung im Bild messen (sonst nur aus dem Himmel geschätzt). */
+    public volatile boolean bildMessung = !Boolean.getBoolean("sylt.belichtung.schaetzen");
+    /** Anpassung des Auges: 0 = feste Belichtung des Tags, 1 = volle Anpassung an das Bild (wie com.dan.sky). */
+    public volatile double adaptation = 0.85;
+    /** Gewicht der Bildmessung gegen den Himmel (Rest) und ihr Faktor (mittleres Grau statt Mittel), aus Brocken. */
+    public static final double BILD_FOLGT = 0.75, BILD_GAIN = 2.0;
+    /** Wie stark eine dunkle Decke die Anpassung mitnimmt (Exponent auf com.dan.cloud.brightnessFactor). */
+    public static final double STORM_ADAPT = 0.6;
+    /** Dunst ohne com.dan.sky (wie common.glsl: 60 km), m. */
+    static final double FOG_DISTANCE = 60_000;
+    private double adaptLum = -1, viewLum = -1, viewTimer, cloudShade = 1;
+    private boolean frameSky;
 
     private volatile Quality quality = Quality.MITTEL;
     public volatile double renderScale = quality.renderScale;
@@ -82,9 +122,9 @@ public final class Renderer implements GLEventListener {
     private int scaleSteps;
     /** HUD an, kurz oder voll (H). */
     public volatile boolean showHud = true, hudFull;
-    /** Die Marken zur Ausrichtung (UTM-Raster, Höhenlinien, Wasserlinie, Fernfeld, Kern, Orte); in Phase 1 an. */
-    public volatile boolean showMarks = true;
-    /** Die See zeigen (Platzhalter bis Phase 3). */
+    /** Die Marken zur Ausrichtung (UTM-Raster, Höhenlinien, Wasserlinie, Fernfeld, Kern, Orte); seit Phase 3 aus (M). */
+    public volatile boolean showMarks = Boolean.getBoolean("sylt.marken");
+    /** Die See zeigen (seit Phase 3 com.dan.ocean, sonst der Platzhalter). */
     public volatile boolean showMeer = true;
     /** Szene steht (für Standbilder und die Leertaste im Kino später). */
     public volatile boolean frozen;
@@ -101,8 +141,9 @@ public final class Renderer implements GLEventListener {
             terrainShader = new Shader("Gelände", null, "terrain.vert", "terrain.frag"),
             meerShader = new Shader("Meer", null, "fullscreen.vert", "meer.frag"),
             post = new Shader("Nachbearbeitung", null, "fullscreen.vert", "post.frag"),
-            overlay = new Shader("Überlagerung", null, "fullscreen.vert", "overlay.frag");
-    private final Shader[] all = {skyShader, terrainShader, meerShader, post, overlay};
+            overlay = new Shader("Überlagerung", null, "fullscreen.vert", "overlay.frag"),
+            lumShader = new Shader("Belichtung", null, "fullscreen.vert", "lum.frag");
+    private final Shader[] all = {skyShader, terrainShader, meerShader, post, overlay, lumShader};
     private final HudOverlay hud = new HudOverlay();
     private int emptyVao, hdrTex, depthTex, hdrFbo, hdrColorFbo, hdrW, hdrH, surfW = 1, surfH = 1, defaultFbo;
     private boolean reversedZ, ready;
@@ -130,6 +171,18 @@ public final class Renderer implements GLEventListener {
         this.wiring = new Wiring(clock);
         wiring.setTerrain(terrain);
         lod.use(terrain);
+        karte = KernKarte.load(Daten.ordner());
+        naesse = terrain.hasKern() ? new Strandnaesse(terrain, karte) : null;
+        meadow = new Meadow(Biome.sylt(), new Bodendecke(terrain, karte));
+        meadow.near = 6.5f;
+        meadow.seed = 2026;
+        wetter.sky.latDeg = Site.LAT;
+        wetter.sky.lonDeg = Site.LON;
+        wetter.sky.epochMillis = clock.epochMillis();
+        // das Rauschen der Wolken (8 MB, 0,5 bis 3 s) schon jetzt im Hintergrund rechnen (aus Rungholt)
+        Thread nt = new Thread(() -> { com.dan.cloud.Noise.base(); com.dan.cloud.Noise.detail(); com.dan.cloud.Noise.weather(); }, "wolken-rauschen");
+        nt.setDaemon(true);
+        nt.start();
         setQuality(quality);
         camera.waterLevel = wiring.pegel;
         camera.groundLevel = groundHeight(camera.eye[0], camera.eye[2]);
@@ -171,6 +224,9 @@ public final class Renderer implements GLEventListener {
         lod.finestKern = q.terrainKern;
         wiring.surf.quality = com.dan.surf.Surf.Quality.values()[q.ordinal()];
         wiring.dune.quality = com.dan.dune.Dune.Quality.values()[q.ordinal()];
+        meer.ocean.quality = q.ocean;
+        wetter.clouds.quality = q.clouds;
+        if (meadow != null) meadow.radius = q.groundRadius;
     }
 
     /** Höhe des Grunds am Ort: das Gelände (ohne daten/gelaende die Bühne). */
@@ -190,10 +246,43 @@ public final class Renderer implements GLEventListener {
         meldungUntil = System.currentTimeMillis() + 5000;
     }
 
-    /** Belichtung aus der Sonnenhöhe des Platzhalter-Himmels (am Tag rund 1,9), dazu die Blenden von Hand. */
+    /**
+     * Belichtung: seit Phase 3 aus der Augenanpassung an Himmel und Bild ({@code com.dan.sky}, gemessen mit
+     * {@link Belichtung}, aus Brocken), ohne Himmel aus der Sonnenhöhe des Platzhalters; dazu die Blenden von Hand.
+     */
     public double exposure() {
+        if (wetter.skyOk && adaptLum > 0) return Sky.State.exposureFor(adaptLum, adaptation) * Math.pow(2, exposureBias);
         double b = Sun.skyBrightness(clock.sun()[0]);
         return 0.6 * Math.pow(b, -0.85) * Math.pow(2, exposureBias);
+    }
+
+    /** Augenanpassung neu (nach Sprüngen der Uhr oder der Kamera). */
+    public void readapt() {
+        viewLum = -1;
+        adaptLum = -1;
+        belichtung.reset();
+        if (wetter.skyOk) adapt(wetter.state(), 1);
+    }
+
+    /** Wolkenschatten am Auge (1 = Sonne). */
+    public double cloudShade() { return cloudShade; }
+    public boolean skyRunning() { return wetter.skyOk; }
+    public boolean cloudsRunning() { return wetter.cloudsOk; }
+    public boolean oceanRunning() { return meer.ok; }
+
+    private void adapt(Sky.State st, double dt) {
+        viewTimer -= dt;
+        if (viewLum <= 0 || viewTimer <= 0) {
+            viewLum = st.viewLuminance(camera.fwd.clone(), new double[]{0, 1, 0}, fovy(), surfW / (double) Math.max(1, surfH));
+            viewTimer = 0.2;
+        }
+        double gemessen = bildMessung ? belichtung.lum() : -1;
+        double target = gemessen > 0
+                ? Math.pow(Math.max(1e-14, st.adaptation), 1 - BILD_FOLGT) * Math.pow(Math.max(1e-14, gemessen * BILD_GAIN), BILD_FOLGT)
+                : Math.sqrt(Math.max(1e-14, st.adaptation) * Math.max(1e-14, viewLum))
+                * (wetter.cloudsOk && showClouds ? Math.pow(wetter.clouds.brightnessFactor(), STORM_ADAPT) : 1);
+        if (adaptLum <= 0 || frozen || dt > 0.5) adaptLum = target;
+        else adaptLum = Math.exp(Math.log(adaptLum) + (Math.log(target) - Math.log(adaptLum)) * Math.min(1, dt / 1.0));
     }
 
     /** Kinomodus verlassen (Esc im Kino; ab Phase 15 läuft das Regiebuch dabei weiter). */
@@ -238,6 +327,19 @@ public final class Renderer implements GLEventListener {
         System.out.println("Sylt: " + compute.line());
         lod.upload(gl, terrain);
         System.out.println("Sylt: Gelände " + terrain.describe());
+        // Phase 3: Himmel und Wolken, See, Arten zu 1 m, Bodendecke, Belichtung (jedes für sich; was nicht startet, fehlt)
+        wetter.init(gl, errorListener);
+        wiring.cloudsDrawn = wetter.cloudsOk;
+        meer.init(gl, terrain, compute.ok(), errorListener);
+        klasseTex = klasseTexture(gl, karte);
+        System.out.println("Sylt: " + karte.describe() + (karte.hatKarte() ? " · Arten im Kern zu 1 m" : " · ohne Karte des Kerns"));
+        try {
+            groundGl.init(gl);
+            groundOk = true;
+        } catch (RuntimeException e) {
+            System.err.println("Sylt: Bodendecke nicht verfügbar: " + e.getMessage());
+        }
+        belichtung.init(gl);
         physik.start();
         lastNanos = System.nanoTime();
         statsNanos = lastNanos;
@@ -263,6 +365,20 @@ public final class Renderer implements GLEventListener {
         camera.waterLevel = wiring.pegel;
         camera.targetGround = Math.max(groundHeight(camera.tx, camera.tz), wiring.pegel);
         camera.step(dt);
+        // Phase 3: Himmel, Wolken und See bekommen ihre Eingänge aus der Verdrahtung, dann ein Schritt
+        boolean cloudsShown = wetter.cloudsOk && showClouds;
+        wiring.cloudsDrawn = cloudsShown;
+        wiring.feed(wetter.sky, camera.eye[1]);
+        wiring.feed(wetter.clouds);
+        wiring.feed(meer.ocean);
+        meer.ocean.step(dt);
+        if (naesse != null) naesse.update(wiring.pegel);
+        if (wetter.skyOk) {
+            Sky.State st = wetter.sky.step(dt);
+            wetter.clouds.step(dt);
+            cloudShade = cloudsShown ? Clouds.shadow(wetter.clouds.snapshot(), camera.eye[0], camera.eye[2], Wetter.keyDir(st)) : 1;
+            adapt(st, dt);
+        }
     }
 
     @Override
@@ -313,13 +429,21 @@ public final class Renderer implements GLEventListener {
 
     void renderFrame(GL4 gl, int w, int h) {
         mark(gl, 0);
+        frameSky = wetter.skyOk;
+        Sky.State st = frameSky ? wetter.state() : null;
+        if (frameSky && adaptLum <= 0) adapt(st, 1);
+        double pre = frameSky ? exposure() : 1;
         double[] sp = clock.sun();
-        double[] sun = Sun.direction(sp[0], sp[1]);
+        double[] sun = frameSky ? st.sunDir : Sun.direction(sp[0], sp[1]);
         float[] proj = Mat4.perspective(fovy(), w / (double) h, NEAR, FAR, reversedZ);
         float[] vp = Mat4.mul(proj, camera.view());
         float[] inv = Mat4.invert(vp);
+        boolean cloudsNow = frameSky && wetter.cloudsOk && showClouds;
+        Clouds.Snapshot cs = wetter.clouds.snapshot();
+        CloudGl.Light cl = null;
 
-        // 1 Himmel: der Verlauf nach der Sonnenhöhe (Platzhalter bis com.dan.sky in Phase 3)
+        // 1 Himmel: com.dan.sky ins Bild, dann das Rundumbild mit Wolken und die Wolkenschatten (aus Brocken);
+        //   ohne com.dan.sky der Verlauf aus Phase 1
         gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrFbo);
         gl.glViewport(0, 0, w, h);
         gl.glClearDepth(reversedZ ? 0 : 1);
@@ -329,11 +453,45 @@ public final class Renderer implements GLEventListener {
         gl.glDisable(GL.GL_DEPTH_TEST);
         gl.glDisable(GL.GL_BLEND);
         gl.glBindVertexArray(emptyVao);
-        common(gl, skyShader, vp, inv, sun);
-        gl.glDrawArrays(GL.GL_TRIANGLES, 0, 3);
+        if (frameSky) {
+            wetter.skyGl.update(gl, st);
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrFbo);
+            gl.glViewport(0, 0, w, h);
+            SkyGl.View sv = new SkyGl.View();
+            sv.viewProj = vp;
+            sv.invViewProj = inv;
+            sv.reversedZ = reversedZ;
+            sv.width = w;
+            sv.height = h;
+            sv.fovyDeg = fovy();
+            sv.preExposure = pre;
+            sv.time = clock.t();
+            wetter.skyGl.draw(gl, st, sv);
+            if (wetter.skyCheck.isEmpty() && frame > 30) wetter.skyCheck = wetter.skyGl.selfCheck(gl, st);
+            gl.glBindVertexArray(emptyVao);
+            if (cloudsNow) {
+                cl = wetter.cloudLight(st, pre);
+                wetter.cloudGl.update(gl, cs, cl, camera.eye.clone());
+                if (wetter.cloudCheck.isEmpty() && frame > 40) wetter.cloudCheck = wetter.cloudGl.selfCheck(gl, cs, cl);
+            }
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, wetter.panoFbo);
+            gl.glViewport(0, 0, Wetter.PANO_W, Wetter.PANO_H);
+            wetter.skyGl.drawPanorama(gl, st, pre);
+            if (cloudsNow) wetter.cloudGl.drawPanorama(gl, cs, cl, camera.eye.clone());
+            gl.glBindTexture(GL.GL_TEXTURE_2D, wetter.panoTex);
+            gl.glGenerateMipmap(GL.GL_TEXTURE_2D);
+            gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrFbo);
+            gl.glViewport(0, 0, w, h);
+            gl.glBindVertexArray(emptyVao);
+        } else {
+            common(gl, skyShader, vp, inv, sun);
+            gl.glDrawArrays(GL.GL_TRIANGLES, 0, 3);
+        }
         mark(gl, 1);
 
-        // 2 Gelände: Kern, Hauptraster und Fernring als CDLOD, mit Marken
+        // 2 Gelände: Kern, Hauptraster und Fernring als CDLOD; Arten zu 1 m im Kern (Einheit 12), Wolkenschatten (13),
+        //   Nässe des Sands aus mudflat (14, Spuren 15), mit Marken
         gl.glEnable(GL.GL_DEPTH_TEST);
         gl.glDepthMask(true);
         gl.glDepthFunc(reversedZ ? GL.GL_GREATER : GL.GL_LESS);
@@ -341,14 +499,79 @@ public final class Renderer implements GLEventListener {
         lod.bind(gl, terrainShader);
         bindMarks(gl, terrainShader);
         terrainShader.set(gl, "uKorrOn", 0);
+        terrainShader.vec4Array(gl, "uAlb", albedo4());
+        gl.glActiveTexture(GL.GL_TEXTURE0 + 12);
+        gl.glBindTexture(GL.GL_TEXTURE_2D, klasseTex);
+        gl.glActiveTexture(GL.GL_TEXTURE0 + 13);
+        gl.glBindTexture(GL.GL_TEXTURE_2D, cloudsNow ? wetter.cloudGl.shadowTexture() : 0);
+        gl.glActiveTexture(GL.GL_TEXTURE0);
+        terrainShader.set(gl, "uKlasse", 12);
+        terrainShader.set(gl, "uKlasseOn", klasseTex != 0 ? 1 : 0);
+        terrainShader.set(gl, "uCloudShadow", 13);
+        double[] cr = cloudsNow ? wetter.cloudGl.shadowRect() : new double[]{0, 0, 1};
+        terrainShader.set(gl, "uCloudRect", (float) cr[0], (float) cr[1], (float) Math.max(1, cr[2]), cloudsNow ? 1f : 0f);
+        if (naesse != null) mudGl.upload(gl, naesse.feld);
+        mudGl.time = clock.t();
+        mudGl.ripples = 0.7;
+        mudGl.bind(gl, terrainShader.id(), 14, naesse != null ? naesse.feld : null, naesse != null ? naesse.feld.material : com.dan.mudflat.Mudflat.beach());
+        terrainShader.set(gl, "uMudTracks", 15);
         lod.draw(gl, terrainShader, camera.eye, vp);
         gl.glBindVertexArray(emptyVao);
         mark(gl, 2);
 
-        // 3 Meer: die See im Pegel mit Erdkrümmung (Platzhalter bis ocean in Phase 3), ins Farbziel ohne Tiefe; sie liest die
-        //   Tiefe des Geländes (Einheit 6)
-        gl.glDisable(GL.GL_DEPTH_TEST);
-        if (showMeer) {
+        // 3 Boden: die Bodendecke um das Auge (nur zu Fuß, Biom Sylt)
+        double[] wv = windVector();
+        boolean groundNow = groundOk && showGround && camera.eye[1] - camera.groundLevel < 25;
+        if (groundOk) {
+            meadow.setSeason(clock.date().getDayOfYear(), 0);
+            meadow.wind.speed = (float) wiring.windSpeed;
+            meadow.wind.direction = (float) Math.toDegrees(Math.atan2(wv[2], wv[0]));
+            groundGl.update(gl, meadow, (float) (clock.t() % 3600), camera.eye[0], camera.eye[2], !groundNow);
+        }
+        if (groundNow) {
+            GroundGl.View gv = new GroundGl.View();
+            gv.viewProj = vp;
+            gv.eye = camera.eye.clone();
+            gv.reversedZ = reversedZ;
+            GroundGl.Light gL = new GroundGl.Light();
+            gL.sunDir = sun;
+            if (frameSky) {
+                gL.skyTexture = wetter.panoTex;
+                gL.sunColor = Wetter.scale(st.sunColor, pre);
+                gL.moonDir = st.moonDir;
+                gL.moonColor = Wetter.scale(st.moonColor, pre);
+                gL.skyColor = Wetter.scale(wetter.ambient(st, showClouds), pre / Math.PI);
+                gL.skyWeight = 1.2;
+                gL.fogDistance = Wetter.fogDistance(st);
+                if (cloudsNow) {
+                    gL.shadowTexture = wetter.cloudGl.shadowTexture();
+                    gL.shadowRect = wetter.cloudGl.shadowRect();
+                }
+            } else {
+                gL.sunColor = sunLight(sp[0]);
+                gL.fogDistance = FOG_DISTANCE;
+            }
+            gl.glEnable(GL.GL_DEPTH_TEST);
+            gl.glDepthFunc(reversedZ ? GL.GL_GREATER : GL.GL_LESS);
+            groundGl.draw(gl, gv, gL);
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrFbo);
+            gl.glViewport(0, 0, w, h);
+            gl.glBindVertexArray(emptyVao);
+        }
+        mark(gl, 3);
+
+        // 4 Meer: com.dan.ocean mit dem Gelände als Grund (nach dem Gelände, mit Tiefentest); ohne Compute der Platzhalter
+        if (showMeer && meer.ok && showOcean) {
+            gl.glEnable(GL.GL_DEPTH_TEST);
+            gl.glDepthMask(true);
+            meer.draw(gl, vp, camera.eye, reversedZ, st, pre, frameSky ? wetter.panoTex : 0, cloudsNow ? wetter.cloudGl.shadowTexture() : 0,
+                    cloudsNow ? wetter.cloudGl.shadowRect() : new double[]{0, 0, 1}, lod.heightTexture(), sun, sunLight(sp[0]), FOG_DISTANCE);
+            if (meer.check.isEmpty() && frame > 30) meer.check = meer.oceanGl.selfCheck(gl, meer.ocean);
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrFbo);
+            gl.glViewport(0, 0, w, h);
+            gl.glBindVertexArray(emptyVao);
+        } else if (showMeer) {
+            gl.glDisable(GL.GL_DEPTH_TEST);
             gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrColorFbo);
             gl.glViewport(0, 0, w, h);
             common(gl, meerShader, vp, inv, sun);
@@ -363,22 +586,45 @@ public final class Renderer implements GLEventListener {
             gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
             gl.glActiveTexture(GL.GL_TEXTURE0);
         }
-        mark(gl, 3);
+        mark(gl, 4);
 
-        // 4 Nachbearbeitung ins Fenster
+        // 5 Wolken nach der Szene mit ihrer Tiefe (ins Farbziel ohne Tiefe: die Tiefe wird gelesen; aus Brocken)
+        gl.glDisable(GL.GL_DEPTH_TEST);
+        if (cloudsNow) {
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrColorFbo);
+            gl.glViewport(0, 0, w, h);
+            CloudGl.View cv = new CloudGl.View();
+            cv.viewProj = vp;
+            cv.invViewProj = inv;
+            cv.eye = camera.eye.clone();
+            cv.reversedZ = reversedZ;
+            cv.width = w;
+            cv.height = h;
+            cv.depthTexture = depthTex;
+            wetter.cloudGl.draw(gl, cs, cl, cv);
+            gl.glBindVertexArray(emptyVao);
+        }
+        // Belichtung im Bild messen (alle 0,2 s, gelesen ohne Warten beim nächsten Mal)
+        if (frameSky && bildMessung) {
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrColorFbo);
+            belichtung.step(gl, lumShader, hdrTex, emptyVao, pre, frozen);
+        }
+        mark(gl, 5);
+
+        // 6 Nachbearbeitung ins Fenster (mit com.dan.sky ist das Bild schon vorbelichtet)
         gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, defaultFbo);
         gl.glViewport(0, 0, surfW, surfH);
         post.use(gl);
         gl.glActiveTexture(GL.GL_TEXTURE0);
         gl.glBindTexture(GL.GL_TEXTURE_2D, hdrTex);
         post.set(gl, "uHdr", 0);
-        post.set(gl, "uExposure", (float) exposure());
-        post.set(gl, "uScotopic", 0f);
+        post.set(gl, "uExposure", frameSky ? 1f : (float) exposure());
+        post.set(gl, "uScotopic", (float) (frameSky ? Wetter.scotopic(st) : 0));
         gl.glBindVertexArray(emptyVao);
         gl.glDrawArrays(GL.GL_TRIANGLES, 0, 3);
-        mark(gl, 4);
+        mark(gl, 6);
 
-        // 5 HUD (vorher abschicken: die Grafikkarte arbeitet, während das HUD im selben Faden gemalt wird; aus Brocken)
+        // 7 HUD (vorher abschicken: die Grafikkarte arbeitet, während das HUD im selben Faden gemalt wird; aus Brocken)
         gl.glFlush();
         if (showHud && !kino.laeuft()) {
             hud.refresh(gl, 250, this::paintHud, frozen);
@@ -386,7 +632,55 @@ public final class Renderer implements GLEventListener {
         }
         gl.glBindVertexArray(0);
         gl.glUseProgram(0);
-        mark(gl, 5);
+        mark(gl, 7);
+    }
+
+    /** Richtung, in die der Wind weht (x Ost, z Süd), als Einheitsvektor. */
+    double[] windVector() {
+        double a = Math.toRadians(wiring.windFromDeg);
+        return new double[]{-Math.sin(a), 0, Math.cos(a)};
+    }
+
+    /** Albedo je Art als vec4 (für uAlb). */
+    float[] albedo4() {
+        int n = Terrain.ART.length;
+        float[] a = new float[n * 4];
+        for (int c = 0; c < n; c++) {
+            a[c * 4] = karte.albedo[c * 3];
+            a[c * 4 + 1] = karte.albedo[c * 3 + 1];
+            a[c * 4 + 2] = karte.albedo[c * 3 + 2];
+            a[c * 4 + 3] = 1;
+        }
+        return a;
+    }
+
+    /** Die Arten des Kerns zu 1 m als R8UI-Textur (0 ohne Karte). */
+    static int klasseTexture(GL4 gl, KernKarte k) {
+        if (!k.hatKarte()) return 0;
+        int n = Terrain.KN;
+        int[] tex = new int[1];
+        gl.glGenTextures(1, tex, 0);
+        gl.glBindTexture(GL.GL_TEXTURE_2D, tex[0]);
+        gl.glTexStorage2D(GL.GL_TEXTURE_2D, 1, GL4.GL_R8UI, n, n);
+        gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1);
+        gl.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, 0, 0, n, n, GL4.GL_RED_INTEGER, GL.GL_UNSIGNED_BYTE, ByteBuffer.wrap(k.klasse));
+        gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4);
+        gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+        gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+        gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+        return tex[0];
+    }
+
+    /** Sonnenlicht des Platzhalter-Himmels (wie sunLight in common.glsl), linear (aus Rungholt). */
+    public static double[] sunLight(double elevDeg) {
+        double e = Math.sin(Math.toRadians(elevDeg));
+        double vis = smooth(-0.015, 0.01, e), t = smooth(0.02, 0.35, e), f = 2.6 * vis * smooth(-0.02, 0.12, e);
+        return new double[]{f, (0.55 + 0.40 * t) * f, (0.28 + 0.60 * t) * f};
+    }
+
+    static double smooth(double a, double b, double x) {
+        double t = Math.max(0, Math.min(1, (x - a) / (b - a)));
+        return t * t * (3 - 2 * t);
     }
 
     private void bindMarks(GL4 gl, Shader s) {
@@ -419,7 +713,23 @@ public final class Renderer implements GLEventListener {
 
     private void common(GL4 gl, Shader s, float[] vp, float[] inv, double[] sun) {
         s.use(gl);
-        s.set(gl, "uSkyMode", 0);
+        // seit Phase 3: mit com.dan.sky Himmel aus dem Rundumbild, Sonne und Mond vorbelichtet, Dunst aus der Sicht
+        boolean sm = frameSky && s != skyShader;
+        s.set(gl, "uSkyMode", sm ? 1 : 0);
+        if (sm) {
+            Sky.State st = wetter.state();
+            double pre = exposure();
+            gl.glActiveTexture(GL.GL_TEXTURE7);
+            gl.glBindTexture(GL.GL_TEXTURE_2D, wetter.panoTex);
+            gl.glActiveTexture(GL.GL_TEXTURE0);
+            s.set(gl, "uPano", 7);
+            s.set(gl, "uSunColor", Wetter.scale(st.sunColor, pre));
+            s.set(gl, "uMoonColor", Wetter.scale(st.moonColor, pre));
+            s.set(gl, "uMoonDir", st.moonDir);
+            s.set(gl, "uFogDist", (float) Wetter.fogDistance(st));
+            s.set(gl, "uPre", (float) pre);
+            s.set(gl, "uSkyAmb", Wetter.scale(wetter.ambient(st, showClouds), pre / Math.PI));
+        }
         s.mat(gl, "uVP", vp);
         s.mat(gl, "uInvVP", inv);
         s.set(gl, "uCam", camera.eye);
@@ -588,14 +898,21 @@ public final class Renderer implements GLEventListener {
                 String.format(Locale.GERMAN, "%.0f Bilder/s   Grafikkarte %.2f ms   Prozessor %.2f ms   Budget %.1f ms", fps, gpuMs, cpuMs, quality.budgetMs()),
                 passTimes(),
                 (c == null ? "!Compute-Test läuft …" : (c.ok() ? "" : "!") + c.line()),
-                String.format(Locale.GERMAN, "%s · Sonne %.1f° / %03.0f° · Belichtung %.2g (Platzhalter-Himmel bis Phase 3)", clock.label(), sp[0], sp[1], exposure()),
+                String.format(Locale.GERMAN, "%s · Sonne %.1f° / %03.0f° · Belichtung %.3g%s", clock.label(), sp[0], sp[1], exposure(),
+                        wetter.skyOk ? (bildMessung ? " (Auge, im Bild gemessen)" : " (Auge, aus dem Himmel)") : " (Platzhalter-Himmel)"),
+                wetter.describe(showClouds, cloudShade)[0],
+                wetter.describe(showClouds, cloudShade)[1],
+                wiring.wetterZeile(),
+                meer.describe(),
+                (groundOk ? "" : "!") + "Boden (ground, Biom " + meadow.biome + "): " + (groundOk ? groundGl.info() : "nicht gestartet"),
+                karte.describe(),
                 wiring.surfZeile(camera.eye[0], camera.eye[2]),
                 wiring.duneZeile(camera.eye[0], camera.eye[2]),
                 physik.describe(),
                 (terrain.measured() ? "" : "!") + "Gelände: " + terrain.describe(),
                 String.format(Locale.GERMAN, "Gelände %d Knoten, %,d Punkte · fein bis %d m, im Kern %d m · Grund hier %.1f m über NHN · %s",
                         lod.nodes, lod.vertices, Quality.spacing(lod.finest), Quality.spacing(lod.finestKern), camera.groundLevel,
-                        Terrain.ART[terrain.artAt(camera.eye[0], camera.eye[2])]),
+                        Terrain.ART[karte.at(terrain, camera.eye[0], camera.eye[2])]),
                 cameraLine(),
                 String.format(Locale.GERMAN, "UTM 32 N  E %.0f  N %.0f · %s · Kimm %.1f km", utm[0], utm[1], Site.dms(ll[0], ll[1]), kimm / 1000),
                 "Renderer.jar: " + Bibliothek.kurz(),
@@ -665,6 +982,12 @@ public final class Renderer implements GLEventListener {
         GL4 gl = d.getGL().getGL4();
         for (Shader s : all) s.dispose(gl);
         hud.dispose(gl);
+        wetter.dispose(gl);
+        meer.dispose(gl);
+        if (groundOk) groundGl.dispose(gl);
+        mudGl.dispose(gl);
+        belichtung.dispose(gl);
+        Gpu.deleteTextures(gl, klasseTex);
         lod.dispose(gl);
         Gpu.deleteFbos(gl, hdrFbo, hdrColorFbo);
         Gpu.deleteTextures(gl, hdrTex, depthTex);

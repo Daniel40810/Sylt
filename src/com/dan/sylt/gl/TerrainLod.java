@@ -266,7 +266,7 @@ public final class TerrainLod {
         terrain.range(x0, z0, size, mm);
         // die Erdkrümmung senkt ferne Knoten (terrain.vert); der Höhenbereich nach unten um die Absenkung erweitert
         double dist = Math.hypot(Math.max(0, Math.max(x0 - cx, cx - (x0 + size))), Math.max(0, Math.max(z0 - cz, cz - (z0 + size))));
-        double y0 = mm[0] - 1 - dist * dist / (2 * 6_371_000.0 / 0.87), y1 = mm[1] + 1;
+        double y0 = mm[0] - 1 - dist * dist / (2 * 6_371_000.0), y1 = mm[1] + 1;
         if (!sphereBox(range[lod], x0, y0, z0, size, y1)) return false;
         if (cull && !visible(x0, y0, z0, size, y1)) return true;
         if (lod <= finestAt(x0, z0, size) || !sphereBox(range[lod - 1], x0, y0, z0, size, y1)) {

@@ -52,10 +52,17 @@ public final class BautenImport {
     public static List<String> importieren(Rohdaten r, File daten, Consumer<String> log) throws IOException {
         long t0 = System.nanoTime();
         List<String> bericht = new ArrayList<>();
-        File dir = r.lod2();
-        File[] zips = dir.listFiles((d, n) -> n.toLowerCase(Locale.ROOT).endsWith(".zip") || n.toLowerCase(Locale.ROOT).endsWith(".xml") || n.toLowerCase(Locale.ROOT).endsWith(".gml"));
-        if (zips == null) throw new IOException("LOD2: Ordner " + dir + " fehlt");
-        java.util.Arrays.sort(zips);
+        List<File> liste = new ArrayList<>();
+        File dir = null;
+        for (File d : r.lod2) {
+            File[] fs = d.listFiles((dd, n) -> n.toLowerCase(Locale.ROOT).endsWith(".zip") || n.toLowerCase(Locale.ROOT).endsWith(".xml") || n.toLowerCase(Locale.ROOT).endsWith(".gml"));
+            if (fs == null) continue;
+            if (dir == null || new File(d, "LOD2_SH_Massendownload.geojson").isFile()) dir = d;   // die Übersicht liegt im ersten Ordner
+            java.util.Arrays.sort(fs);
+            liste.addAll(java.util.Arrays.asList(fs));
+        }
+        if (dir == null) throw new IOException("LOD2: kein Ordner da (" + r.lod2 + ")");
+        File[] zips = liste.toArray(new File[0]);
         Set<String> inhalte = new HashSet<>(), ids = new HashSet<>();
         TreeSet<String> kacheln = new TreeSet<>();
         List<Gebaeude> geb = new ArrayList<>();
@@ -139,8 +146,11 @@ public final class BautenImport {
         String geo = "";
         File gj = new File(dir, "LOD2_SH_Massendownload.geojson");
         if (gj.isFile()) geo = Files.readString(gj.toPath(), StandardCharsets.UTF_8);
-        for (String k : fehlen) {
+        int ohneGebaeude = 0;
+        for (String k : new ArrayList<>(fehlen)) {
             String name = "LoD2_32_" + k + "_1_SH.xml";
+            // Kacheln, die die Übersicht nicht kennt, haben keine Gebäude (See, Strand, Watt)
+            if (!geo.isEmpty() && !geo.contains("file=" + name)) { fehlen.remove(k); ohneGebaeude++; continue; }
             int i = geo.indexOf("file=" + name);
             String link = "";
             if (i > 0) {
@@ -149,11 +159,13 @@ public final class BautenImport {
             }
             boolean kern = Site.KERN.eMin() < (Integer.parseInt(k.substring(0, 3)) + 1) * 1000.0 && Site.KERN.eMax() > Integer.parseInt(k.substring(0, 3)) * 1000.0
                     && Site.KERN.nMin() < (Integer.parseInt(k.substring(4)) + 1) * 1000.0 && Site.KERN.nMax() > Integer.parseInt(k.substring(4)) * 1000.0;
-            sb.append(name).append(kern ? "  (Kern)" : "").append(link.isEmpty() ? "  (nicht in der Übersicht)" : "\n    " + link).append('\n');
+            sb.append(name).append(kern ? "  (Kern)" : "").append(link.isEmpty() ? "" : "\n    " + link).append('\n');
         }
+        if (fehlen.isEmpty()) sb.append("Keine: alle Kacheln mit Gebäuden im Fernfeld sind da.\n");
+        sb.append("\n").append(ohneGebaeude).append(" Kacheln mit Land im Fernfeld stehen nicht in der Übersicht: dort gibt es keine Gebäude.\n");
         NACHLADEN.getAbsoluteFile().getParentFile().mkdirs();
         Files.writeString(NACHLADEN.toPath(), sb.toString());
-        bericht.add(Raster.f("LOD2: %d Kacheln mit Land im Fernfeld fehlen, Liste mit Links in %s", fehlen.size(), NACHLADEN.getPath()));
+        bericht.add(Raster.f("LOD2: %d Kacheln mit Gebäuden im Fernfeld fehlen (%d weitere ohne Gebäude), Liste in %s", fehlen.size(), ohneGebaeude, NACHLADEN.getPath()));
         for (String s : bericht) log.accept("  " + s);
         log.accept(Raster.f("Bauten: daten/bauten · %.1f s", (System.nanoTime() - t0) / 1e9));
         return bericht;

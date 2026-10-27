@@ -1,5 +1,8 @@
 package com.dan.sylt.gl;
 
+import com.dan.cloud.Clouds;
+import com.dan.ocean.Ocean;
+
 import java.util.Locale;
 
 /**
@@ -13,10 +16,10 @@ import java.util.Locale;
  * 30; „Hoch“ und „Ultra“ sind für Standbilder und Kino.
  */
 public enum Quality {
-    NIEDRIG("Niedrig", 0.67, 2.2, 3, 2),
-    MITTEL("Mittel", 0.85, 2.6, 3, 1),
-    HOCH("Hoch", 1.0, 3.0, 2, 0),
-    ULTRA("Ultra", 1.0, 3.4, 2, 0);
+    NIEDRIG("Niedrig", 0.67, 2.2, 3, 2, Ocean.Quality.LOW, Clouds.Quality.FLAT, 12),
+    MITTEL("Mittel", 0.85, 2.6, 3, 1, Ocean.Quality.MEDIUM, Clouds.Quality.MEDIUM, 18),
+    HOCH("Hoch", 1.0, 3.0, 2, 0, Ocean.Quality.HIGH, Clouds.Quality.HIGH, 24),
+    ULTRA("Ultra", 1.0, 3.4, 2, 0, Ocean.Quality.ULTRA, Clouds.Quality.ULTRA, 30);
 
     public final String label;
     /** Anteil der Bildgröße, in dem gerechnet wird. */
@@ -25,8 +28,15 @@ public enum Quality {
     public final double terrainRange;
     /** Feinste Stufe außerhalb des Kerns und in ihm (0 = 1 m, 1 = 2 m, 2 = 4 m, 3 = 8 m Punktabstand). */
     public final int terrainFine, terrainKern;
+    /** Seit Phase 3: die See ({@code ocean}), die Wolken ({@code cloud}) und der Halbmesser der Bodendecke um das Auge (m, {@code ground}). */
+    public final Ocean.Quality ocean;
+    public final Clouds.Quality clouds;
+    public final float groundRadius;
 
-    Quality(String label, double renderScale, double terrainRange, int terrainFine, int terrainKern) {
+    Quality(String label, double renderScale, double terrainRange, int terrainFine, int terrainKern, Ocean.Quality ocean, Clouds.Quality clouds, float groundRadius) {
+        this.ocean = ocean;
+        this.clouds = clouds;
+        this.groundRadius = groundRadius;
         this.label = label;
         this.renderScale = renderScale;
         this.terrainRange = terrainRange;
@@ -47,8 +57,8 @@ public enum Quality {
 
     /** Was die Stufe einstellt, als eine Zeile (Bedienfeld, README). */
     public String summary() {
-        return String.format(Locale.GERMAN, "%s: %d %% der Auflösung, Budget %.1f ms, Gelände %.1f Knoten, außen %d m, im Kern %d m", label,
-                Math.round(renderScale * 100), budgetMs(), terrainRange, spacing(terrainFine), spacing(terrainKern));
+        return String.format(Locale.GERMAN, "%s: %d %% der Auflösung, Budget %.1f ms, Gelände %.1f Knoten, außen %d m, im Kern %d m, See %d² × %d, Wolken %s, Boden %.0f m", label,
+                Math.round(renderScale * 100), budgetMs(), terrainRange, spacing(terrainFine), spacing(terrainKern), ocean.n, ocean.cascades, clouds, groundRadius);
     }
 
     @Override public String toString() { return label; }

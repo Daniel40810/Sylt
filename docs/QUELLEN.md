@@ -12,6 +12,7 @@ Quellenvermerk: **© GeoBasis-DE/LVermGeo SH**, Lizenz **Datenlizenz Deutschland
 | `Sylt\bDOM\` | 258 Kacheln `bdom20nc_32_E_N_1_sh_2024.tif`, bildbasiertes Oberflächenmodell, 20 cm, float32, 26 GB | 2024 | `kante`: 18 Kacheln im Kern (Bewuchs, Kliffkante, 20-cm-Band); die übrigen sieben Kernkacheln gibt es nicht (offene See). |
 | `Sylt\DOP20\` | 258 Kacheln `dop20rgbi_32_E_N_1_sh_2024.tif`, Orthofoto RGB und Infrarot, 20 cm, 26 GB; 8 davon nur als `_bw` (Westerland) | 2024 | `luftbild`: 156 Kacheln im Hauptraster, Klassen je Meter (Kern) und je 10 m (F5 A). |
 | `Sylt\LOD2\` | 108 ZIPs `Mehrfachdownload_*.zip` mit CityGML 1.0, dazu `LOD2_SH_Massendownload.geojson` (Übersicht ganz SH) | Grundrisse 30.06.2023, Dateien 25.03.2025 | `bauten`. **Befund:** nur zwei verschiedene Inhalte (Kachel 455/6085 64-mal, 464/6100 44-mal), die Namen in den ZIPs stimmen nicht. Kampen, Wenningstedt und die Türme fehlen; Liste zum Nachladen: `docs/LOD2_nachladen.txt`. |
+| `LOD2\` (neben `Sylt\`, nachgeladen 27.10.2026) | die fehlenden Kacheln aus `docs/LOD2_nachladen.txt` | wie oben | `bauten` liest beide Ordner (`-Dsylt.lod2` überschreibt): 67 Kacheln, 15 162 Gebäude, 545 287 Dreiecke; Kacheln ohne Eintrag in der Übersicht (19, alle im Meer) gelten als ohne Gebäude. Quermarke 26,1 m, Leuchtturm Kampen 66,2 m über NHN. |
 
 ## Küstenhöhen der BAW
 
