@@ -344,7 +344,7 @@ public final class Pruefung {
         for (String[] prog : rd.shaderFiles())
             for (String file : prog)
                 check(Renderer.class.getResource("/com/dan/sylt/gl/shader/" + file) != null, "Shader " + file + " im Jar");
-        for (String c : new String[]{"com.dan.surf.demo.SurfCheck", "com.dan.dune.demo.DuneCheck", "com.dan.tide.demo.TideCheck", "com.dan.beacon.demo.BeaconCheck"}) {
+        for (String c : new String[]{"com.dan.surf.demo.SurfCheck", "com.dan.dune.demo.DuneCheck", "com.dan.tide.demo.TideCheck", "com.dan.beacon.demo.BeaconCheck", "com.dan.fracture.demo.FractureCheck"}) {
             Process p = new ProcessBuilder(javaBin(), "-Dstdout.encoding=UTF-8", "-cp", System.getProperty("java.class.path"), c).redirectErrorStream(true).start();
             String out = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             check(p.waitFor() == 0 && out.contains("Alles in Ordnung."), c + ": " + (out.contains("Alles in Ordnung.") ? "Alles in Ordnung." : out.strip()));
