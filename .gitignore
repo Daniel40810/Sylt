@@ -1,0 +1,17 @@
+# Sylt · .gitignore (Phase 1)
+# NetBeans: Ausgaben und rechnerbezogene Einstellungen
+/build/
+/dist/
+/nbproject/private/
+# Vorlagen (Fotos) und der BAW-Zuschnitt (ab Phase 2 in templates/rasters_BAW): groß, Lizenz beim Anbieter
+/templates/
+# Aufbereitete Daten (Phase 2, Werkbuch 2.4): nicht in Git, beschrieben mit Prüfsummen in daten/INHALT.txt
+/daten/
+# Pfad der Rohdaten (Vorgabe C:\Daten\Sylt, nach Projektende auf der Wechselfestplatte)
+/daten/rohdaten.properties
+# Zugangsdaten: db.properties enthält nach dem ersten Verbinden das Passwort im Klartext
+/db/db.properties
+# db/User.sql trägt das Passwort des Schemas im Klartext (wie in Brocken)
+/db/User.sql
+# Austausch mit Claude (Archive, Zwischenstände)
+/_transfer/

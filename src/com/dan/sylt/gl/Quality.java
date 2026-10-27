@@ -1,0 +1,55 @@
+package com.dan.sylt.gl;
+
+import java.util.Locale;
+
+/**
+ * Qualitätsstufen der App (aus Brocken, entschlackt). Phase 1: der Anteil der Bildgröße, in dem gerechnet wird, das
+ * Zeitbudget und Sichtweite und Punktabstand des Geländes, im Kern feiner (F1 A: DGM1 zu 1 m). Jede weitere Phase
+ * hängt die Stufe ihres Packages an (3 {@code ocean}, {@code sky}, {@code cloud}; 5–7 {@code surf}; 8–9 {@code dune} …);
+ * die Packages haben ihre eigene Kopie dieser Aufzählung (Paketvertrag Punkt 7) und folgen der App eins zu eins über
+ * {@link #ordinal()}.
+ * <p>
+ * Ziel (F28 A, Werkbuch Abschnitt 13): „Mittel“ hält 60 Bilder/s in Full HD auf der Radeon 680M mit 2 GB, nie unter
+ * 30; „Hoch“ und „Ultra“ sind für Standbilder und Kino.
+ */
+public enum Quality {
+    NIEDRIG("Niedrig", 0.67, 2.2, 3, 2),
+    MITTEL("Mittel", 0.85, 2.6, 3, 1),
+    HOCH("Hoch", 1.0, 3.0, 2, 0),
+    ULTRA("Ultra", 1.0, 3.4, 2, 0);
+
+    public final String label;
+    /** Anteil der Bildgröße, in dem gerechnet wird. */
+    public final double renderScale;
+    /** Sichtweite jeder Geländestufe in ihren Knotengrößen (CDLOD). */
+    public final double terrainRange;
+    /** Feinste Stufe außerhalb des Kerns und in ihm (0 = 1 m, 1 = 2 m, 2 = 4 m, 3 = 8 m Punktabstand). */
+    public final int terrainFine, terrainKern;
+
+    Quality(String label, double renderScale, double terrainRange, int terrainFine, int terrainKern) {
+        this.label = label;
+        this.renderScale = renderScale;
+        this.terrainRange = terrainRange;
+        this.terrainFine = terrainFine;
+        this.terrainKern = terrainKern;
+    }
+
+    /** Punktabstand (m) einer Stufe: 1 m · 2^Stufe. */
+    public static int spacing(int level) { return 1 << level; }
+
+    /**
+     * Bildzeit, die die Stufe höchstens verbrauchen darf (ms): „Mittel“ 16,5 ms (60 Bilder/s mit Rand), „Hoch“ das
+     * Doppelte, „Niedrig“ die Hälfte.
+     */
+    public double budgetMs() {
+        return switch (this) { case NIEDRIG -> 8.0; case MITTEL -> 16.5; case HOCH -> 33.0; case ULTRA -> 50.0; };
+    }
+
+    /** Was die Stufe einstellt, als eine Zeile (Bedienfeld, README). */
+    public String summary() {
+        return String.format(Locale.GERMAN, "%s: %d %% der Auflösung, Budget %.1f ms, Gelände %.1f Knoten, außen %d m, im Kern %d m", label,
+                Math.round(renderScale * 100), budgetMs(), terrainRange, spacing(terrainFine), spacing(terrainKern));
+    }
+
+    @Override public String toString() { return label; }
+}
