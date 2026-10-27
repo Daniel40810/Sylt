@@ -26,7 +26,7 @@ import java.util.Locale;
  * Ansicht (AmKliff, Treppe, Kliffkante, Spuelsaum, Quermarkenfeuer, KampenerLeuchtturm, UweDuene, Bohlenweg, Vogelauge),
  * {@code kamera} = x,z,Richtung,Neigung,Höhe über Grund (frei stehend), {@code hud} = kurz|voll|aus,
  * {@code marken} = an|aus (seit Phase 3 aus), {@code meer} = aus, {@code pegel} = m über NHN (von Hand), seit Phase 3
- * {@code wolken} = aus, {@code boden} = aus, {@code bedeckung} = Achtel.
+ * {@code wolken} = aus, {@code boden} = aus, {@code bedeckung} = Achtel, seit Phase 7a {@code see} = H_s,T_p,Richtung.
  */
 public final class Tempo {
     private Tempo() { }
@@ -68,7 +68,14 @@ public final class Tempo {
         String bd = opt("bedeckung");
         if (bd != null && !bd.isBlank()) r.wiring.oktas = Double.parseDouble(bd.replace(',', '.'));
         String pg = opt("pegel");
-        if (pg != null && !pg.isBlank()) r.wiring.pegel = Double.parseDouble(pg.replace(',', '.'));
+        String see = opt("see");
+        if (see != null && !see.isBlank()) {
+            String[] v = see.split("[,;]");
+            r.wiring.surf.hs = Double.parseDouble(v[0]);
+            if (v.length > 1) r.wiring.surf.tp = Double.parseDouble(v[1]);
+            if (v.length > 2) r.wiring.surf.seaFromDeg = Double.parseDouble(v[2]);
+        }
+        if (pg != null && !pg.isBlank()) { r.wiring.tideAn = false; r.wiring.pegel = Double.parseDouble(pg.replace(',', '.')); }
         String an = opt("ansicht"), ka = opt("kamera");
         if (ka != null && !ka.isBlank()) {
             String[] p = ka.split(",");
@@ -83,6 +90,7 @@ public final class Tempo {
         d.addGLEventListener(r);
         d.display();   // init
         r.step(1 / 60.0);
+        r.brandungJetzt();     // Phase 7a: Wellenfeld und Netz nahe am Auge vor dem Bild
         r.wetter.sky.updateNow();   // Phase 3: das Licht des Himmels sofort, nicht im Hintergrund
         for (int i = 0; i < 40; i++) { r.step(1 / 60.0); d.display(); }
         double best = Double.MAX_VALUE, sum = 0;

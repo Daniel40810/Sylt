@@ -14,7 +14,9 @@ import java.util.Locale;
  * Phase 3: die offene See aus {@code com.dan.ocean} (aus Rungholt): Windsee aus dem Wind der Verdrahtung, Dünung
  * dieselbe, die {@code surf} draußen annimmt (H_s 1 m, T_p 8 s aus 285° im Sommer), Pegel aus der Verdrahtung. Der Grund ist
  * das Hauptraster (Höhentextur des Geländes, 10 m): zum Ufer hin werden die Wellen flacher, im seichten Wasser scheint der
- * Sand durch, am Strand liegt ein Schaumsaum; außerhalb des Hauptrasters offene See (−20 m). Senken im Land, die nicht
+ * Sand durch, am Strand liegt ein Schaumsaum; außerhalb des Hauptrasters offene See (−20 m). Seit Phase 7a zeichnet die
+ * See die Brandung aus dem Wellenfeld von {@code surf} (Walzen, Schaumteppich, Set-up, Rippströme) und lässt nahe am Auge
+ * ein Loch, in dem das Netz der Brecher liegt; um die Pfähle der Buhnen legt sie Brandungsringe. Senken im Land, die nicht
  * mit der See verbunden sind, blendet eine Maske aus ({@link #binnen}). Brandung, Auflauf und Schwall kommen mit
  * {@code surf} in den Phasen 5 bis 7. Startet das Meer nicht (kein Compute), bleibt der Platzhalter aus Phase 1.
  */
@@ -96,7 +98,7 @@ public final class Meer {
      * Platzhalter, Spiegelung aus dem Rundumbild, Wolkenschatten, Grund aus der Höhentextur.
      */
     void draw(GL4 gl, float[] vp, double[] eye, boolean reversedZ, Sky.State st, double pre, int panoTex, int cloudTex, double[] cloudRect,
-              int bedTex, double[] sun, double[] sunFallback, double fogFallback) {
+              int bedTex, double[] sun, double[] sunFallback, double fogFallback, java.util.function.Consumer<OceanGl.Light> extra) {
         oceanGl.update(gl, ocean);
         OceanGl.View ov = new OceanGl.View();
         ov.viewProj = vp;
@@ -129,6 +131,8 @@ public final class Meer {
         ol.maskRect = new double[]{Terrain.X0, Terrain.Z0, Terrain.N * Terrain.CELL};
         ol.maskMode = -1;
         ol.tileBreak = 0.6;
+        // seit Phase 7a: die Brandung von außen (Wellenfeld aus surf), Strömung und das Loch für das Netz
+        if (extra != null) extra.accept(ol);
         gl.glDepthFunc(reversedZ ? GL.GL_GREATER : GL.GL_LESS);
         oceanGl.draw(gl, ocean, ov, ol);
     }

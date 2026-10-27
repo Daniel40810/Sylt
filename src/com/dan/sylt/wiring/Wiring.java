@@ -7,6 +7,7 @@ import com.dan.ocean.Ocean;
 import com.dan.sky.Sky;
 import com.dan.surf.Surf;
 import com.dan.sylt.scene.Terrain;
+import com.dan.tide.Tide;
 
 import java.util.Locale;
 
@@ -27,11 +28,18 @@ import java.util.Locale;
  * {@link #visibilityKm}), die Wetterregie mit Lagen kommt mit Phase 13. Die Dünung der See ist dieselbe, die {@code surf}
  * draußen annimmt (H_s, T_p, Richtung), so laufen offene See und Brandung zusammen; ab Phase 5 das Wellenfeld, ab 9a das
  * Windfeld.
+ * <p>
+ * Seit Phase 7a: der Pegel aus {@link Tide#westerland()} (F25 A) mit Windstau ({@link #tideAn}; aus: von Hand), und
+ * {@code surf} sieht den Grund mit Riffen und Rinnen (das setzt {@code scene.Brandung}).
  */
 public final class Wiring {
     public final Clock clock;
     /** Wasserstand der See über NHN (m): Phase 1 fest, ab Phase 7a Tide und Windstau. */
     public volatile double pegel = 0;
+    /** Seit Phase 7a: die Tide am Weststrand; ob der Pegel aus ihr kommt (sonst von Hand). */
+    public final Tide tide = Tide.westerland();
+    public volatile boolean tideAn = true;
+    private double lastMs = Double.NaN;
     /** Wind 10 m über Grund (m/s) und Richtung, aus der er kommt (Grad); Phase 1 offene Werte, ab Phase 3 aus der Regie. */
     public volatile double windSpeed = 6, windFromDeg = 270;
 
@@ -61,6 +69,28 @@ public final class Wiring {
         };
     }
 
+    /**
+     * Seit Phase 7a: den Pegel aus der Tide nachführen (Uhr der Szene, mit Zeitraffer), der Windstau läuft mit seiner
+     * Zeitkonstante auf das Ziel aus Wind und Richtung zu. Ohne Tide bleibt der Pegel, wie er von Hand steht.
+     */
+    public void stepTide() {
+        double ms = clock.epochMillis();
+        double dh = Double.isNaN(lastMs) ? 24 : (ms - lastMs) / 3_600_000.0;
+        lastMs = ms;
+        if (!tideAn) return;
+        tide.stepSurge(Tide.surgeTarget(windSpeed, windFromDeg), Math.min(24, Math.abs(dh)));
+        pegel = tide.levelAtMillis(ms);
+    }
+
+    /** „Flut, Hochwasser 13:13 +0,92 m · Niedrigwasser 19:47 −0,85 m · Windstau +0,02 m“ */
+    public String tideZeile() {
+        double h = clock.epochMillis() / 3_600_000.0;
+        java.time.ZoneId z = java.time.ZoneId.of("Europe/Berlin");
+        Tide.Turn hw = tide.next(h, true), nw = tide.next(h, false);
+        return String.format(Locale.GERMAN, "%s %s, %s · %s · Windstau %+.2f m", tide.gauge, tide.rising(h) ? "Flut" : "Ebbe",
+                hw == null ? "" : Tide.format(hw, z), nw == null ? "" : Tide.format(nw, z), tide.surge);
+    }
+
     /** Das Gelände an alle, die den Grund brauchen (einmal nach dem Laden). */
     public void setTerrain(Terrain t) {
         surf.bed = t::height;
@@ -75,11 +105,18 @@ public final class Wiring {
     /** Eine Zeile für das HUD: Brandung an der Kamera (Hülle). */
     public String surfZeile(double x, double z) {
         double t = clock.t(), h = surf.depthAt(x, z, t);
-        String hier = h <= 0 ? "an Land" : surf.breakingAt(x, z, t)
+        String hier;
+        if (h <= 0) hier = "an Land";
+        else if (surf.field != null && surf.field.result() != null && surf.field.gridOf(x, z) != null) {
+            double qb = surf.field.breakingAt(x, z), hs = surf.field.hsAt(x, z);
+            hier = qb > 0.05 ? String.format(Locale.GERMAN, "bricht hier (%.0f %% der Wellen): H_s %.2f m in %.1f m Wasser, %s, Set-up %+.2f m", qb * 100, hs, h,
+                    typName(surf.field.typeAt(x, z)), surf.field.setupAt(x, z))
+                    : String.format(Locale.GERMAN, "H_s %.2f m in %.1f m Wasser", hs, h);
+        } else hier = surf.breakingAt(x, z, t)
                 ? String.format(Locale.GERMAN, "bricht hier: H %.2f m in %.1f m Wasser, %s", surf.heightAt(x, z, t), h, typName(surf.typeAt(x, z, t)))
                 : String.format(Locale.GERMAN, "H %.2f m in %.1f m Wasser", surf.heightAt(x, z, t), h);
-        return String.format(Locale.GERMAN, "Brandung (Hülle): See H_s %.1f m, T_p %.0f s aus %03.0f° · Pegel %+.2f m NHN · %s",
-                surf.hs, surf.tp, surf.seaFromDeg, pegel, hier);
+        return String.format(Locale.GERMAN, "Brandung: See H_s %.1f m, T_p %.0f s aus %03.0f° · Pegel %+.2f m NHN%s · %s",
+                surf.hs, surf.tp, surf.seaFromDeg, pegel, tideAn ? " (Tide)" : " (von Hand)", hier);
     }
 
     /** Eine Zeile für das HUD: Flugsand an der Kamera (Hülle). */

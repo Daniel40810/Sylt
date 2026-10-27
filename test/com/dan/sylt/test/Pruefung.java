@@ -314,12 +314,21 @@ public final class Pruefung {
         check(mask[jO * Terrain.N + iO] == 0 && mask[jW * Terrain.N + iW] == 0, f("See draußen und Watt im Osten mit der See verbunden; %.0f %% des Hauptrasters Land oder Binnensenke", 100.0 * binnen / mask.length));
         if (r3.terrain.measured() && r3.naesse != null) {
             com.dan.mudflat.WetField wf = r3.naesse.feld;
+            // seit Phase 7a mit Tide und Auflauf: „oben“ ist der erste Punkt landwärts, der 1,7 m über Pegel und Auflauf liegt
+            double nb = r3.wiring.pegel + r3.brandung.auflaufR2() * 0.8 + 1.7;
             double[] unten = Site.fromUtm(Site.wasserlinieE(6_089_500) - 20, 6_089_500), oben = Site.fromUtm(Site.wasserlinieE(6_089_500) + 60, 6_089_500);
+            for (double d = 0; d < 200; d += 2) {
+                double[] p = Site.fromUtm(Site.wasserlinieE(6_089_500) + d, 6_089_500);
+                if (r3.terrain.height(p[0], p[1]) > nb) { oben = p; break; }
+            }
             check(wf.wetnessAt(unten[0], unten[1]) > 0.99 && wf.wetnessAt(oben[0], oben[1]) < 0.3 && wf.sedimentAt(oben[0], oben[1]) < 0.01,
                     f("Nässe des Sands: unter Wasser %.2f, oben am Strand %.2f (Sand)", wf.wetnessAt(unten[0], unten[1]), wf.wetnessAt(oben[0], oben[1])));
         }
         check(Renderer.PASSES.length == 7 && Quality.MITTEL.groundRadius > 10 && Quality.MITTEL.ocean == com.dan.ocean.Ocean.Quality.MEDIUM, "Durchgänge " + String.join(", ", Renderer.PASSES));
         check(!r3.showMarks || Boolean.getBoolean("sylt.marken"), "Marken im Grundbild aus (M schaltet sie an)");
+
+        teil("Brandung in der Szene (Phase 7a)");
+        brandung(r3, clock);
 
         teil("Renderer.jar und Shader");
         List<String> pk = Bibliothek.pakete();
@@ -329,7 +338,7 @@ public final class Pruefung {
         for (String[] prog : rd.shaderFiles())
             for (String file : prog)
                 check(Renderer.class.getResource("/com/dan/sylt/gl/shader/" + file) != null, "Shader " + file + " im Jar");
-        for (String c : new String[]{"com.dan.surf.demo.SurfCheck", "com.dan.dune.demo.DuneCheck"}) {
+        for (String c : new String[]{"com.dan.surf.demo.SurfCheck", "com.dan.dune.demo.DuneCheck", "com.dan.tide.demo.TideCheck"}) {
             Process p = new ProcessBuilder(javaBin(), "-Dstdout.encoding=UTF-8", "-cp", System.getProperty("java.class.path"), c).redirectErrorStream(true).start();
             String out = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             check(p.waitFor() == 0 && out.contains("Alles in Ordnung."), c + ": " + (out.contains("Alles in Ordnung.") ? "Alles in Ordnung." : out.strip()));
@@ -376,6 +385,98 @@ public final class Pruefung {
     }
 
     static String javaBin() { return new File(System.getProperty("java.home"), "bin/java").getPath(); }
+
+    /** Seit Phase 7a: Tide, Wellenfeld vor dem Kern, gebackene Textur, Riffe, Buhnen aus dem Luftbild, Netz nahe am Auge, Nässe aus dem Schwall. */
+    static void brandung(Renderer r, SceneClock clock) {
+        com.dan.sylt.wiring.Wiring w = r.wiring;
+        check(w.tide.gauge.startsWith("Westerland") && w.tideAn, "Pegel aus Tide.westerland() (F25 A): " + w.tideZeile());
+        w.stepTide();
+        double soll = w.tide.levelAtMillis(clock.epochMillis());
+        w.tideAn = false;
+        w.pegel = 0.3;
+        w.stepTide();
+        boolean hand = Math.abs(w.pegel - 0.3) < 1e-12;
+        w.tideAn = true;
+        w.stepTide();
+        check(Math.abs(w.pegel - soll) < 0.01 && hand, f("Pegel jetzt %+.2f m NHN aus der Tide (mit Windstau %+.2f m); von Hand bleibt er stehen", w.pegel, w.tide.surge));
+        com.dan.sylt.scene.Brandung b = r.brandung;
+        long t0 = System.nanoTime();
+        b.computeNow(clock.t());
+        double ms = (System.nanoTime() - t0) / 1e6;
+        double[] k = Site.fromUtm(Site.KLIFFKANTE.e(), Site.KLIFFKANTE.n());
+        double[] wl = com.dan.sylt.scene.Kueste.waterline(k[0], k[1]);
+        double qbUfer = 0, qbDraussen = 0, ph0 = 0, ph1 = 0;
+        for (double d = 0; d <= 40; d += 8) qbUfer = Math.max(qbUfer, b.feld.breakingAt(wl[0] - d * com.dan.sylt.scene.Kueste.SX, wl[1] - d * com.dan.sylt.scene.Kueste.SZ));
+        double[] aus = {wl[0] - 1000 * com.dan.sylt.scene.Kueste.SX, wl[1] - 1000 * com.dan.sylt.scene.Kueste.SZ};
+        qbDraussen = b.feld.breakingAt(aus[0], aus[1]);
+        ph0 = b.texAt(aus[0], aus[1], 1);
+        ph1 = b.texAt(wl[0] - 30 * com.dan.sylt.scene.Kueste.SX, wl[1] - 30 * com.dan.sylt.scene.Kueste.SZ, 1);
+        double su = b.setupAnDerKueste(k[0], k[1]);
+        check(b.feld.result() != null && qbUfer > 0.5 && qbDraussen < 0.01, f("Wellenfeld vor dem Kern (%d × %d zu %.0f m, %.1f s): an der Wasserlinie vor der Kliffkante brechen %.0f %%, 1 km draußen %.1f %%",
+                b.feld.nu, b.feld.nv, b.feld.cell, ms / 1000, qbUfer * 100, qbDraussen * 100));
+        double lam = com.dan.surf.Surf.deepLength(w.surf.tp);
+        check(ph1 - ph0 > 970 / lam && su > 0.02 && su < 0.6, f("Textur %d² zu %.0f m: Phase wächst zur Küste um %.1f Wellenlängen auf 970 m (tief wären es %.1f), Set-up an der Wasserlinie %+.2f m",
+                b.texN, com.dan.sylt.scene.Brandung.TEX_ZELLE, ph1 - ph0, 970 / lam, su));
+        int abschnitte = 0, mitBrandung = 0;
+        for (double n = 6_088_100; n < 6_091_500; n += 200) {
+            abschnitte++;
+            double best = 0;
+            for (double d = -40; d <= 250; d += 6) {
+                double[] p = Site.fromUtm(Site.wasserlinieE(n) - d, n);
+                best = Math.max(best, b.texAt(p[0], p[1], 0));
+            }
+            if (best > 0.3) mitBrandung++;
+        }
+        check(mitBrandung >= 0.85 * abschnitte, f("an der Küste des Kerns ist die Brandung weiß (Walzen über 30 %% auf %d von %d Querprofilen alle 200 m; in den Rinnen schwächer)", mitBrandung, abschnitte));
+        double[] riff = {wl[0] - 150 * com.dan.sylt.scene.Kueste.SX, wl[1] - 150 * com.dan.sylt.scene.Kueste.SZ};
+        double bar = b.riffe.offset(com.dan.sylt.scene.Kueste.offshore(riff[0], riff[1]), com.dan.sylt.scene.Kueste.along(riff[0], riff[1]));
+        double[] rinnen = b.riffe.ripsBetween(com.dan.sylt.scene.Kueste.along(Site.fromUtm(457_463, 6_091_500)[0], Site.fromUtm(457_463, 6_091_500)[1]),
+                com.dan.sylt.scene.Kueste.along(Site.fromUtm(455_972, 6_088_000)[0], Site.fromUtm(455_972, 6_088_000)[1]));
+        double dg = w.surf.bed.height(riff[0], riff[1]) - r.terrain.height(riff[0], riff[1]);
+        check(Math.abs(dg - bar) < 0.5 && rinnen.length >= 6,
+                f("Grund der Brandung: Gelände (über ±%.0f m geglättet) mit Riffen (hier %+.2f m, Grund %+.2f m über dem Gelände) und %d Rinnen vor dem Kern (F10 A)",
+                        com.dan.sylt.scene.Brandung.GLAETTEN, bar, dg, rinnen.length));
+        com.dan.sylt.scene.Buhnen bu = b.buhnen;
+        boolean imKern = true, amStrand = true;
+        for (com.dan.sylt.scene.Buhnen.Pfahl p : bu.pfaehle) {
+            if (!Site.KERN.contains(p.x(), p.z())) imKern = false;
+            if (p.kopf() < -4 || p.kopf() > 4) amStrand = false;
+        }
+        com.dan.ocean.ObstacleField of = bu.hindernisse();
+        com.dan.sylt.scene.Buhnen.Pfahl p0 = bu.pfaehle.get(0);
+        check(bu.pfaehle.size() > 200 && imKern && amStrand && of.distance(p0.x(), p0.z()) < 0.3 && of.distance(p0.x() + 30, p0.z()) > 5,
+                bu.describe() + f(", alle im Kern zwischen %+.1f und %+.1f m NHN; Brandungsringe in ocean", bu.pfaehle.stream().mapToDouble(com.dan.sylt.scene.Buhnen.Pfahl::kopf).min().orElse(0),
+                        bu.pfaehle.stream().mapToDouble(com.dan.sylt.scene.Buhnen.Pfahl::kopf).max().orElse(0)));
+        t0 = System.nanoTime();
+        com.dan.sylt.scene.Nahbrandung.Stueck st = r.nah.baue(wl, com.dan.sylt.scene.Kueste.along(wl[0], wl[1]), w.pegel, 24);
+        double bauS = (System.nanoTime() - t0) / 1e9;
+        for (int i = 0; i < 20 * 30; i++) { st.zug.step(1 / 30.0); st.schwall.step(1 / 30.0, st.zug); }
+        st.netz.build(st.zug, st.xEnde, st.schwall);
+        boolean fin = true;
+        for (int i = 0; i < st.netz.vertexCount * com.dan.surf.BreakerMesh.STRIDE; i++) if (!Float.isFinite(st.netz.vertices[i])) fin = false;
+        double[] mitte = st.welt(st.xWasserlinie, st.zug.width / 2), zurueck = st.lokal(mitte[0], mitte[1]);
+        check(st.schwall.runups > 0 && st.zug.spawned > 0 && fin && Math.abs(zurueck[0] - st.xWasserlinie) < 1e-6 && Math.abs(zurueck[1] - st.zug.width / 2) < 1e-6,
+                f("Netz nahe am Auge vor der Kliffkante: %.0f m Strand (%d Reihen auf %.0f m), gebaut und eingeschwungen in %.1f s, %d Auflaufspitzen in 20 s, Netz %d Ecken",
+                        st.xEnde, st.zug.rows, st.zug.width, bauS, st.schwall.runups, st.netz.vertexCount));
+        if (r.naesse != null) {
+            r.naesse.update(w.pegel, b.auflaufR2() * 0.8);
+            r.naesse.ueberlagern(st);
+            int nass = 0, zellen = 0;
+            for (double x = st.schwall.boundaryX(); x < st.xEnde; x += 2) {
+                double[] p = st.welt(x, st.zug.width / 2);
+                double v = st.nass(p[0], p[1]);
+                if (Double.isNaN(v) || r.terrain.height(p[0], p[1]) <= w.pegel) continue;
+                zellen++;
+                if (Math.abs(r.naesse.feld.wetnessAt(p[0], p[1]) - Math.max(com.dan.mudflat.WetField.residual(0), v)) < 0.35) nass++;
+            }
+            r.naesse.ueberlagern(null);
+            check(zellen > 5 && nass > zellen * 0.7, f("Nässe des Sands im Stück aus dem Schwall: %d von %d Stellen über dem Pegel folgen ihm", nass, zellen));
+        }
+        String[] hud = r.hudLines();
+        boolean tideZ = false, brZ = false;
+        for (String l : hud) { tideZ |= l.startsWith("Tide: "); brZ |= l.startsWith("Brandung: "); }
+        check(tideZ && brZ, "HUD: Zeilen für Tide und Brandung");
+    }
 
     static String f(String fmt, Object... a) { return String.format(Locale.GERMAN, fmt, a); }
 

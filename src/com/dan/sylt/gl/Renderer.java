@@ -92,6 +92,15 @@ public final class Renderer implements GLEventListener {
     public final Meer meer = new Meer();
     public final KernKarte karte;
     public final Strandnaesse naesse;
+    /** Seit Phase 7a: die Brandung (Wellenfeld, gebackene Texturen, Buhnen) und das Netz nahe am Auge. */
+    public final com.dan.sylt.scene.Brandung brandung;
+    public final com.dan.sylt.scene.Nahbrandung nah;
+    final BrandungGl brandungGl = new BrandungGl();
+    /** Netz der Brecher nahe am Auge, Pfähle der Buhnen zeigen. */
+    public volatile boolean showNetz = true, showBuhnen = true;
+    /** Strömung der Brandung in der See zeigen (Rippströme trüben das Wasser), stärker als „DLRG-Blick“. */
+    public volatile boolean showStroemung = true, dlrgBlick;
+    private double naesseTakt;
     public final Meadow meadow;
     /** Phase 4a: das Rote Kliff aus com.dan.cliff (Lockergestein), Grasnarbe, Findlinge. */
     public final Kliff kliff;
@@ -178,6 +187,11 @@ public final class Renderer implements GLEventListener {
         lod.use(terrain);
         karte = KernKarte.load(Daten.ordner());
         naesse = terrain.hasKern() ? new Strandnaesse(terrain, karte) : null;
+        brandung = new com.dan.sylt.scene.Brandung(wiring.surf, terrain);
+        wiring.surf.field = brandung.feld;
+        nah = new com.dan.sylt.scene.Nahbrandung(brandung, terrain);
+        meer.ocean.obstacleField = brandung.buhnen.hindernisse();
+        wiring.stepTide();
         kliff = new Kliff(terrain, com.dan.sylt.scene.Kante.load(Daten.ordner()));
         meadow = new Meadow(Biome.sylt(), new Bodendecke(terrain, karte, kliff::talus));
         meadow.near = 6.5f;
@@ -194,6 +208,14 @@ public final class Renderer implements GLEventListener {
         camera.groundLevel = groundHeight(camera.eye[0], camera.eye[2]);
         camera.targetGround = groundHeight(camera.tx, camera.tz);
         camera.snap();
+    }
+
+    /** Seit Phase 7a, für Standbilder: Tide, Wellenfeld mit Textur und das Netz nahe am Auge jetzt (im aufrufenden Faden). */
+    public void brandungJetzt() {
+        wiring.stepTide();
+        brandung.computeNow(clock.t());
+        nah.an = showNetz && showMeer;
+        if (nah.an) nah.jetzt(camera.tx, camera.tz, wiring.pegel);
     }
 
     /** Für Prüfungen und Werkzeuge: Uhr am Start, Gelände aus daten/gelaende (sonst die Bühne). */
@@ -231,6 +253,7 @@ public final class Renderer implements GLEventListener {
         wiring.surf.quality = com.dan.surf.Surf.Quality.values()[q.ordinal()];
         wiring.dune.quality = com.dan.dune.Dune.Quality.values()[q.ordinal()];
         meer.ocean.quality = q.ocean;
+        nah.reihen = q == Quality.NIEDRIG ? 24 : q == Quality.MITTEL ? 40 : 56;
         wetter.clouds.quality = q.clouds;
         if (meadow != null) meadow.radius = q.groundRadius;
     }
@@ -337,6 +360,7 @@ public final class Renderer implements GLEventListener {
         wetter.init(gl, errorListener);
         wiring.cloudsDrawn = wetter.cloudsOk;
         meer.init(gl, terrain, compute.ok(), errorListener);
+        brandungGl.init(gl, brandung);
         klasseTex = klasseTexture(gl, karte);
         kliff.init(gl);
         System.out.println("Sylt: " + karte.describe() + (karte.hatKarte() ? " · Arten im Kern zu 1 m" : " · ohne Karte des Kerns"));
@@ -375,11 +399,25 @@ public final class Renderer implements GLEventListener {
         // Phase 3: Himmel, Wolken und See bekommen ihre Eingänge aus der Verdrahtung, dann ein Schritt
         boolean cloudsShown = wetter.cloudsOk && showClouds;
         wiring.cloudsDrawn = cloudsShown;
+        wiring.stepTide();
         wiring.feed(wetter.sky, camera.eye[1]);
         wiring.feed(wetter.clouds);
         wiring.feed(meer.ocean);
         meer.ocean.step(dt);
-        if (naesse != null) naesse.update(wiring.pegel);
+        // Phase 7a: die Brandung (Feld im eigenen Faden), das Netz nahe am Auge, der Sand nach Auflauf und Schwall
+        brandung.update(clock.t());
+        double[] sp7 = clock.sun();
+        nah.an = showNetz && showMeer;
+        nah.wetter = new com.dan.surf.Swash.Weather(Math.max(0, Math.sin(Math.toRadians(sp7[0]))) * (1 - wiring.oktas / 8 * 0.8), wiring.windSpeed, 14, 0);
+        nah.schritt(dt, camera.eye, camera.tx, camera.tz, wiring.pegel);
+        if (naesse != null) {
+            boolean neu = naesse.update(wiring.pegel, brandung.auflaufR2() * 0.8);
+            naesseTakt += dt;
+            if (neu || naesseTakt > 0.25) {
+                naesseTakt = 0;
+                naesse.ueberlagern(nah.sichtbar ? nah.stueck() : null);
+            }
+        }
         if (wetter.skyOk) {
             Sky.State st = wetter.sky.step(dt);
             wetter.clouds.step(dt);
@@ -605,8 +643,15 @@ public final class Renderer implements GLEventListener {
         if (showMeer && meer.ok && showOcean) {
             gl.glEnable(GL.GL_DEPTH_TEST);
             gl.glDepthMask(true);
+            brandungGl.upload(gl, brandung);
+            brandungGl.stroemung = showStroemung;
+            brandungGl.dlrg = dlrgBlick;
+            boolean netzNow = showNetz && nah.sichtbar;
             meer.draw(gl, vp, camera.eye, reversedZ, st, pre, frameSky ? wetter.panoTex : 0, cloudsNow ? wetter.cloudGl.shadowTexture() : 0,
-                    cloudsNow ? wetter.cloudGl.shadowRect() : new double[]{0, 0, 1}, lod.heightTexture(), sun, sunLight(sp[0]), FOG_DISTANCE);
+                    cloudsNow ? wetter.cloudGl.shadowRect() : new double[]{0, 0, 1}, lod.heightTexture(), sun, sunLight(sp[0]), FOG_DISTANCE,
+                    ol -> brandungGl.feed(ol, brandung, nah, netzNow));
+            // Phase 7a: das Netz der Brecher nahe am Auge und die Pfähle der Buhnen (nach der See, mit Tiefentest)
+            brandungGl.draw(gl, vp, camera.eye, reversedZ, nah, netzNow, showBuhnen, st, pre, sun, wetter, showClouds, sunLight(sp[0]), FOG_DISTANCE, clock.t());
             if (meer.check.isEmpty() && frame > 30) meer.check = meer.oceanGl.selfCheck(gl, meer.ocean);
             gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrFbo);
             gl.glViewport(0, 0, w, h);
@@ -949,6 +994,8 @@ public final class Renderer implements GLEventListener {
                 karte.describe(),
                 (kliff.ok ? "" : "!") + "Kliff (cliff, Lockergestein): " + kliff.hudLine(),
                 wiring.surfZeile(camera.eye[0], camera.eye[2]),
+                "Tide: " + wiring.tideZeile(),
+                brandungGl.describe(brandung, nah),
                 wiring.duneZeile(camera.eye[0], camera.eye[2]),
                 physik.describe(),
                 (terrain.measured() ? "" : "!") + "Gelände: " + terrain.describe(),
@@ -1026,6 +1073,7 @@ public final class Renderer implements GLEventListener {
         hud.dispose(gl);
         wetter.dispose(gl);
         meer.dispose(gl);
+        brandungGl.dispose(gl);
         kliff.dispose(gl);
         if (groundOk) groundGl.dispose(gl);
         mudGl.dispose(gl);

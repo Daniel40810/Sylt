@@ -57,7 +57,11 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
     private final FCheckBox free = new FCheckBox("Frei fliegen (F)"), orbit = new FCheckBox("Von selbst kreisen (R)"),
             marks = new FCheckBox("Marken (UTM-Raster, Höhenlinien, Wasserlinie, Kern, Orte)"), autoBox = new FCheckBox("Auflösung selbst regeln"),
             meerBox = new FCheckBox("See zeigen (com.dan.ocean)"), wolkenBox = new FCheckBox("Wolken zeigen (com.dan.cloud)"),
-            bodenBox = new FCheckBox("Bodendecke zeigen (com.dan.ground, Biom Sylt)");
+            bodenBox = new FCheckBox("Bodendecke zeigen (com.dan.ground, Biom Sylt)"),
+            tideBox = new FCheckBox("Tide Westerland (Pegel aus der Gezeit)"), netzBox = new FCheckBox("Brecher nahe am Auge als Netz"),
+            buhnenBox = new FCheckBox("Buhnen zeigen"), stromBox = new FCheckBox("Strömung zeigen (Rippströme)"),
+            dlrgBox = new FCheckBox("DLRG-Blick: Rinnen und Rückstrom deutlich");
+    private final JLabel tideLbl = small(""), brandungLbl = small("");
     private FComboBox lapseBox, qualBox, hudBox, artBox;
     private boolean fromScene;
     private int ticks;
@@ -188,15 +192,26 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
 
         // ============================================================== SEE
         block("SEE", true);
+        tideBox.setSelected(r.wiring.tideAn);
+        tideBox.addActionListener(e -> { r.wiring.tideAn = tideBox.isSelected(); r.wiring.stepTide(); syncFromScene(); view.requestFocusInWindow(); });
+        put(tideBox);
+        put(tideLbl);
         put(pegelLbl);
         put(pegelSl);
-        pegelSl.addChangeListener(e -> { if (!fromScene) r.wiring.pegel = pegelSl.getValue() / 100.0; labels(); });
+        // der Regler übernimmt den Pegel von Hand (die Tide schaltet sich ab)
+        pegelSl.addChangeListener(e -> {
+            if (fromScene) return;
+            r.wiring.tideAn = false;
+            tideBox.setSelected(false);
+            r.wiring.pegel = pegelSl.getValue() / 100.0;
+            labels();
+        });
         meerBox.setSelected(r.showMeer);
         meerBox.addActionListener(e -> { r.showMeer = meerBox.isSelected(); view.requestFocusInWindow(); });
         put(meerBox);
-        put(small("<html><body style='width:215px'>Pegel von Hand (m über NHN). Ab Phase 7a kommt er aus Tide.westerland() (F25 A) mit "
-                + "Windstau. Die offene See (com.dan.ocean, seit Phase 3) nimmt den Wind aus SAND und die Dünung aus BRANDUNG; "
-                + "der Grund ist das Gelände.</body></html>"));
+        put(small("<html><body style='width:215px'>Seit Phase 7a kommt der Pegel aus Tide.westerland() (F25 A, zehn Partialtiden, "
+                + "Hub rund 1,8 m) mit Windstau aus dem Wind in SAND; der Regler stellt ihn von Hand (die Tide schaltet sich ab). "
+                + "Die offene See (com.dan.ocean) nimmt die Dünung aus BRANDUNG; der Grund ist das Gelände.</body></html>"));
 
         // ============================================================== BRANDUNG (Hülle)
         block("BRANDUNG", true);
@@ -217,8 +232,27 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         sturm.addActionListener(e -> seegang(com.dan.surf.Surf.beaufort(10)));
         sp.add(ruhig); sp.add(west); sp.add(sturm);
         put(sp);
-        put(small("<html><body style='width:215px'>Hülle von com.dan.surf (Phase 1): Höhe nach Shoaling, Brechen nach McCowan und der "
-                + "Brechertyp nach Battjes, an der Kamera ausgewertet. Wellenfeld ab Phase 5, Brecher im Bild ab Phase 6, Auflauf ab Phase 7.</body></html>"));
+        sub("Brandung in der Szene");
+        netzBox.setSelected(r.showNetz);
+        netzBox.addActionListener(e -> { r.showNetz = netzBox.isSelected(); view.requestFocusInWindow(); });
+        put(netzBox);
+        buhnenBox.setSelected(r.showBuhnen);
+        buhnenBox.addActionListener(e -> { r.showBuhnen = buhnenBox.isSelected(); view.requestFocusInWindow(); });
+        put(buhnenBox);
+        stromBox.setSelected(r.showStroemung);
+        stromBox.addActionListener(e -> { r.showStroemung = stromBox.isSelected(); view.requestFocusInWindow(); });
+        put(stromBox);
+        dlrgBox.setSelected(r.dlrgBlick);
+        dlrgBox.addActionListener(e -> { r.dlrgBlick = dlrgBox.isSelected(); if (r.dlrgBlick) { r.showStroemung = true; stromBox.setSelected(true); } view.requestFocusInWindow(); });
+        put(dlrgBox);
+        FButton stormB = new FButton("Sturm verlagert Riffe und Rinnen");
+        stormB.addActionListener(e -> { r.brandung.riffe.storm(); r.brandung.feld.bedVersion++; view.requestFocusInWindow(); });
+        put(stormB);
+        put(brandungLbl);
+        put(small("<html><body style='width:215px'>Seit Phase 7a: das Wellenfeld aus com.dan.surf vor dem ganzen Kern (Riffe und Rinnen, Set-up, "
+                + "Strömung), neu gerechnet im eigenen Faden, wenn sich See, Pegel oder Grund ändern; com.dan.ocean zeichnet daraus Walzen, "
+                + "Schaumteppich und Rippströme. Nahe am Auge die Brecher als Netz mit Auflauf und nassem Sand (Phase 6 und 7). Die Pfähle "
+                + "der Buhnen stehen, wo das Luftbild sie zeigt (Kliffende, Kampen).</body></html>"));
 
         // ============================================================== SAND (Hülle)
         block("SAND", true);
@@ -451,7 +485,13 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         txt(camLbl, "<html><body style='width:215px'>" + esc(r.cameraLine()) + "</body></html>");
         txt(scaleLbl, String.format(Locale.GERMAN, "Auflösung %.0f %% (%s)", r.renderScale * 100, r.autoScale ? "geregelt, " + r.scaleSteps() + "× geändert" : "fest"));
         txt(qualLbl, "<html><body style='width:215px'>" + r.quality().summary() + "</body></html>");
-        txt(pegelLbl, String.format(Locale.GERMAN, "Pegel %+.2f m NHN (von Hand)", r.wiring.pegel));
+        txt(pegelLbl, String.format(Locale.GERMAN, "Pegel %+.2f m NHN (%s)", r.wiring.pegel, r.wiring.tideAn ? "Tide" : "von Hand"));
+        txt(tideLbl, "<html><body style='width:215px'>" + esc(r.wiring.tideZeile()) + "</body></html>");
+        if (tideBox.isSelected() != r.wiring.tideAn) tideBox.setSelected(r.wiring.tideAn);
+        com.dan.surf.WaveField.Result fr = r.brandung.feld.result();
+        txt(brandungLbl, "<html><body style='width:215px'>" + esc((fr == null ? "Wellenfeld wird gerechnet …" : String.format(Locale.GERMAN,
+                "Wellenfeld %d × %d zu %.0f m, %.0f ms%s · Auflauf R_2%% %.2f m (Stockdon)", fr.nu, fr.nv, r.brandung.feld.cell, fr.ms,
+                r.brandung.feld.busy() ? " (rechnet neu)" : "", r.brandung.auflaufR2())) + " · " + r.nah.meldung) + "</body></html>");
         com.dan.surf.Surf sf = r.wiring.surf;
         txt(hsLbl, String.format(Locale.GERMAN, "Wellenhöhe draußen H_s %.1f m", sf.hs));
         txt(tpLbl, String.format(Locale.GERMAN, "Periode T_p %.0f s (L₀ = %.0f m)", sf.tp, com.dan.surf.Surf.deepLength(sf.tp)));

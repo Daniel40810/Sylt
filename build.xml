@@ -99,16 +99,20 @@
     </target>
     <!-- Das Statusbild auf der Grafikkarte: docs/status/Status_Phase${phase}.png (Grundansicht von See auf die Küste,
          20.7.2026 20:30 MESZ, Stufe Mittel, Full HD, volles HUD mit den Zeiten jedes Durchgangs). Auf der Radeon laufen
-         lassen; die Zeiten stehen auch in der Ausgabe. -Dansicht=Name wählt eine der neun Ansichten, -Dbild=… den Namen des Bilds; seit Phase 3 -Dwolken=aus, -Dboden=aus, -Dbedeckung=Achtel; seit Phase 4a -Dkamera=x,z,Richtung,Neigung,Höhe. -->
+         lassen; die Zeiten stehen auch in der Ausgabe. -Dansicht=Name wählt eine der neun Ansichten, -Dbild=… den Namen des Bilds; seit Phase 3 -Dwolken=aus, -Dboden=aus, -Dbedeckung=Achtel; seit Phase 4a -Dkamera=x,z,Richtung,Neigung,Höhe; seit Phase 7a -Dsee=H_s,T_p,Richtung (etwa 2,9,290), -Dpegel=m (von Hand, sonst die Tide), -Duhr=Stunde und -Ddatum=JJJJ-MM-TT. -->
     <target name="tempo" depends="jar" description="docs/status/Status_PhaseN.png (Grundansicht, volles HUD).">
         <property name="platform.java" value="java"/>
-        <property name="phase" value="3"/>
+        <property name="phase" value="7a"/>
         <property name="bild" value="docs/status/Status_Phase${phase}.png"/>
         <property name="ansicht" value=""/>
         <property name="wolken" value=""/>
         <property name="boden" value=""/>
         <property name="bedeckung" value=""/>
         <property name="kamera" value=""/>
+        <property name="see" value=""/>
+        <property name="pegel" value=""/>
+        <property name="uhr" value="20.5"/>
+        <property name="datum" value="2026-07-20"/>
         <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
             <jvmarg value="-Dstdout.encoding=UTF-8"/>
             <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
@@ -119,7 +123,9 @@
             <jvmarg value="-Dboden=${boden}"/>
             <jvmarg value="-Dbedeckung=${bedeckung}"/>
             <jvmarg value="-Dkamera=${kamera}"/>
-            <arg line="120 1920 1080 ${bild} MITTEL 20.5 2026-07-20"/>
+            <jvmarg value="-Dsee=${see}"/>
+            <jvmarg value="-Dpegel=${pegel}"/>
+            <arg line="120 1920 1080 ${bild} MITTEL ${uhr} ${datum}"/>
             <classpath><pathelement path="${run.classpath}"/></classpath>
         </java>
     </target>
