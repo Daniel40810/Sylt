@@ -252,7 +252,7 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         put(small("<html><body style='width:215px'>Seit Phase 7a: das Wellenfeld aus com.dan.surf vor dem ganzen Kern (Riffe und Rinnen, Set-up, "
                 + "Strömung), neu gerechnet im eigenen Faden, wenn sich See, Pegel oder Grund ändern; com.dan.ocean zeichnet daraus Walzen, "
                 + "Schaumteppich und Rippströme. Nahe am Auge die Brecher als Netz mit Auflauf und nassem Sand (Phase 6 und 7). Die Pfähle "
-                + "der Buhnen stehen, wo das Luftbild sie zeigt (Kliffende, Kampen).</body></html>"));
+                + "der Buhnen stehen, wo das Luftbild sie zeigt (Kliffende, Kampen), bei Wenningstedt mit geschätzter Lage (Phase 8).</body></html>"));
 
         // ============================================================== SAND (Hülle)
         block("SAND", true);

@@ -190,7 +190,6 @@ public final class Renderer implements GLEventListener {
         brandung = new com.dan.sylt.scene.Brandung(wiring.surf, terrain);
         wiring.surf.field = brandung.feld;
         nah = new com.dan.sylt.scene.Nahbrandung(brandung, terrain);
-        meer.ocean.obstacleField = brandung.buhnen.hindernisse();
         wiring.stepTide();
         kliff = new Kliff(terrain, com.dan.sylt.scene.Kante.load(Daten.ordner()));
         meadow = new Meadow(Biome.sylt(), new Bodendecke(terrain, karte, kliff::talus));
@@ -410,6 +409,8 @@ public final class Renderer implements GLEventListener {
         nah.an = showNetz && showMeer;
         nah.wetter = new com.dan.surf.Swash.Weather(Math.max(0, Math.sin(Math.toRadians(sp7[0]))) * (1 - wiring.oktas / 8 * 0.8), wiring.windSpeed, 14, 0);
         nah.schritt(dt, camera.eye, camera.tx, camera.tz, wiring.pegel);
+        // seit Phase 8: die Brandungsringe nur um die Buhnen nahe am Auge (die Reihen liegen über 4 km verteilt)
+        meer.ocean.obstacleField = brandung.buhnen.hindernisseNahe(camera.eye[0], camera.eye[2], 900);
         if (naesse != null) {
             boolean neu = naesse.update(wiring.pegel, brandung.auflaufR2() * 0.8);
             naesseTakt += dt;

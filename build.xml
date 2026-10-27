@@ -102,7 +102,7 @@
          lassen; die Zeiten stehen auch in der Ausgabe. -Dansicht=Name wählt eine der neun Ansichten, -Dbild=… den Namen des Bilds; seit Phase 3 -Dwolken=aus, -Dboden=aus, -Dbedeckung=Achtel; seit Phase 4a -Dkamera=x,z,Richtung,Neigung,Höhe; seit Phase 7a -Dsee=H_s,T_p,Richtung (etwa 2,9,290), -Dpegel=m (von Hand, sonst die Tide), -Duhr=Stunde und -Ddatum=JJJJ-MM-TT. -->
     <target name="tempo" depends="jar" description="docs/status/Status_PhaseN.png (Grundansicht, volles HUD).">
         <property name="platform.java" value="java"/>
-        <property name="phase" value="7a"/>
+        <property name="phase" value="8"/>
         <property name="bild" value="docs/status/Status_Phase${phase}.png"/>
         <property name="ansicht" value=""/>
         <property name="wolken" value=""/>

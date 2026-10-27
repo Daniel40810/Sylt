@@ -437,15 +437,21 @@ public final class Pruefung {
                 f("Grund der Brandung: Gelände (über ±%.0f m geglättet) mit Riffen (hier %+.2f m, Grund %+.2f m über dem Gelände) und %d Rinnen vor dem Kern (F10 A)",
                         com.dan.sylt.scene.Brandung.GLAETTEN, bar, dg, rinnen.length));
         com.dan.sylt.scene.Buhnen bu = b.buhnen;
-        boolean imKern = true, amStrand = true;
+        boolean lage = true, amStrand = true;
         for (com.dan.sylt.scene.Buhnen.Pfahl p : bu.pfaehle) {
-            if (!Site.KERN.contains(p.x(), p.z())) imKern = false;
+            // gemessene im Kern, geschätzte bei Wenningstedt südlich davon (seit Phase 8)
+            boolean g = com.dan.sylt.scene.Buhnen.LISTE[p.buhne()].geschaetzt();
+            double[] u = Site.toUtm(p.x(), p.z());
+            if (g ? u[1] > 6_088_000 || u[1] < 6_087_000 : !Site.KERN.contains(p.x(), p.z())) lage = false;
             if (p.kopf() < -4 || p.kopf() > 4) amStrand = false;
         }
-        com.dan.ocean.ObstacleField of = bu.hindernisse();
         com.dan.sylt.scene.Buhnen.Pfahl p0 = bu.pfaehle.get(0);
-        check(bu.pfaehle.size() > 200 && imKern && amStrand && of.distance(p0.x(), p0.z()) < 0.3 && of.distance(p0.x() + 30, p0.z()) > 5,
-                bu.describe() + f(", alle im Kern zwischen %+.1f und %+.1f m NHN; Brandungsringe in ocean", bu.pfaehle.stream().mapToDouble(com.dan.sylt.scene.Buhnen.Pfahl::kopf).min().orElse(0),
+        com.dan.ocean.ObstacleField of = bu.hindernisseNahe(p0.x(), p0.z(), 900);
+        double[] wen = bu.mitte(com.dan.sylt.scene.Buhnen.LISTE.length - 1);
+        com.dan.ocean.ObstacleField ofW = bu.hindernisseNahe(wen[0], wen[1], 900);
+        boolean wenRing = ofW != null && ofW != of && ofW.distance(wen[0], wen[1]) < 0.3 && ofW.w() * ofW.h() < 2_000_000;
+        check(bu.pfaehle.size() > 600 && lage && amStrand && of.distance(p0.x(), p0.z()) < 0.3 && of.distance(p0.x() + 30, p0.z()) > 5 && wenRing,
+                bu.describe() + f(", gemessene im Kern, geschätzte bei Wenningstedt; Köpfe zwischen %+.1f und %+.1f m NHN; Brandungsringe in ocean nahe am Auge", bu.pfaehle.stream().mapToDouble(com.dan.sylt.scene.Buhnen.Pfahl::kopf).min().orElse(0),
                         bu.pfaehle.stream().mapToDouble(com.dan.sylt.scene.Buhnen.Pfahl::kopf).max().orElse(0)));
         t0 = System.nanoTime();
         com.dan.sylt.scene.Nahbrandung.Stueck st = r.nah.baue(wl, com.dan.sylt.scene.Kueste.along(wl[0], wl[1]), w.pegel, 24);

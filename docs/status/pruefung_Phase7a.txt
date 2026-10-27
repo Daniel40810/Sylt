@@ -1,0 +1,349 @@
+Microsoft Windows [Version 10.0.26300.9711]
+(c) Microsoft Corporation. Alle Rechte vorbehalten.
+
+C:\Users\Dan40810\Documents\NetBeansProjects\Sylt>ant pruefung
+Buildfile: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build.xml
+
+-pre-init:
+
+-init-private:
+
+-pre-init-libraries:
+
+-init-private-libraries:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-init-modules-supported:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-ap-cmdline-properties:
+
+-init-macrodef-modulename:
+
+-init-source-module-properties:
+
+-init-macrodef-javac-with-module:
+
+-init-macrodef-javac-with-processors:
+
+-init-macrodef-javac-without-processors:
+
+-init-macrodef-javac:
+
+-init-macrodef-test-impl:
+
+-init-macrodef-junit-init:
+
+-init-test-properties:
+
+-init-macrodef-junit-prototype-with-module:
+
+-init-macrodef-junit-prototype-without-module:
+
+-init-macrodef-junit-single:
+
+-init-macrodef-junit-batch:
+
+-init-macrodef-junit:
+
+-init-macrodef-junit-impl:
+
+-init-macrodef-testng:
+
+-init-macrodef-testng-impl:
+
+-init-macrodef-test:
+
+-init-macrodef-junit-debug-impl:
+
+-init-macrodef-test-debug-junit:
+
+-init-macrodef-testng-debug:
+
+-init-macrodef-testng-debug-impl:
+
+-init-macrodef-test-debug-testng:
+
+-init-macrodef-test-debug:
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+
+-init-macrodef-debug:
+
+-init-macrodef-java-with-module:
+
+-init-macrodef-java-with-unnamed-module:
+
+-init-macrodef-java-without-module:
+
+-init-macrodef-java:
+
+-init-presetdef-jar:
+
+-init-ap-cmdline-supported:
+
+-init-ap-cmdline:
+
+init:
+
+-deps-jar-init:
+   [delete] Deleting: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build\built-jar.properties
+
+deps-jar:
+
+-warn-already-built-jar:
+[propertyfile] Updating property file: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build\built-jar.properties
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-copy-persistence-xml:
+
+-compile-depend:
+
+-do-compile:
+
+check-packages:
+     [exec] check-packages: Renderer.jar mit 40 Packages (Quelle: Projekt Renderer)
+     [exec]   Package        Klassen  README  Java
+     [exec]   ocean          27       ok      21
+     [exec]   wave           20       ok      21
+     [exec]   tide           11       ok      21
+     [exec]   mudflat        11       ok      21
+     [exec]   spray          16       ok      21
+     [exec]   cliff          24       ok      21
+     [exec]   fracture       38       ok      21
+     [exec]   reed           12       ok      21
+     [exec]   wind           14       ok      21
+     [exec]   sky            43       ok      21
+     [exec]   cloud          16       ok      21
+     [exec]   rain           12       ok      21
+     [exec]   fog            25       ok      21
+     [exec]   weather        14       ok      21
+     [exec]   lightning      24       ok      21
+     [exec]   flock          42       ok      21
+     [exec]   soundscape     53       ok      21
+     [exec]   season         17       ok      21
+     [exec]   kino           11       ok      21
+     [exec]   store          23       ok      21
+     [exec]   ground         27       ok      21
+     [exec]   weathering     10       ok      21
+     [exec]   wetglass       10       ok      21
+     [exec]   surf           46       ok      21
+     [exec]   dune           11       ok      21
+     [exec]   beacon         27       ok      21
+     [exec] check-packages: alle 26 gebrauchten Packages in Renderer.jar, dazu Kern, Darstellung, Shader und Prüfklassen von surf und dune (Hüllen seit Phase 1) und beacon (aus Lighthouse, F18 A).
+
+-post-compile:
+
+compile:
+
+-pre-pre-compile-test:
+    [mkdir] Created dir: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build\test\classes
+
+-pre-compile-test:
+
+-init-test-javac-module-properties-with-module:
+
+-init-test-module-properties-without-module:
+
+-init-test-module-properties:
+
+-compile-test-depend:
+
+-do-compile-test:
+    [javac] Compiling 1 source file to C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build\test\classes
+
+-post-compile-test:
+
+compile-test:
+
+pruefung:
+     [java] Sylt Phase 3 · Prüfung ohne Grafikkarte
+     [java]
+     [java] ? Raum und Orte (F2 A)
+     [java]   ok    Ursprung am Quermarkenfeuer: Turm bei x 3,0, z -4,0 m
+     [java]   ok    Quermarkenfeuer aus 54°57?56? N 8°20?16? O: E 457603 N 6091174 (Prompt ? 457 605 / 6 091 171)
+     [java]   ok    Kampener Leuchtturm aus 54°56?46? N 8°20?27? O: E 457770 N 6089007 (Prompt ? 457 778 / 6 089 003)
+     [java]   ok    UTM hin und zurück auf 1 mm
+     [java]   ok    Quermarkenfeuer liegt im Kern
+     [java]   ok    Kampener Leuchtturm liegt im Kern
+     [java]   ok    Uwe-Düne liegt im Kern
+     [java]   ok    Kliffkante liegt im Kern
+     [java]   ok    Kern 2,3 × 3,6 km (F1 A)
+     [java]   ok    Fernfeld 16 × 16 km (F1 A)
+     [java]   ok    Kimm aus 30 m: 21,0 km
+     [java]
+     [java] ? Bühne gegen die Profile der BAW (Werkbuch 2.3)
+     [java]   ok    Wasserlinie bei N 6088000, E 455972: 0,00 m NHN
+     [java]   ok    8 km draußen bei N 6088000: -13,8 m (BAW ?13,2 bis ?14,1 m)
+     [java]   ok    Wasserlinie bei N 6089500, E 456591: 0,00 m NHN
+     [java]   ok    8 km draußen bei N 6089500: -13,8 m (BAW ?13,2 bis ?14,1 m)
+     [java]   ok    Wasserlinie bei N 6091000, E 457231: 0,00 m NHN
+     [java]   ok    8 km draußen bei N 6091000: -13,8 m (BAW ?13,2 bis ?14,1 m)
+     [java]   ok    Wasserlinie bei N 6092500, E 457875: 0,00 m NHN
+     [java]   ok    8 km draußen bei N 6092500: -13,8 m (BAW ?13,2 bis ?14,1 m)
+     [java]   ok    Riff 450 m vor dem Strand: -2,6 m (BAW bei Wenningstedt ?2,2 m)
+     [java]   ok    Kliffoberkante bei N 6 089 500: 28,6 m (BAW +23 bis +32 m)
+     [java]   ok    Kliffoberkante bei N 6 088 000: 18,8 m (BAW +17 bis +21 m)
+     [java]   ok    die Wand ist steil: bis 5,4 m je m (über 50°)
+     [java]   ok    Uwe-Düne: 56,1 m (52,5 m)
+     [java]   ok    Watt im Osten: -1,4 m
+     [java]   ok    nördlich der Insel See
+     [java]
+     [java] ? Gelände
+     [java]   ok    NHN genau ein 16-Bit-Wert
+     [java]   ok    Stufe unter 1 mm
+     [java]   ok    Raster decken Fernfeld und Kern
+     [java]   ok    Mip-Stufen für Fernring und Kern: log2(10)
+     [java]     Bühne gerechnet in 0,6 s: Bühne (Phase 1, keine Höhendaten) · Kern aus der Bühne zu 1 m · See 50 %, Watt 36 %, Heide 6 %, Siedlung 3 %, Wiese 3 %
+     [java]   ok    ohne daten/gelaende: Bühne, der Kern aus der Bühne zu 1 m
+     [java]   ok    Kern trifft die Bühne an den Zellmitten auf 0,0008 m
+     [java]   ok    die Wand im Gelände: bis 2,9 m Anstieg je m (im 10-m-Raster allein wäre sie ein Hang)
+     [java]   ok    Gelände trifft die Bühne an den Zellmitten auf 0,0008 m
+     [java]   ok    Höhenbereich im Kern -11,1 bis 56,2 m
+     [java]   ok    Arten: See, Strand, Kliff, Düne, Heide vorhanden
+     [java]
+     [java] ? Detailstufen (CDLOD)
+     [java]   ok    Niedrig: 64 Knoten, 163.776 Punkte
+     [java]   ok    Mittel: 74 Knoten, 215.434 Punkte
+     [java]   ok    Hoch: 89 Knoten, 263.129 Punkte
+     [java]   ok    Ultra: 109 Knoten, 350.765 Punkte
+     [java]   ok    feinste Stufe 1 m Punktabstand (Kern)
+     [java]
+     [java] ? Ansichten und Kamera
+     [java]   ok    1 Am Kliff: Auge 3,6 m über NHN, 1,7 m über Grund/Wasser, Blick 018°
+     [java]   ok    2 Treppe: Auge 18,5 m über NHN, 1,7 m über Grund/Wasser, Blick 192°
+     [java]   ok    3 Kliffkante: Auge 30,3 m über NHN, 1,7 m über Grund/Wasser, Blick 258°
+     [java]   ok    4 Spülsaum: Auge 1,6 m über NHN, 1,5 m über Grund/Wasser, Blick 292°
+     [java]   ok    5 Quermarkenfeuer: Auge 10,6 m über NHN, 1,7 m über Grund/Wasser, Blick 045°
+     [java]   ok    6 Kampener Leuchtturm: Auge 18,2 m über NHN, 1,7 m über Grund/Wasser, Blick 090°
+     [java]   ok    7 Uwe-Düne: Auge 57,8 m über NHN, 1,7 m über Grund/Wasser, Blick 270°
+     [java]   ok    8 Bohlenweg: Auge 8,8 m über NHN, 1,7 m über Grund/Wasser, Blick 320°
+     [java]   ok    9 Vogelauge: Auge 600,0 m über NHN, 600,0 m über Grund/Wasser, Blick 074°
+     [java]   ok    Kliffkante steht oben: Grund 28,6 m
+     [java]   ok    Spülsaum an der Wasserlinie: Grund +0,05 m
+     [java]   ok    Namen ohne Umlaute und Tasten
+     [java]   ok    Grundansicht von See auf die Küste, Blick 062°
+     [java]
+     [java] ? Uhr und Sonne am Start
+     [java]   ok    Start 20.7.2026 20:30 MESZ
+     [java]   ok    Sonne am Start 8,9° hoch aus 293° (tief über der See)
+     [java]   ok    Sonnenuntergang 21.6. um 22:09 MESZ
+     [java]   ok    Licht am Abend von Westen auf die Wand
+     [java]
+     [java] ? Verdrahtung der Hüllen
+     [java]   ok    surf sieht See und Land über Surf.Bed und Surf.Level
+     [java]   ok    Sylter See bricht vor dem Strand: 3169 m vom Startpunkt
+     [java]   ok    Pegel von Hand geht durch (+1 m Wasser)
+     [java]   ok    Wind 14 m/s: nasser Strand fliegt nicht, oberer Strand schon
+     [java]     Brandung: See H_s 1,0 m, T_p 8 s aus 285° · Pegel +0,00 m NHN (Tide) · H 1,09 m in 3,6 m Wasser
+     [java]     Flugsand (Hülle): Wind 14 m/s aus 270° · u* 0,50 m/s, Schwelle hier 0,37 m/s · fliegt: 7,6 g/(m·s)
+     [java]
+     [java] ? Aufbereitete Daten (Phase 2, Werkbuch 2.4)
+     [java]     daten/ vollständig: 17 Dateien, 207 MB, aufbereitet 2026-10-27 11:31:30.
+     [java]   ok    INHALT.txt: alle Prüfsummen stimmen
+     [java]   ok    Gelände aus daten/gelaende: DGM1 2024 (138 Kacheln) + BAW 2015?2021
+     [java]   ok    Uwe-Düne im DGM1: 50,5 m (52,5 m mit Plattform)
+     [java]   ok    Grund am Kampener Leuchtturm 27,4 m (Site 27,4 m)
+     [java]   ok    Wasserlinie bei N 6084000: 0,02 m NHN
+     [java]   ok    Wasserlinie bei N 6086000: 0,00 m NHN
+     [java]   ok    Wasserlinie bei N 6088000: 0,05 m NHN
+     [java]   ok    Wasserlinie bei N 6089000: 0,01 m NHN
+     [java]   ok    Wasserlinie bei N 6090000: 0,07 m NHN
+     [java]   ok    Wasserlinie bei N 6091000: 0,03 m NHN
+     [java]   ok    Wasserlinie bei N 6092500: 0,02 m NHN
+     [java]   ok    Wasserlinie bei N 6094000: 0,07 m NHN
+     [java]   ok    Wasserlinie bei N 6097000: 0,01 m NHN
+     [java]   ok    8 km draußen (BAW): -13,7 m
+     [java]   ok    Ansicht Kliffkante oben: Grund 26,6 m
+     [java]   ok    Ansicht Spülsaum an der Wasserlinie: +0,07 m
+     [java]   ok    keine Naht an den Kacheln des DGM1: Rand 99 % 0,41 m, Mitte 0,38 m, Überschuss im Mittel +0,002 m
+     [java]   ok    DGM1 ? BAW ohne Stufe: 99 % unter 0,22 m
+     [java]   ok    Bandkanten Kern ? Hauptraster 0,000 m, Hauptraster ? Fernring 0,009 m
+     [java]   ok    Kliff: 3074 m mit Wand, höchste 35,4 m
+     [java]   ok    Klassen im Kern: Strand 1,7 %, Kliff 0,19 %, Heide 22,4 %, Dach 1,4 %
+     [java]
+     [java] ? Grundbild (Phase 3): Himmel, Wolken, See, Farben, Bodendecke
+     [java]   ok    com.dan.sky und die Uhr sehen dieselbe Sonne: 9,03° gegen 8,93°
+     [java]   ok    Wolken am Start: 3/8 Cumulus (Sommerabend wie RotesKliff2)
+     [java]   ok    See und Brandung mit derselben Dünung: 1,0 m, 8 s aus 285°
+     [java]   ok    See mit dem Wind der Verdrahtung
+     [java]   ok    Albedo: Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19
+     [java]   ok    Albedo jeder Art zwischen 0 und 0,95
+     [java]   ok    Band des Kliffs aus kante.csv: 3074 Zeilen, 0,22 km², nur dort die Wand; ?Kliff? außerhalb zur Düne(Befund Phase 3)
+     [java]   ok    Kliff: Wand im Band (bis 0,50), landeinwärts keine (Dünen bleiben Sand); Wandkarte 2048² zu 2 m · Wand 0,2 %, Geröll 0,5 %, Absatz 0,3 % · 0 Fälle
+     [java]   ok    Schichten je Ort: Kaolinsand im Süden bis 6,5 m, im Norden unter dem Strand (-3,0 m); Flugsand 1,0 m im Süden, 2,9 m im Norden
+     [java]   ok    Oberkante aus dem Gelände 26,4 m, Kante aus dem bDOM 26,4 m (N 6 089 600)
+     [java]   ok    Grasnarbe entlang der Kante: 25 Stücke, 3,0 km
+     [java]   ok    Findlinge nur auf dem Strand vor dem Fuß (Dichte 0,23, hinter der Kante 0)
+     [java]   ok    Strandhafer am Fuß: 276 von 597 Stellen mit Sturzkegel
+     [java]   ok    Biom Sylt mit Strandhafer, Krähenbeere, Besenheide, Kartoffelrose
+     [java]   ok    See draußen und Watt im Osten mit der See verbunden; 15 % des Hauptrasters Land oder Binnensenke
+     [java]   ok    Nässe des Sands: unter Wasser 1,00, oben am Strand 0,22 (Sand)
+     [java]   ok    Durchgänge Himmel, Gelände, Boden, Meer, Wolken, Nachbearbeitung, HUD
+     [java]   ok    Marken im Grundbild aus (M schaltet sie an)
+     [java]
+     [java] ? Brandung in der Szene (Phase 7a)
+     [java]   ok    Pegel aus Tide.westerland() (F25 A): Westerland [G] Ebbe, Hochwasser 6:09 +0,80 m · Niedrigwasser 0:34 -0,97 m · Windstau +0,10 m
+     [java]   ok    Pegel jetzt +0,68 m NHN aus der Tide (mit Windstau +0,10 m); von Hand bleibt er stehen
+     [java]   ok    Wellenfeld vor dem Kern (189 × 601 zu 8 m, 0,5 s): an der Wasserlinie vor der Kliffkante brechen 100 %, 1 km draußen 0,0 %
+     [java]   ok    Textur 835² zu 6 m: Phase wächst zur Küste um 17,2 Wellenlängen auf 970 m (tief wären es 9,7), Set-up an der Wasserlinie +0,13 m
+     [java]   ok    an der Küste des Kerns ist die Brandung weiß (Walzen über 30 % auf 16 von 17 Querprofilen alle 200 m; in den Rinnen schwächer)
+     [java]   ok    Grund der Brandung: Gelände (über ±12 m geglättet) mit Riffen (hier +0,81 m, Grund +0,78 m über demGelände) und 10 Rinnen vor dem Kern (F10 A)
+     [java]   ok    2 Buhnen (Luftbild DOP20 2024: Kliffende, Kampen), 381 Pfähle, alle im Kern zwischen -2,1 und +1,5 m NHN; Brandungsringe in ocean
+     [java]   ok    Netz nahe am Auge vor der Kliffkante: 147 m Strand (24 Reihen auf 160 m), gebaut und eingeschwungenin 1,1 s, 48 Auflaufspitzen in 20 s, Netz 11520 Ecken
+     [java]   ok    Nässe des Sands im Stück aus dem Schwall: 30 von 30 Stellen über dem Pegel folgen ihm
+     [java]   ok    HUD: Zeilen für Tide und Brandung
+     [java]
+     [java] ? Renderer.jar und Shader
+     [java]   ok    Renderer.jar: 40 Packages in Renderer.jar, alle 23 gebrauchten da, dazu surf, dune, beacon
+     [java]   ok    neu: surf ? · dune ? · beacon ?
+     [java]   ok    Shader fullscreen.vert im Jar
+     [java]   ok    Shader sky.frag im Jar
+     [java]   ok    Shader terrain.vert im Jar
+     [java]   ok    Shader terrain.frag im Jar
+     [java]   ok    Shader fullscreen.vert im Jar
+     [java]   ok    Shader meer.frag im Jar
+     [java]   ok    Shader fullscreen.vert im Jar
+     [java]   ok    Shader post.frag im Jar
+     [java]   ok    Shader fullscreen.vert im Jar
+     [java]   ok    Shader overlay.frag im Jar
+     [java]   ok    Shader fullscreen.vert im Jar
+     [java]   ok    Shader lum.frag im Jar
+     [java]   ok    com.dan.surf.demo.SurfCheck: Alles in Ordnung.
+     [java]   ok    com.dan.dune.demo.DuneCheck: Alles in Ordnung.
+     [java]   ok    com.dan.tide.demo.TideCheck: Alles in Ordnung.
+     [java]
+     [java] ? Regel 2.4: die App liest nie aus C:\Daten
+     [java]   ok    kein Laufzeitcode öffnet C:\Daten (nur Werkzeuge in com.dan.sylt.tools, ab Phase 2)
+     [java]   ok    die App benutzt keine Werkzeuge (Rohdaten, Aufbereitung) zur Laufzeit
+     [java]
+     [java] 130 Prüfungen in 50,7 s
+     [java] ERGEBNIS: alles in Ordnung
+
+BUILD SUCCESSFUL
+Total time: 55 seconds
+
+C:\Users\Dan40810\Documents\NetBeansProjects\Sylt>

@@ -42,7 +42,7 @@ public final class BrandungBild {
         Brandung b = r.brandung;
         b.computeNow(0);
         Terrain t = r.terrain;
-        double e0 = 455_700, e1 = 457_900, n0 = 6_088_000, n1 = 6_091_600, px = 2;
+        double e0 = 455_400, e1 = 457_900, n0 = 6_087_200, n1 = 6_091_600, px = 2;
         int w = (int) ((e1 - e0) / px), h = (int) ((n1 - n0) / px), side = 760;
         BufferedImage img = new BufferedImage(w + side, h, BufferedImage.TYPE_INT_RGB);
         double pegel = r.wiring.pegel, tp = r.wiring.surf.tp, zeit = 3.0;
