@@ -60,7 +60,10 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
             bodenBox = new FCheckBox("Bodendecke zeigen (com.dan.ground, Biom Sylt)"),
             tideBox = new FCheckBox("Tide Westerland (Pegel aus der Gezeit)"), netzBox = new FCheckBox("Brecher nahe am Auge als Netz"),
             buhnenBox = new FCheckBox("Buhnen zeigen"), stromBox = new FCheckBox("Strömung zeigen (Rippströme)"),
-            dlrgBox = new FCheckBox("DLRG-Blick: Rinnen und Rückstrom deutlich");
+            dlrgBox = new FCheckBox("DLRG-Blick: Rinnen und Rückstrom deutlich"),
+            sandBox = new FCheckBox("Flugsand (com.dan.dune, Wind aus com.dan.wind)"), koernerBox = new FCheckBox("Körner zeigen (Fahnen, Kammfahnen)");
+    private final FSlider regenSl = new FSlider(0, 60, 0);
+    private final JLabel regenLbl = label("");
     private final JLabel tideLbl = small(""), brandungLbl = small("");
     private FComboBox lapseBox, qualBox, hudBox, artBox;
     private boolean fromScene;
@@ -263,8 +266,34 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         put(windDirSl);
         windSl.addChangeListener(e -> { if (!fromScene) r.wiring.windSpeed = windSl.getValue(); labels(); });
         windDirSl.addChangeListener(e -> { if (!fromScene) r.wiring.windFromDeg = windDirSl.getValue(); labels(); });
-        put(small("<html><body style='width:215px'>Hülle von com.dan.dune (Phase 1): Schwelle nach Bagnold mit Feuchte (Belly) und "
-                + "Bewuchs (Raupach), Fluss an der Kamera. Fahnen und Rippel ab Phase 8, Dünenwanderung ab Phase 9, Wind aus com.dan.wind ab 9a.</body></html>"));
+        sub("Flugsand in der Szene");
+        sandBox.setSelected(r.sand.an);
+        sandBox.addActionListener(e -> { r.sand.an = sandBox.isSelected(); view.requestFocusInWindow(); });
+        put(sandBox);
+        koernerBox.setSelected(r.showKoerner);
+        koernerBox.addActionListener(e -> { r.showKoerner = koernerBox.isSelected(); view.requestFocusInWindow(); });
+        put(koernerBox);
+        put(regenLbl);
+        put(regenSl);
+        regenSl.addChangeListener(e -> { if (!fromScene) r.sand.regen = regenSl.getValue() / 1000.0; labels(); });
+        FButton sturmB = new FButton("Sandsturm am Strand");
+        sturmB.addActionListener(e -> {
+            r.sandsturm();
+            fromScene = true;
+            windSl.setValue((int) Math.round(r.wiring.windSpeed));
+            windDirSl.setValue((int) Math.round(r.wiring.windFromDeg));
+            regenSl.setValue(0);
+            fromScene = false;
+            sandBox.setSelected(true);
+            koernerBox.setSelected(true);
+            labels();
+            view.requestFocusInWindow();
+        });
+        put(sturmB);
+        put(small("<html><body style='width:215px'>Seit Phase 9a: Flugsand aus com.dan.dune mit dem Wind aus com.dan.wind (Feld über dem "
+                + "Kern, im Lee des Kliffs schwächer, über den Kämmen stärker). Der nasse Strand nach Pegel, Auflauf und Schwall fliegt "
+                + "nicht, nach Regen nichts. Sandfahnen über den Strand, Kammfahnen über die Dünen, um das Auge. „Sandsturm am Strand“: "
+                + "Bft 9 aus West, trocken, Blick vom Strand.</body></html>"));
 
         // ============================================================== spätere Blöcke
         block("KLIFF", false);
@@ -499,7 +528,8 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         txt(surfLbl, "<html><body style='width:215px'>" + esc(r.wiring.surfZeile(r.camera.eye[0], r.camera.eye[2])) + "</body></html>");
         txt(windLbl, String.format(Locale.GERMAN, "Wind in 10 m: %.0f m/s", r.wiring.windSpeed));
         txt(windDirLbl, String.format(Locale.GERMAN, "aus %03.0f° (%s)", r.wiring.windFromDeg, compass(r.wiring.windFromDeg)));
-        txt(duneLbl, "<html><body style='width:215px'>" + esc(r.wiring.duneZeile(r.camera.eye[0], r.camera.eye[2])) + "</body></html>");
+        txt(duneLbl, "<html><body style='width:215px'>" + esc(r.sand.zeile(r.camera.eye[0], r.camera.eye[2])) + "</body></html>");
+        txt(regenLbl, r.sand.regen <= 0 ? "Strand trocken (kein Regen)" : String.format(Locale.GERMAN, "nach Regen: Sand %.1f %% nass", r.sand.regen * 100));
         txt(oktasLbl, String.format(Locale.GERMAN, "Bedeckung %.0f/8", r.wiring.oktas));
         txt(highLbl, String.format(Locale.GERMAN, "Hoher Schleier %.0f %%", r.wiring.highCover * 100));
         txt(sichtLbl, String.format(Locale.GERMAN, "Sicht %.0f km", r.wiring.visibilityKm));

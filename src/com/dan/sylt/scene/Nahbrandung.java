@@ -138,7 +138,7 @@ public final class Nahbrandung {
         anlegen(s);
         netzMs = netzMs * 0.9 + (System.nanoTime() - t1) / 1e6 * 0.1;
         schrittMs = schrittMs * 0.9 + (t1 - t0) / 1e6 * 0.1;
-        meldung = String.format(Locale.GERMAN, "Netz %d Reihen auf %.0f m, %.0f m bis zur Wasserlinie · %d Wellen · R_2%% %.2f m (Stockdon %.2f m) · Rechnen %.1f ms, Netz %.1f ms",
+        meldung = String.format(Locale.GERMAN, "Netz %d Reihen auf %.0f m, Wasserlinie %.0f m vom Rand zur See · %d Wellen · R_2%% %.2f m (Stockdon %.2f m) · Rechnen %.1f ms, Netz %.1f ms",
                 s.zug.rows, s.zug.width, s.xWasserlinie, s.zug.waves.size(), s.schwall.r2(), brandung.auflaufR2(), schrittMs, netzMs);
     }
 

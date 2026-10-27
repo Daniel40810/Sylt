@@ -49,6 +49,9 @@ public final class Ansichten {
             at(8, "Bohlenweg", new double[]{Site.QUERMARKE.x() + 160, Site.QUERMARKE.z() + 190}, 320, -2, 1.7),
             at(9, "Vogelauge", quer(6_089_200, -3000), 74, 11, 600));
 
+    /** Seit Phase 9a: „Sandsturm am Strand“ – auf dem trockenen oberen Strand vor dem Kliff, Blick längs nach Nordnordost, der Westwind quer durchs Bild. */
+    public static final Ansicht SANDSTURM = at(0, "Sandsturm am Strand", quer(6_089_300, 22), 25, -3, 1.6);
+
     /** Taste der Ansicht „Am Kliff“ (Schaustück 1, „Abend am Kliff“). */
     public static final int AM_KLIFF = 1;
 

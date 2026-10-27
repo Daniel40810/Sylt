@@ -330,6 +330,9 @@ public final class Pruefung {
         teil("Brandung in der Szene (Phase 7a)");
         brandung(r3, clock);
 
+        teil("Flugsand in der Szene (Phase 9a)");
+        sand(r3);
+
         teil("Renderer.jar und Shader");
         List<String> pk = Bibliothek.pakete();
         check(Bibliothek.fehlend().isEmpty(), "Renderer.jar: " + Bibliothek.kurz());
@@ -482,6 +485,45 @@ public final class Pruefung {
         boolean tideZ = false, brZ = false;
         for (String l : hud) { tideZ |= l.startsWith("Tide: "); brZ |= l.startsWith("Brandung: "); }
         check(tideZ && brZ, "HUD: Zeilen für Tide und Brandung");
+    }
+
+    /** Seit Phase 9a: Windfeld aus wind, Flugsand um das Auge, nasser Strand, Regen, Körner, „Sandsturm am Strand“. */
+    static void sand(Renderer r) {
+        com.dan.sylt.scene.Sand s = r.sand;
+        r.wiring.tideAn = false;
+        r.wiring.pegel = -0.3;
+        r.sandsturm();
+        long t0 = System.nanoTime();
+        r.sandJetzt();
+        double ms = (System.nanoTime() - t0) / 1e6;
+        double[] e = r.camera.eye;
+        com.dan.dune.FluxField f = s.feld();
+        double sp = s.dune.windSpeedAt(e[0], e[2]), dir = s.dune.windFromAt(e[0], e[2]);
+        check(s.wind.solution != null && sp > 12 && sp < 30 && Math.abs(((dir - 280) % 360 + 540) % 360 - 180) < 25,
+                f("Windfeld aus com.dan.wind über dem Kern (F21 A): am Strand %.1f m/s aus %03.0f° bei Bft 9 aus 280° · %s", sp, dir, s.wind.solution.describe()));
+        double q = f.fluxAt(e[0], e[2]);
+        // nasser Strand: an der Wasserlinie unter dem Auge
+        double[] wl = Site.fromUtm(Site.wasserlinieE(6_089_300) + 3, 6_089_300);
+        double qn = f.fluxAt(wl[0], wl[1]), mn = s.dune.moisture.moisture(wl[0], wl[1]);
+        check(q > 0.01 && (Double.isNaN(qn) || qn < 1e-4) && mn > 0.05,
+                f("Sandsturm am Strand: oben am Strand fliegen %.0f g/(m·s), an der Wasserlinie nichts (Sand %.0f %% nass) · %s", q * 1000, mn * 100, f.describe()));
+        com.dan.dune.Grains g = s.koerner();
+        check(g.count > 500, f("Körner um das Auge: %s; Windfeld, Feld und 3 s Körner in %.0f ms", g.describe(), ms));
+        // Heide hinter der Kante gibt keinen Sand
+        double[] heide = null;
+        for (double d = 200; d < 600 && heide == null; d += 10) {
+            double[] p = Site.fromUtm(Site.wasserlinieE(6_089_300) + d, 6_089_300);
+            if (r.karte.at(r.terrain, p[0], p[1]) == com.dan.sylt.scene.Terrain.HEIDE) heide = p;
+        }
+        check(heide == null || s.dune.cover.lambda(heide[0], heide[1]) >= 1, "Heide und Kliff geben keinen Sand (Bewuchs)");
+        s.regen = 0.06;
+        s.bereit(e, r.wiring.windSpeed, r.wiring.windFromDeg, 0.5);
+        double qr = s.feld().fluxAt(e[0], e[2]);
+        check(qr == 0, f("nach starkem Regen (6 %% Wasser im Sand, gebunden) fliegt bei Bft 9 nichts (Schwelle %.2f m/s, u* %.2f m/s)", s.feld().thresholdAt(e[0], e[2]), s.feld().ustarAt(e[0], e[2])));
+        s.regen = 0;
+        String z = s.zeile(e[0], e[2]);
+        check(z.startsWith("Flugsand:") && java.util.Arrays.stream(r.hudLines()).anyMatch(l -> l.startsWith("Flugsand:")), "HUD: " + z);
+        r.wiring.tideAn = true;
     }
 
     static String f(String fmt, Object... a) { return String.format(Locale.GERMAN, fmt, a); }

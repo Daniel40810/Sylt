@@ -26,7 +26,8 @@ import java.util.Locale;
  * Ansicht (AmKliff, Treppe, Kliffkante, Spuelsaum, Quermarkenfeuer, KampenerLeuchtturm, UweDuene, Bohlenweg, Vogelauge),
  * {@code kamera} = x,z,Richtung,Neigung,Höhe über Grund (frei stehend), {@code hud} = kurz|voll|aus,
  * {@code marken} = an|aus (seit Phase 3 aus), {@code meer} = aus, {@code pegel} = m über NHN (von Hand), seit Phase 3
- * {@code wolken} = aus, {@code boden} = aus, {@code bedeckung} = Achtel, seit Phase 7a {@code see} = H_s,T_p,Richtung.
+ * {@code wolken} = aus, {@code boden} = aus, {@code bedeckung} = Achtel, seit Phase 7a {@code see} = H_s,T_p,Richtung,
+ * seit Phase 9a {@code sandsturm} = an und {@code wind} = m/s,Richtung.
  */
 public final class Tempo {
     private Tempo() { }
@@ -87,10 +88,19 @@ public final class Tempo {
             if (v == null) System.err.println("FEHLER: keine Ansicht „" + an + "“");
             else r.placeView(v);
         }
+        // seit Phase 9a: -Dsandsturm=an (Bft 9 aus West, Blick vom Strand), -Dwind=m/s,Richtung
+        if ("an".equals(opt("sandsturm"))) r.sandsturm();
+        String wi = opt("wind");
+        if (wi != null && !wi.isBlank()) {
+            String[] v = wi.split("[,;]");
+            r.wiring.windSpeed = Double.parseDouble(v[0]);
+            if (v.length > 1) r.wiring.windFromDeg = Double.parseDouble(v[1]);
+        }
         d.addGLEventListener(r);
         d.display();   // init
         r.step(1 / 60.0);
         r.brandungJetzt();     // Phase 7a: Wellenfeld und Netz nahe am Auge vor dem Bild
+        r.sandJetzt();         // Phase 9a: Windfeld, Flugsand um das Auge und 3 s Körner
         r.wetter.sky.updateNow();   // Phase 3: das Licht des Himmels sofort, nicht im Hintergrund
         for (int i = 0; i < 40; i++) { r.step(1 / 60.0); d.display(); }
         double best = Double.MAX_VALUE, sum = 0;

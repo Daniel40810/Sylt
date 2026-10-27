@@ -98,6 +98,10 @@ public final class Renderer implements GLEventListener {
     final BrandungGl brandungGl = new BrandungGl();
     /** Netz der Brecher nahe am Auge, Pfähle der Buhnen zeigen. */
     public volatile boolean showNetz = true, showBuhnen = true;
+    /** Seit Phase 9a: der Flugsand in der Szene ({@code dune} mit dem Wind aus {@code wind}) und ob die Körner gezeigt werden. */
+    public final com.dan.sylt.scene.Sand sand;
+    public volatile boolean showKoerner = true;
+    final SandGl sandGl = new SandGl();
     /** Strömung der Brandung in der See zeigen (Rippströme trüben das Wasser), stärker als „DLRG-Blick“. */
     public volatile boolean showStroemung = true, dlrgBlick;
     private double naesseTakt;
@@ -190,6 +194,11 @@ public final class Renderer implements GLEventListener {
         brandung = new com.dan.sylt.scene.Brandung(wiring.surf, terrain);
         wiring.surf.field = brandung.feld;
         nah = new com.dan.sylt.scene.Nahbrandung(brandung, terrain);
+        sand = new com.dan.sylt.scene.Sand(terrain::height, (x, z) -> karte.at(terrain, x, z), (x, z) -> {
+            if (naesse == null) return Double.NaN;
+            int k = naesse.feld.index(x, z);
+            return k < 0 ? Double.NaN : naesse.feld.wet[k];
+        }, () -> wiring.pegel);
         wiring.stepTide();
         kliff = new Kliff(terrain, com.dan.sylt.scene.Kante.load(Daten.ordner()));
         meadow = new Meadow(Biome.sylt(), new Bodendecke(terrain, karte, kliff::talus));
@@ -253,6 +262,9 @@ public final class Renderer implements GLEventListener {
         wiring.dune.quality = com.dan.dune.Dune.Quality.values()[q.ordinal()];
         meer.ocean.quality = q.ocean;
         nah.reihen = q == Quality.NIEDRIG ? 24 : q == Quality.MITTEL ? 40 : 56;
+        sand.dune.quality = q == Quality.NIEDRIG ? com.dan.dune.Dune.Quality.LOW : q == Quality.MITTEL ? com.dan.dune.Dune.Quality.MEDIUM
+                : q == Quality.HOCH ? com.dan.dune.Dune.Quality.HIGH : com.dan.dune.Dune.Quality.ULTRA;
+        sand.koerner().budget = sand.dune.grainBudget();
         wetter.clouds.quality = q.clouds;
         if (meadow != null) meadow.radius = q.groundRadius;
     }
@@ -266,6 +278,29 @@ public final class Renderer implements GLEventListener {
         boolean ok = Ansichten.apply(a, camera, PHASE, this::groundHeight);
         if (ok) hudMeldung("Ansicht " + a);
         return ok;
+    }
+
+    /**
+     * Seit Phase 9a: „Sandsturm am Strand“ – Wind Bft 9 aus 280°, trocken (kein Regen), mäßige See (der obere Strand bleibt
+     * trocken), Flugsand und Körner an, Blick vom Strand längs nach Nordnordost.
+     */
+    public void sandsturm() {
+        wiring.windSpeed = 22;
+        wiring.windFromDeg = 280;
+        wiring.surf.hs = 1.4;
+        wiring.surf.tp = 7;
+        wiring.surf.seaFromDeg = 285;
+        sand.regen = 0;
+        sand.an = true;
+        showKoerner = true;
+        placeView(Ansichten.SANDSTURM);
+        hudMeldung("Sandsturm am Strand: Bft 9 aus West, trockener Sand");
+    }
+
+    /** Seit Phase 9a: Windfeld und Flugsand um das Auge sofort, Körner 3 s vorlaufen (für Standbilder). */
+    public void sandJetzt() {
+        if (naesse != null) naesse.update(wiring.pegel, brandung.auflaufR2() * 0.8);
+        sand.bereit(camera.eye, wiring.windSpeed, wiring.windFromDeg, 3);
     }
 
     /** Eine Meldung für 5 s im HUD (und in der Statuszeile). */
@@ -360,6 +395,7 @@ public final class Renderer implements GLEventListener {
         wiring.cloudsDrawn = wetter.cloudsOk;
         meer.init(gl, terrain, compute.ok(), errorListener);
         brandungGl.init(gl, brandung);
+        sandGl.init(gl);
         klasseTex = klasseTexture(gl, karte);
         kliff.init(gl);
         System.out.println("Sylt: " + karte.describe() + (karte.hatKarte() ? " · Arten im Kern zu 1 m" : " · ohne Karte des Kerns"));
@@ -419,6 +455,8 @@ public final class Renderer implements GLEventListener {
                 naesse.ueberlagern(nah.sichtbar ? nah.stueck() : null);
             }
         }
+        // seit Phase 9a: Flugsand (Windfeld und Feld um das Auge im Hintergrund, Körner hier)
+        sand.schritt(dt, camera.eye, wiring.windSpeed, wiring.windFromDeg);
         if (wetter.skyOk) {
             Sky.State st = wetter.sky.step(dt);
             wetter.clouds.step(dt);
@@ -672,6 +710,15 @@ public final class Renderer implements GLEventListener {
             gl.glActiveTexture(GL.GL_TEXTURE6);
             gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
             gl.glActiveTexture(GL.GL_TEXTURE0);
+        }
+        // seit Phase 9a: die Körner des Flugsands (durchscheinend, mit Tiefentest, ohne Tiefe zu schreiben)
+        if (showKoerner && sand.an && sand.feld() != null) {
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrFbo);
+            gl.glViewport(0, 0, w, h);
+            gl.glEnable(GL.GL_DEPTH_TEST);
+            sandGl.draw(gl, vp, camera.eye, sand, st, pre, sun, wetter, showClouds, sunLight(sp[0]), FOG_DISTANCE);
+            gl.glDepthMask(true);
+            gl.glBindVertexArray(emptyVao);
         }
         mark(gl, 4);
 
@@ -997,7 +1044,7 @@ public final class Renderer implements GLEventListener {
                 wiring.surfZeile(camera.eye[0], camera.eye[2]),
                 "Tide: " + wiring.tideZeile(),
                 brandungGl.describe(brandung, nah),
-                wiring.duneZeile(camera.eye[0], camera.eye[2]),
+                sand.zeile(camera.eye[0], camera.eye[2]),
                 physik.describe(),
                 (terrain.measured() ? "" : "!") + "Gelände: " + terrain.describe(),
                 String.format(Locale.GERMAN, "Gelände %d Knoten, %,d Punkte · fein bis %d m, im Kern %d m · Grund hier %.1f m über NHN · %s",
@@ -1075,6 +1122,7 @@ public final class Renderer implements GLEventListener {
         wetter.dispose(gl);
         meer.dispose(gl);
         brandungGl.dispose(gl);
+        sandGl.dispose(gl);
         kliff.dispose(gl);
         if (groundOk) groundGl.dispose(gl);
         mudGl.dispose(gl);

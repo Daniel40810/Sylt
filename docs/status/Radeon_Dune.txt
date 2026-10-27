@@ -1,0 +1,13 @@
+Microsoft Windows [Version 10.0.26300.9711]
+(c) Microsoft Corporation. Alle Rechte vorbehalten.
+
+C:\Users\Dan40810\Documents\NetBeansProjects\Sylt>java -cp "lib/Renderer.jar;lib/*" com.dan.dune.demo.DuneDemo --bild docs/status/Dune_Phase9_Radeon.png
+Flugsand 170 × 120 m zu 0,50 m aus 270°: u* bis 0,65 m/s, q bis 0,038 kg/(m·s), ? 1,4 m, 59 % fliegt (79,7 ms) · Saltation: 9604 Körner zu 0,091 g, Schweb 284 (bis 0,2 m), 1,2 ms · Rippel: ? 8?26 cm, H bis 12 mm, wandern bis 4,3 cm/min · Körner 0,0 ms (Prozessor), Zeichnen 3,57 ms (Grafikkarte)
+Zeitraffer: 0,30 Jahre/s, 0,0 Jahre (angehalten) · Sandbett 170 × 120 m zu 1,0 m, Platten 5 cm: 39.600 m³ loser Sand, Strandhafer auf 2.289 m², 0 Zäune, 0,0 Jahre · Werner: q 0,008 kg/(m·s) 8 % der Zeit, 37 Abhebungen je Zelle und Jahr, Schüttwinkel 33°, 0 bewegt (0 ms)
+Flugsand 170 × 120 m zu 0,50 m aus 270°: u* bis 1,10 m/s, q bis 0,229 kg/(m·s), ? 1,4 m, 88 % fliegt (79,9 ms) · Saltation: 15789 Körner zu 0,93 g, Schweb 538 (bis 1,0 m), 1,9 ms · Rippel: ? 8?30 cm, H bis 12 mm, wandern bis 12,0 cm/min · Körner 0,0 ms (Prozessor), Zeichnen 1,10 ms (Grafikkarte)
+Zeitraffer: 0,30 Jahre/s, 0,0 Jahre (angehalten) · Sandbett 170 × 120 m zu 1,0 m, Platten 5 cm: 39.600 m³ loser Sand, Strandhafer auf 2.289 m², 0 Zäune, 0,0 Jahre · Werner: q 0,008 kg/(m·s) 8 % der Zeit, 37 Abhebungen je Zelle und Jahr, Schüttwinkel 33°, 0 bewegt (0 ms)
+Flugsand 170 × 120 m zu 0,50 m aus 270°: u* bis 1,00 m/s, q bis 0,104 kg/(m·s), ? 1,4 m, 58 % fliegt (31,5 ms) · Saltation: 12445 Körner zu 1,7 g, Schweb 583 (bis 3,5 m), 1,8 ms · Rippel: ? 8?29 cm, H bis 12 mm, wandern bis 12,0 cm/min · Körner 0,0 ms (Prozessor), Zeichnen 1,55 ms (Grafikkarte)
+Zeitraffer: 0,30 Jahre/s, 8,0 Jahre (angehalten) · Sandbett 170 × 120 m zu 1,0 m, Platten 5 cm: 48.619 m³ loser Sand, Strandhafer auf 3.521 m², 2 Zäune, 8,0 Jahre · Werner: q 0,008 kg/(m·s) 8 % der Zeit, 37 Abhebungen je Zelle und Jahr, Schüttwinkel 33°, 2.952.593 bewegt (2520 ms)
+Bild: docs\status\Dune_Phase9_Radeon.png
+
+C:\Users\Dan40810\Documents\NetBeansProjects\Sylt>
