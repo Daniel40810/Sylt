@@ -172,6 +172,26 @@ public final class TerrainLod {
         return t[0];
     }
 
+    /**
+     * Seit Phase 12: ein Rechteck des Kerns neu hochladen (Zellen i0..i1, j0..j1 einschließlich), etwa nach einem Abbruch
+     * des Kliffs oder einem Sturzkegel; danach die Mip-Stufen neu.
+     */
+    void updateKern(GL4 gl, Terrain t, int i0, int j0, int i1, int j1) {
+        if (kernTex == 0 || t.kern == null) return;
+        i0 = Math.max(0, i0); j0 = Math.max(0, j0); i1 = Math.min(Terrain.KN - 1, i1); j1 = Math.min(Terrain.KN - 1, j1);
+        if (i1 < i0 || j1 < j0) return;
+        int w = i1 - i0 + 1, h = j1 - j0 + 1;
+        java.nio.ShortBuffer b = Buffers.newDirectShortBuffer(w * h);
+        for (int j = j0; j <= j1; j++) b.put(t.kern, j * Terrain.KN + i0, w);
+        b.rewind();
+        gl.glBindTexture(GL.GL_TEXTURE_2D, kernTex);
+        gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 2);
+        gl.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, i0, j0, w, h, GL4.GL_RED, GL.GL_UNSIGNED_SHORT, b);
+        gl.glGenerateMipmap(GL.GL_TEXTURE_2D);
+        gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+        gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4);
+    }
+
     /** Höhen- und Arttexturen hochladen (im GL-Faden, einmal oder nach einem neuen Import). */
     void upload(GL4 gl, Terrain t) {
         terrain = t;

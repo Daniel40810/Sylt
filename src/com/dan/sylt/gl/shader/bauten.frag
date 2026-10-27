@@ -19,7 +19,7 @@ uniform vec3 uGlowQ, uGlowK;    // Leuchtdichte der übrigen Laterne (Streulicht
 const float PI = 3.14159265;
 
 // Albedo je Baustoff (linear) [G nach Leuchturm1–4, Kampen1–4 und dem Ortsbild]; Reihenfolge wie Netz.java
-const vec3 ALB[24] = vec3[24](
+const vec3 ALB[27] = vec3[27](
     vec3(0.31, 0.060, 0.035),   //  0 Backstein
     vec3(0.72, 0.72, 0.69),     //  1 Putz
     vec3(0.19, 0.13, 0.075),    //  2 Reet
@@ -43,7 +43,10 @@ const vec3 ALB[24] = vec3[24](
     vec3(0.02, 0.08, 0.05),     // 20 Tür
     vec3(0.70, 0.70, 0.68),     // 21 Holz weiß
     vec3(0.60, 0.02, 0.02),     // 22 Rot
-    vec3(0.80, 0.60, 0.02));    // 23 Gelb
+    vec3(0.80, 0.60, 0.02),     // 23 Gelb
+    vec3(0.42, 0.16, 0.05),     // 24 Geschiebelehm (wie com.dan.cliff)
+    vec3(0.62, 0.56, 0.45),     // 25 Kaolinsand
+    vec3(0.52, 0.43, 0.28));    // 26 Flugsand
 
 float hash1(float n) { return fract(sin(n) * 43758.5453); }
 float hash2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -82,7 +85,7 @@ void main() {
     float u = dot(vWorld.xz, t2);
     float hy = vWorld.y - ground;
     float pxm = max(length(fwidth(vWorld)), 1e-4);
-    vec3 alb = ALB[min(mat, 23u)];
+    vec3 alb = ALB[min(mat, 26u)];
     float spec = 0.0, shin = 40.0, glass = 0.0;
     vec3 emit = vec3(0.0);
     bool wand = abs(n.y) < 0.35;
@@ -169,6 +172,10 @@ void main() {
         spec = 0.05; shin = 30.0;
     } else if (mat == 19u) {
         glass = 1.0; spec = 0.3; shin = 200.0;
+    } else if (mat >= 24u) {
+        // Stücke des Kliffs (seit Phase 12): körnig, Lehm fleckig, frische Bruchflächen etwas heller
+        alb *= mix(1.0, 0.75 + 0.5 * vnoise(vWorld.xz * 3.0 + vWorld.y * 2.0), sicht(0.3, pxm));
+        if (mat == 24u) alb *= 0.85 + 0.3 * vnoise(vWorld.xz * 0.7 - vWorld.y);
     } else if (mat == 20u) {
         alb *= mix(1.0, 0.8 + 0.4 * step(0.1, fract(u / 0.12)), sicht(0.12, pxm));
     }

@@ -67,7 +67,8 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
             feuerBox = new FCheckBox("Leuchtfeuer (com.dan.beacon)"), strahlBox = new FCheckBox("Strahl im Dunst"),
             frueherBox = new FCheckBox("Quermarkenfeuer wie früher (F WRG, bis 1975)"),
             koerbeBox = new FCheckBox("Strandkörbe (Saison, Wind, Sturmwarnung)"), herdeBox = new FCheckBox("Galloways am Kampener Leuchtturm");
-    private final JLabel tuermeLbl = small("");
+    private final JLabel tuermeLbl = small(""), kliffLbl = small("");
+    private final FCheckBox brockenBox = new FCheckBox("Brocken zeigen");
     private final JLabel regenLbl = label("");
     private final JLabel tideLbl = small(""), brandungLbl = small("");
     private FComboBox lapseBox, qualBox, hudBox, artBox;
@@ -301,9 +302,31 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
                 + "Bft 9 aus West, trocken, Blick vom Strand.</body></html>"));
 
         // ============================================================== spätere Blöcke
-        block("KLIFF", false);
-        put(small("<html><body style='width:215px'>Kommt mit Phase 4 und 4a (Lockergestein aus com.dan.cliff: Flugsand, Geschiebelehm, "
-                + "Kaolinsand, Runsen, Grasnarbe) und Phase 11 und 12 (Abbruch aus com.dan.fracture bei Sturmflut).</body></html>"));
+        // ============================================================== KLIFF (seit Phase 12: Sturmflut und Abbruch)
+        block("KLIFF", true);
+        put(kliffLbl);
+        FButton flutB = new FButton("Sturmflut (Xaver 2013)"), hierB = new FButton("Abbruch hier");
+        flutB.setToolTipText("5. Dezember 2013 ab 12 Uhr, Zeitraffer 12 min/s: Orkan aus Nordwest, Windstau über 3 m in der Nacht");
+        flutB.addActionListener(e -> {
+            r.sturmflutStarten(com.dan.sylt.scene.Sturmflut.STUNDE);
+            lapseBox.setSelectedIndex(5);
+            syncFromScene();
+            view.requestFocusInWindow();
+        });
+        hierB.setToolTipText("Die Hohlkehle am Ziel der Kamera kritisch machen: fracture bricht das Kliff dort");
+        hierB.addActionListener(e -> { r.abbruchHier(); view.requestFocusInWindow(); });
+        JPanel kg = grid(2);
+        kg.add(flutB);
+        kg.add(hierB);
+        put(kg);
+        brockenBox.setSelected(r.showBrocken);
+        brockenBox.addActionListener(e -> { r.showBrocken = brockenBox.isSelected(); view.requestFocusInWindow(); });
+        put(brockenBox);
+        put(small("<html><body style='width:215px'>Lockergestein aus com.dan.cliff (Flugsand, Geschiebelehm, Kaolinsand, Grasnarbe). "
+                + "Seit Phase 12: bei Sturmflut reicht der Auflauf an den Fuß, die Brandung schlägt die Hohlkehle; wird sie tiefer als "
+                + "rund 0,6 der kritischen Tiefe des Überhangs, rechnet com.dan.fracture das Stück Kliff darüber (Spannung, Nässe), "
+                + "es bricht, die Brocken zerfallen zum Sturzkegel mit Staub, die nächste Flut trägt ihn ab. „Abbruch hier“ löst es am "
+                + "Ziel der Kamera aus.</body></html>"));
         // ============================================================== TÜRME (seit Phase 10)
         block("TÜRME", true);
         bautenBox.setSelected(r.showBauten);
@@ -572,6 +595,7 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         txt(dirLbl, String.format(Locale.GERMAN, "aus %03.0f° (%s)", sf.seaFromDeg, compass(sf.seaFromDeg)));
         txt(surfLbl, "<html><body style='width:215px'>" + esc(r.wiring.surfZeile(r.camera.eye[0], r.camera.eye[2])) + "</body></html>");
         txt(windLbl, String.format(Locale.GERMAN, "Wind in 10 m: %.0f m/s", r.wiring.windSpeed));
+        txt(kliffLbl, "<html><body style='width:215px'>" + esc(r.sturmflut.describe(r.clock) + (r.abbruch == null ? "" : " · " + r.abbruch.describe())) + "</body></html>");
         txt(tuermeLbl, "<html><body style='width:215px'>" + esc(r.feuer.describe() + " · " + r.koerbe.describe() + " · " + r.herde.describe()) + "</body></html>");
         txt(windDirLbl, String.format(Locale.GERMAN, "aus %03.0f° (%s)", r.wiring.windFromDeg, compass(r.wiring.windFromDeg)));
         txt(duneLbl, "<html><body style='width:215px'>" + esc(r.sand.zeile(r.camera.eye[0], r.camera.eye[2])) + "</body></html>");

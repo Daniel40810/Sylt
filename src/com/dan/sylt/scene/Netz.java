@@ -17,10 +17,12 @@ public final class Netz {
     /** Baustoffe (gleiche Nummern in bauten.frag). */
     public static final int BACKSTEIN = 0, PUTZ = 1, REET = 2, DACH_GRAU = 3, DACH_ROT = 4, KUPFER = 5, GLAS_Q = 6, GLAS_K = 7,
             EISEN = 8, HOLZ = 9, GRANIT = 10, KLINKER = 11, KIES = 12, SEGEL = 13, KORB = 14, FELL = 15, FELL_WEISS = 16,
-            LACK = 17, LACK_SCHWARZ = 18, FENSTER = 19, TUER = 20, HOLZ_WEISS = 21, ROT = 22, GELB = 23;
+            LACK = 17, LACK_SCHWARZ = 18, FENSTER = 19, TUER = 20, HOLZ_WEISS = 21, ROT = 22, GELB = 23,
+            /** Seit Phase 12: Stücke des Kliffs. */
+            LEHM = 24, KAOLIN = 25, FLUGSAND = 26;
     public static final String[] NAMEN = {"Backstein", "Putz", "Reet", "Dach grau", "Dach rot", "Kupfer", "Glas Quermarke",
             "Glas Kampen", "Eisen", "Holz", "Granit", "Klinker", "Kies", "Segeltuch", "Korb", "Fell", "Fell weiß", "Lack weiß",
-            "Lack schwarz", "Fenster", "Tür", "Holz weiß", "Rot", "Gelb"};
+            "Lack schwarz", "Fenster", "Tür", "Holz weiß", "Rot", "Gelb", "Geschiebelehm", "Kaolinsand", "Flugsand"};
 
     int[] d = new int[STRIDE * 3 * 1024];
     int n;

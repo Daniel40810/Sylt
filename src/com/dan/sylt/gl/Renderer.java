@@ -121,6 +121,18 @@ public final class Renderer implements GLEventListener {
     public final Meadow meadow;
     /** Phase 4a: das Rote Kliff aus com.dan.cliff (Lockergestein), Grasnarbe, Findlinge. */
     public final Kliff kliff;
+    /**
+     * Seit Phase 12: die Sturmflut nach Xaver 2013 (Wind, See, Windstau über die Tide) und der Abbruch des Kliffs
+     * (Hohlkehle, {@code fracture}, Sturzkegel und Abtrag als Änderung des Geländes, F15 bis F17 A).
+     */
+    public final com.dan.sylt.scene.Sturmflut sturmflut = new com.dan.sylt.scene.Sturmflut();
+    public final com.dan.sylt.scene.Kliffabbruch abbruch;
+    public volatile boolean showBrocken = true;
+    private final com.dan.sylt.scene.Netz brockenNetz = new com.dan.sylt.scene.Netz();
+    private boolean brockenDa;
+    private int korrTex;
+    private double abbruchMs = Double.NaN;
+    private int fertigGesehen;
     private final GroundGl groundGl = new GroundGl();
     private final MudflatGl mudGl = new MudflatGl();
     private final Belichtung belichtung = new Belichtung();
@@ -215,6 +227,12 @@ public final class Renderer implements GLEventListener {
         }, () -> wiring.pegel);
         wiring.stepTide();
         kliff = new Kliff(terrain, com.dan.sylt.scene.Kante.load(Daten.ordner()));
+        abbruch = kliff.strata != null ? new com.dan.sylt.scene.Kliffabbruch(terrain, kliff.kante, kliff.cliff, kliff.strata) : null;
+        if (abbruch != null) {
+            // Staub beim Zerfall (F15 A): Feinkorn aus dem Lehm steigt auf und treibt mit dem Wind (Körner im Bildlauf)
+            abbruch.onStaub = q -> imBild.add(() -> sand.koerner().burst(q[0], q[1], q[2], (int) Math.min(400, 20 + q[3] * 30), 2.5));
+            physik.add(abbruch);
+        }
         // seit Phase 10: Bauten aus LOD2 (die Türme dort weg, sie werden genauer gebaut), Strandkörbe, Herde, Leuchtfeuer
         double[][] tuerme = {{Site.QUERMARKE.x(), Site.QUERMARKE.z()}, {Site.LEUCHTTURM.x(), Site.LEUCHTTURM.z()}};
         bauwerke = new com.dan.sylt.scene.Bauwerke(com.dan.sylt.scene.Bauten.laden(Daten.ordner(), tuerme, 7), terrain::height, kliff.kante);
@@ -370,6 +388,74 @@ public final class Renderer implements GLEventListener {
         hudMeldung(String.format(Locale.GERMAN, "Sandsturm am Strand: Bft 9 aus West, trockener Sand (%.0f m vor der Wasserlinie)", sBest));
     }
 
+    /**
+     * Seit Phase 12: die Kehle wächst mit der Szenenzeit (Stunden seit dem letzten Bild), Pegel und Auflauf R2 % der
+     * Brandung; ein fertiger Abbruch legt Wandkarte und Grasnarbe an die neue Kante.
+     */
+    void abbruchSchritt() {
+        if (abbruch == null) return;
+        double ms = clock.epochMillis(), dh = Double.isNaN(abbruchMs) ? 0 : (ms - abbruchMs) / 3_600_000.0;
+        abbruchMs = ms;
+        if (dh < 0 || dh > 24) dh = 0;   // die Uhr wurde gestellt
+        abbruch.flut(dh, wiring.pegel, brandung.auflaufR2());
+        java.util.List<com.dan.sylt.scene.Kliffabbruch.Schnitt> f = abbruch.fertige();
+        for (; fertigGesehen < f.size(); fertigGesehen++) {
+            com.dan.sylt.scene.Kliffabbruch.Schnitt s = f.get(fertigGesehen);
+            if (s.gebrochen()) kliff.erneuern(s.x0, s.z0, s.x1, s.z1, terrain::height);
+        }
+    }
+
+    /** Seit Phase 12 (F16 A): die Sturmflut nach Xaver beginnt jetzt (5. Dezember 2013, {@code stunde} Uhr). */
+    public void sturmflutStarten(double stunde) {
+        sturmflut.starten(clock, wiring, stunde);
+        abbruchMs = clock.epochMillis();
+        hudMeldung("Sturmflut nach Xaver (5. Dezember 2013): Orkan aus Nordwest, Windstau über 3 m in der Nacht");
+    }
+
+    /** Seit Phase 12 (F17 A): Abbruch am Ziel der Kamera auslösen (die Kehle dort kritisch machen). */
+    public void abbruchHier() {
+        if (abbruch == null) { hudMeldung("Abbruch: keine Kante geladen"); return; }
+        double x = camera.tx, z = camera.tz;
+        abbruch.imFaden(() -> {
+            int r = abbruch.ausloesen(x, z);
+            hudMeldung(r < 0 ? "Abbruch: hier ist keine Wand über 6 m (Ziel auf das Kliff richten)"
+                    : String.format(Locale.GERMAN, "Abbruch bei N %,.0f ausgelöst: Kehle %.1f m", abbruch.kante.nord[r], abbruch.kehle[r]));
+        });
+    }
+
+    /**
+     * Seit Phase 12, für Bildfolgen und Prüfungen: die Uhr der Szene in Schritten von {@code schrittMin} Minuten bis
+     * {@code bisStunde} Stunden nach Beginn der Sturmflut vorstellen (Fahrplan, Tide mit Windstau, Hohlkehle, Abtrag).
+     * Mit {@code bisAbbruch} hält es an, sobald ein Stück Kliff gerechnet wird; gibt zurück, ob eines gerechnet wird.
+     */
+    public boolean vorspulen(double bisStunde, double schrittMin, boolean bisAbbruch) {
+        if (Double.isNaN(abbruchMs)) abbruchMs = clock.epochMillis();
+        while (sturmflut.stunden(clock) < bisStunde) {
+            if (bisAbbruch && abbruch != null && abbruch.schnitt() != null) return true;
+            clock.setEpochMillis(clock.epochMillis() + schrittMin * 60_000);
+            sturmflut.schritt(clock, wiring);
+            wiring.stepTide();
+            abbruchSchritt();
+        }
+        return abbruch != null && abbruch.schnitt() != null;
+    }
+
+    /**
+     * Seit Phase 12, für die Bildfolge: Xaver von Beginn bis {@code stunde} im Zeitraffer, die Kehle wächst überall, ohne
+     * dass schon gerechnet wird; dann wird das Stück am Nordwert {@code nord} gerechnet (die Kehle dort, wie die Flut sie
+     * geschlagen hat, mindestens 1,25 · L_c). Gibt das Stück zurück (null: dort ist keine Wand).
+     */
+    public com.dan.sylt.scene.Kliffabbruch.Schnitt abbruchVorbereiten(double stunde, double nord) {
+        if (abbruch == null) return null;
+        sturmflutStarten(com.dan.sylt.scene.Sturmflut.STUNDE);
+        abbruch.rechnen = false;
+        vorspulen(stunde, 5, false);
+        abbruch.rechnen = true;
+        double[] xz = Site.fromUtm(Site.E0, nord);
+        abbruch.imFaden(() -> abbruch.ausloesen(0, xz[1]));
+        return abbruch.schnitt();
+    }
+
     /** Seit Phase 9a: Windfeld und Flugsand um das Auge sofort, Körner 3 s vorlaufen (für Standbilder). */
     public void sandJetzt() {
         if (naesse != null) naesse.update(wiring.pegel, brandung.auflaufR2() * 0.8);
@@ -511,7 +597,9 @@ public final class Renderer implements GLEventListener {
         // Phase 3: Himmel, Wolken und See bekommen ihre Eingänge aus der Verdrahtung, dann ein Schritt
         boolean cloudsShown = wetter.cloudsOk && showClouds;
         wiring.cloudsDrawn = cloudsShown;
+        sturmflut.schritt(clock, wiring);
         wiring.stepTide();
+        abbruchSchritt();
         wiring.feed(wetter.sky, camera.eye[1]);
         wiring.feed(wetter.clouds);
         wiring.feed(meer.ocean);
@@ -664,7 +752,7 @@ public final class Renderer implements GLEventListener {
         common(gl, terrainShader, vp, inv, sun);
         lod.bind(gl, terrainShader);
         bindMarks(gl, terrainShader);
-        terrainShader.set(gl, "uKorrOn", 0);
+        korrektur(gl, terrainShader);
         terrainShader.vec4Array(gl, "uAlb", albedo4());
         gl.glActiveTexture(GL.GL_TEXTURE0 + 12);
         gl.glBindTexture(GL.GL_TEXTURE_2D, klasseTex);
@@ -785,7 +873,7 @@ public final class Renderer implements GLEventListener {
             gl.glViewport(0, 0, w, h);
             common(gl, meerShader, vp, inv, sun);
             lod.bind(gl, meerShader);
-            meerShader.set(gl, "uKorrOn", 0);
+            korrektur(gl, meerShader);
             gl.glActiveTexture(GL.GL_TEXTURE6);
             gl.glBindTexture(GL.GL_TEXTURE_2D, depthTex);
             gl.glActiveTexture(GL.GL_TEXTURE0);
@@ -869,6 +957,11 @@ public final class Renderer implements GLEventListener {
             herde.bauen();
             bautenGl.upload(gl, BautenGl.HERDE, herde.netz);
         }
+        if (abbruch != null && showBrocken && (abbruch.schnitt() != null || brockenDa)) {
+            abbruch.stuecke(brockenNetz);
+            bautenGl.upload(gl, BautenGl.BROCKEN, brockenNetz);
+            brockenDa = brockenNetz.ecken() > 0;
+        }
         if (feuer.an && feuerGl.ok && umgebungLux < 2000) feuerGl.update(gl, feuer);
         gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrFbo);
         gl.glEnable(GL.GL_DEPTH_TEST);
@@ -889,7 +982,7 @@ public final class Renderer implements GLEventListener {
         bautenShader.set(gl, "uWarm", (float) (15 * k), (float) (15 * k * 0.72), (float) (15 * k * 0.42));
         laterne(gl, "Q", feuer.quermarke.snapshot(), feuer.quermarkeFrueher, k);
         laterne(gl, "K", feuer.kampen.snapshot(), true, k);
-        bautenGl.draw(gl, true, showKoerbe, showHerde);
+        bautenGl.draw(gl, true, showKoerbe, showHerde, showBrocken);
         gl.glBindVertexArray(emptyVao);
     }
 
@@ -959,6 +1052,45 @@ public final class Renderer implements GLEventListener {
         double t = Math.max(0, Math.min(1, (x - a) / (b - a)));
         return t * t * (3 - 2 * t);
     }
+
+    /**
+     * Seit Phase 12: die Änderung des Geländes (Abbrüche, Sturzkegel, Abtrag) als R32F-Textur auf Einheit
+     * {@link #KORR_UNIT}, nur geänderte Rechtecke werden hochgeladen; die Zellmitten sind die der {@code Aenderung}.
+     */
+    private void korrektur(GL4 gl, Shader s) {
+        com.dan.sylt.scene.Aenderung a = abbruch == null ? null : abbruch.aenderung;
+        if (a == null) { s.set(gl, "uKorrOn", 0); return; }
+        if (korrTex == 0) {
+            int[] t = new int[1];
+            gl.glGenTextures(1, t, 0);
+            korrTex = t[0];
+            gl.glBindTexture(GL.GL_TEXTURE_2D, korrTex);
+            gl.glTexStorage2D(GL.GL_TEXTURE_2D, 1, GL4.GL_R32F, a.nx, a.nz);
+            gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR);
+            gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
+            gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
+            gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
+            a.alles();
+        }
+        int[] r = a.nimm();
+        if (r != null) {
+            int w = r[2] - r[0] + 1, h = r[3] - r[1] + 1;
+            float[] f = new float[w * h];
+            for (int j = 0; j < h; j++) System.arraycopy(a.d, (r[1] + j) * a.nx + r[0], f, j * w, w);
+            gl.glBindTexture(GL.GL_TEXTURE_2D, korrTex);
+            gl.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 4);
+            gl.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, r[0], r[1], w, h, GL4.GL_RED, GL.GL_FLOAT, java.nio.FloatBuffer.wrap(f));
+        }
+        gl.glActiveTexture(GL.GL_TEXTURE0 + KORR_UNIT);
+        gl.glBindTexture(GL.GL_TEXTURE_2D, korrTex);
+        gl.glActiveTexture(GL.GL_TEXTURE0);
+        s.set(gl, "uKorr", KORR_UNIT);
+        s.set(gl, "uKorrRect", (float) a.x0, (float) a.z0, (float) (a.nx * a.cell), (float) (a.nz * a.cell));
+        s.set(gl, "uKorrOn", 1);
+    }
+
+    /** Einheit der Änderung des Geländes (0 bis 15 sind belegt). */
+    static final int KORR_UNIT = 16;
 
     private void bindMarks(GL4 gl, Shader s) {
         s.set(gl, "uMarks", showMarks ? 1 : 0);
@@ -1188,6 +1320,7 @@ public final class Renderer implements GLEventListener {
                 "Tide: " + wiring.tideZeile(),
                 brandungGl.describe(brandung, nah),
                 sand.zeile(camera.eye[0], camera.eye[2]),
+                sturmflut.describe(clock) + (abbruch == null ? "" : " · " + abbruch.describe()),
                 "Bauten: " + bauwerke.describe(),
                 "Leuchtfeuer (beacon): " + feuer.describe(),
                 koerbe.describe() + " · " + herde.describe(),
@@ -1272,6 +1405,8 @@ public final class Renderer implements GLEventListener {
         bautenGl.dispose(gl);
         feuerGl.dispose(gl);
         kliff.dispose(gl);
+        if (korrTex != 0) gl.glDeleteTextures(1, new int[]{korrTex}, 0);
+        korrTex = 0;
         if (groundOk) groundGl.dispose(gl);
         mudGl.dispose(gl);
         belichtung.dispose(gl);

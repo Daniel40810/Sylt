@@ -95,29 +95,7 @@ public final class Kliff {
         strata = StrataMap.build(h, x0, z0, 1, (int) (x1 - x0), (int) (z1 - z0), 25,
                 (x, z) -> kaolinOben(k, z), (x, z) -> flugsand(k, z), 1.5);
         cliff.strata = strata;
-        // Grasnarbe: entlang der Kante, wo die Wand mindestens 6 m hoch ist, je 2 m ein Punkt
-        List<Double> seg = new ArrayList<>();
-        int seed = 11;
-        for (int i = 0; i < k.n; i += 2) {
-            boolean an = k.wand[i] >= 6 && (i < 2 || k.nord[i - 2] - k.nord[i] < 4);   // an Lücken der Kante neu ansetzen
-            if (an) {
-                int a = Math.max(0, i - 3), b = Math.min(k.n - 1, i + 3);
-                double tx = k.kanteX(b) - k.kanteX(a), tz = k.z(b) - k.z(a), tl = Math.hypot(tx, tz);
-                double ox = tl > 0 ? tz / tl : -1, oz = tl > 0 ? -tx / tl : 0;
-                if (ox > 0) { ox = -ox; oz = -oz; }   // aus der Wand heraus: zur See (Westen)
-                double x = k.kanteX(i), z = k.z(i);
-                seg.add(x); seg.add(t.roh(x, z)); seg.add(z); seg.add(ox); seg.add(oz);
-            }
-            if ((!an || i + 2 >= k.n) && seg.size() >= 20) {
-                double[] e = new double[seg.size()];
-                for (int q = 0; q < e.length; q++) e[q] = seg.get(q);
-                Sod s = new Sod(e, seed++);
-                s.reach = 0.55;
-                s.gaps = 0.3;
-                sods.add(s);
-            }
-            if (!an) seg.clear();
-        }
+        sodsBauen(h);
         // Findlinge am Fuß: auf dem trockenen Strand bis 15 m vor der Wand, locker
         findlinge.ground = h;
         findlinge.seed = 2026;
@@ -149,6 +127,67 @@ public final class Kliff {
         return 1 + 3 * Cliff.smooth(22, 10, hk);
     }
 
+
+    /** Grasnarbe: entlang der Kante, wo die Wand mindestens 6 m hoch ist, je 2 m ein Punkt (seit Phase 12 auch nach einem Abbruch). */
+    void sodsBauen(Cliff.Heights h) {
+        Kante k = kante;
+        sods.clear();
+        List<Double> seg = new ArrayList<>();
+        int seed = 11;
+        for (int i = 0; i < k.n; i += 2) {
+            boolean an = k.wand[i] >= 6 && (i < 2 || k.nord[i - 2] - k.nord[i] < 4);   // an Lücken der Kante neu ansetzen
+            if (an) {
+                int a = Math.max(0, i - 3), b = Math.min(k.n - 1, i + 3);
+                double tx = k.kanteX(b) - k.kanteX(a), tz = k.z(b) - k.z(a), tl = Math.hypot(tx, tz);
+                double ox = tl > 0 ? tz / tl : -1, oz = tl > 0 ? -tx / tl : 0;
+                if (ox > 0) { ox = -ox; oz = -oz; }   // aus der Wand heraus: zur See (Westen)
+                double x = k.kanteX(i), z = k.z(i);
+                seg.add(x); seg.add(h.height(x, z)); seg.add(z); seg.add(ox); seg.add(oz);
+            }
+            if ((!an || i + 2 >= k.n) && seg.size() >= 20) {
+                double[] e = new double[seg.size()];
+                for (int q = 0; q < e.length; q++) e[q] = seg.get(q);
+                Sod s = new Sod(e, seed++);
+                s.reach = 0.55;
+                s.gaps = 0.3;
+                sods.add(s);
+            }
+            if (!an) seg.clear();
+        }
+    }
+
+    private volatile boolean mapNeu;
+
+    /**
+     * Seit Phase 12: nach einem Abbruch die Wandkarte im Rechteck aus dem neuen Gelände (mit der {@link Terrain.Korrektur})
+     * neu rechnen und die Grasnarbe an die neue Kante legen; hochgeladen wird im nächsten {@link #bind}.
+     */
+    public void erneuern(double ax, double az, double bx, double bz, Cliff.Heights hNeu) {
+        if (map == null) return;
+        int i0 = Math.max(0, (int) Math.floor((ax - map.x0) / map.cell) - 12), j0 = Math.max(0, (int) Math.floor((az - map.z0) / map.cell) - 12);
+        int i1 = Math.min(map.n - 1, (int) Math.ceil((bx - map.x0) / map.cell) + 12), j1 = Math.min(map.n - 1, (int) Math.ceil((bz - map.z0) / map.cell) + 12);
+        int nn = Math.max(i1 - i0, j1 - j0) + 1;
+        CliffMap teil = CliffMap.build(cliff, hNeu, map.x0 + i0 * map.cell, map.z0 + j0 * map.cell, map.cell, nn, map.talusDrop, map.talusReach);
+        // der Rand des Ausschnitts (6 Zellen) bleibt, wie er war: dort fehlt dem Ausschnitt die Nachbarschaft
+        for (int j = j0 + 6; j <= j1 - 6; j++)
+            for (int i = i0 + 6; i <= i1 - 6; i++) {
+                int q = (j * map.n + i) * 4, p = ((j - j0) * nn + (i - i0)) * 4;
+                double z = map.cz(j), x = map.cx(i);
+                int r = kante.row(z);
+                boolean wandHier = false, fussHier = false;
+                if (r >= 0) {
+                    double lo = Math.min(kante.fussX(r), kante.kanteX(r)), hi = Math.max(kante.fussX(r), kante.kanteX(r));
+                    wandHier = x >= lo - RAND && x <= hi + RAND;
+                    fussHier = x >= lo - RAND_FUSS && x <= hi + RAND;
+                }
+                map.rgba[q] = wandHier ? teil.rgba[p] : 0;
+                map.rgba[q + 1] = fussHier ? teil.rgba[p + 1] : 0;
+                map.rgba[q + 3] = wandHier ? teil.rgba[p + 3] : 0;
+            }
+        sodsBauen(hNeu);
+        mapNeu = true;
+    }
+
     /** Sturzkegel am Ort 0..1 (für den Strandhafer am Fuß); 0 ohne Karte. */
     public double talus(double x, double z) { return map == null ? 0 : map.valuesAt(x, z)[1]; }
 
@@ -173,6 +212,11 @@ public final class Kliff {
     void bind(GL4 g, int program) {
         if (!ok) return;
         gl.strataUnit = STRATA_UNIT;
+        if (mapNeu) {
+            mapNeu = false;
+            gl.upload(g, map);
+            gl.setSods(sods);
+        }
         gl.bind(g, program, cliff, MAP_UNIT);
     }
 

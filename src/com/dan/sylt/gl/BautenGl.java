@@ -11,18 +11,18 @@ import java.nio.IntBuffer;
  * Türme und Bauten auf der Grafikkarte (seit Phase 10): je Netz ein Puffer und ein VAO (Ort 3 × float, Normale 4 × Byte,
  * Merkmal 1 × uint, 20 Byte je Ecke), gezeichnet mit {@code bauten.vert/frag} nach dem Gelände, mit Tiefentest, ohne
  * Rückseitenauslese (die Normale wendet der Shader zum Auge). Drei Netze: fest (Häuser, Türme, Wege), Strandkörbe (neu bei
- * Änderung) und Herde (jedes Bild).
+ * Änderung) und Herde (jedes Bild); seit Phase 12 die Brocken eines Abbruchs am Kliff (jedes Bild, solange er fällt).
  */
 final class BautenGl {
-    static final int FEST = 0, KOERBE = 1, HERDE = 2;
-    private final int[] vao = new int[3], vbo = new int[3], ecken = new int[3], platz = new int[3];
+    static final int FEST = 0, KOERBE = 1, HERDE = 2, BROCKEN = 3, N = 4;
+    private final int[] vao = new int[N], vbo = new int[N], ecken = new int[N], platz = new int[N];
     boolean ok;
     String info = "";
 
     void init(GL4 gl) {
-        gl.glGenVertexArrays(3, vao, 0);
-        gl.glGenBuffers(3, vbo, 0);
-        for (int i = 0; i < 3; i++) {
+        gl.glGenVertexArrays(N, vao, 0);
+        gl.glGenBuffers(N, vbo, 0);
+        for (int i = 0; i < N; i++) {
             gl.glBindVertexArray(vao[i]);
             gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vbo[i]);
             gl.glBufferData(GL.GL_ARRAY_BUFFER, 20, null, i == FEST ? GL.GL_STATIC_DRAW : GL.GL_DYNAMIC_DRAW);
@@ -58,11 +58,13 @@ final class BautenGl {
     }
 
     /** Zeichnen (das Programm ist schon benutzt und hat seine Uniforms). */
-    void draw(GL4 gl, boolean fest, boolean koerbe, boolean herde) {
+    void draw(GL4 gl, boolean fest, boolean koerbe, boolean herde) { draw(gl, fest, koerbe, herde, true); }
+
+    void draw(GL4 gl, boolean fest, boolean koerbe, boolean herde, boolean brocken) {
         if (!ok) return;
         gl.glDisable(GL.GL_CULL_FACE);
-        boolean[] an = {fest, koerbe, herde};
-        for (int i = 0; i < 3; i++) {
+        boolean[] an = {fest, koerbe, herde, brocken};
+        for (int i = 0; i < N; i++) {
             if (!an[i] || ecken[i] == 0) continue;
             gl.glBindVertexArray(vao[i]);
             gl.glDrawArrays(GL.GL_TRIANGLES, 0, ecken[i]);
@@ -74,8 +76,8 @@ final class BautenGl {
 
     void dispose(GL4 gl) {
         if (!ok) return;
-        gl.glDeleteBuffers(3, vbo, 0);
-        gl.glDeleteVertexArrays(3, vao, 0);
+        gl.glDeleteBuffers(N, vbo, 0);
+        gl.glDeleteVertexArrays(N, vao, 0);
         ok = false;
     }
 }

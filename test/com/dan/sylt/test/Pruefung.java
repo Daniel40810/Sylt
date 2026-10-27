@@ -336,6 +336,9 @@ public final class Pruefung {
         teil("Türme und Bauten (Phase 10)");
         tuerme(r3);
 
+        teil("Sturmflut und Abbruch des Kliffs (Phase 12)");
+        sturmflut(r3, clock);
+
         teil("Renderer.jar und Shader");
         List<String> pk = Bibliothek.pakete();
         check(Bibliothek.fehlend().isEmpty(), "Renderer.jar: " + Bibliothek.kurz());
@@ -657,6 +660,75 @@ public final class Pruefung {
     }
 
     static String f(String fmt, Object... a) { return String.format(Locale.GERMAN, fmt, a); }
+
+    /** Phase 12: Xaver (F16 A), Hohlkehle, Abbruch nach der Physik (F17 A), Staub (F15 A), Sandbilanz, Abtrag, neue Wand. */
+    static void sturmflut(Renderer r, SceneClock clock) {
+        com.dan.sylt.scene.Sturmflut.Punkt hp = com.dan.sylt.scene.Sturmflut.an(12);
+        check(hp.wind() == 27 && hp.richtung() == 300 && hp.hs() == 6 && com.dan.sylt.scene.Sturmflut.BOEEN * 3.6 > 135,
+                f("Fahrplan nach Xaver: Höhepunkt Wind %.0f m/s aus %.0f°, H_s %.0f m, Böen %.0f km/h (belegt: NW Bft 9–10, Böen um 140 km/h, Wellen bis 6 m)",
+                        hp.wind(), hp.richtung(), hp.hs(), com.dan.sylt.scene.Sturmflut.BOEEN * 3.6));
+        com.dan.sylt.scene.Kliffabbruch k = r.abbruch;
+        if (k == null) { check(false, "Kliffabbruch: keine Kante geladen"); return; }
+        k.manuell = true;
+        k.asyncSolve = false;
+        // die Flut bis zum Morgen des 6. ohne Stücke: Pegel, Windstau, Kehle
+        r.sturmflutStarten(com.dan.sylt.scene.Sturmflut.STUNDE);
+        k.rechnen = false;
+        double peak = -9, peakH = 0, kehle6 = 0, r2max = 0, stauPeak = 0;
+        for (double h = 0.5; h <= 30; h += 0.5) {
+            r.vorspulen(h, 5, false);
+            if (r.wiring.pegel > peak) { peak = r.wiring.pegel; peakH = h; stauPeak = r.wiring.tide.surge; }
+            r2max = Math.max(r2max, r.brandung.auflaufR2());
+            if (Math.abs(h - 6) < 1e-9) kehle6 = k.tiefsteKehle();
+        }
+        check(peak > 3.0 && peak < 4.2 && peakH > 8 && peakH < 22, f("Pegel bis %+.2f m NHN in Stunde %.1f (Windstau dann %+.2f m; Xaver: über 3 m in der Nacht zum 6.)", peak, peakH, stauPeak));
+        check(r2max > 1.4 && r2max < 2.5, f("Auflauf R2 %% bis %.2f m (Stockdon, H_s 6 m, T_p 12,5 s, Strand 1:30)", r2max));
+        check(k.tiefsteKehle() > kehle6 + 1 && k.vKehle > 0, f("Hohlkehle: %.1f m nach 6 h, %.1f m nach 30 h (%.0f m³ ausgespült, ohne Abbruch)", kehle6, k.tiefsteKehle(), k.vKehle));
+        double flutHoehe = peak + r2max;
+        int erreicht = 0, nie = 0;
+        for (int i = 0; i < k.kante.n; i++) if (k.kante.wand[i] >= 6) { if (k.kehle[i] > 0) erreicht++; else nie++; }
+        check(erreicht > 0 && nie > 0, f("die See erreicht den Fuß an %d m der Wand, an %d m nicht (Flut bis %+.1f m)", erreicht, nie, flutHoehe));
+        // der Abbruch an der Stelle der Bildfolge, auf dem Höhepunkt
+        com.dan.sylt.scene.Kliffabbruch.Schnitt s = r.abbruchVorbereiten(com.dan.sylt.tools.Abbruch.STUNDE, com.dan.sylt.tools.Abbruch.NORD);
+        check(s != null && s.gestaerkt > 0, s == null ? "kein Stück" : f("Stück bei N %,.0f: %d Zellen, %.0f m³; %d Flächen für den Bestand angehoben (ohne Kehle steht es)",
+                k.kante.nord[s.mitte], s.solid.cells(), s.volumen0, s.gestaerkt));
+        if (s == null) return;
+        double kehleS = k.kehle[s.mitte];
+        int[] staub = {0};
+        java.util.function.Consumer<double[]> alt = k.onStaub;
+        k.onStaub = q -> staub[0]++;
+        double t = 0;
+        while (k.schnitt() != null && t < 150) { k.physik(1 / 120.0); t += 1 / 120.0; }
+        k.onStaub = alt;
+        double[] b = k.bilanz();
+        double rest = b[0] - b[1] - b[2] - b[3] - b[4];
+        check(s.gebrochen() && b[2] + b[3] > 50, f("bricht, Ruhe nach %.0f s: %.0f m³ Blöcke, %.0f m³ zerfallen (Kehle %.1f m, L_c %.1f m)", t, b[2], b[3], kehleS, k.lc(s.mitte)));
+        check(Math.abs(rest) < 1e-6 * b[0], f("Sandbilanz fest: %.1f m³ = %.1f steht + %.1f Blöcke + %.1f zerfallen + %.1f ausgespült (Rest %.1e m³)", b[0], b[1], b[2], b[3], b[4], rest));
+        double soll = (b[2] + b[3]) * s.welt.material.bulking;
+        check(Math.abs(k.vKegel - soll) < 0.01 * soll, f("Sturzkegel im Gelände %.1f m³ locker = (Blöcke + zerfallen) · %.2f = %.1f m³", k.vKegel, s.welt.material.bulking, soll));
+        check(k.vAbgesenkt <= (b[2] + b[3] + b[4]) * 1.05 && k.vAbgesenkt > b[2] * 0.5,
+                f("Gelände abgesenkt %.0f m³ (was fehlt: %.0f m³; unter dem Dach der Kehle bleibt die Oberfläche)", k.vAbgesenkt, b[2] + b[3] + b[4]));
+        double dx = 0;
+        for (int i = 0; i < 20; i++) {
+            double x = s.x0 + (s.x1 - s.x0) * i / 19.0, z = (s.z0 + s.z1) / 2;
+            dx = Math.max(dx, Math.abs(r.terrain.height(x, z) - r.terrain.roh(x, z) - k.aenderung.delta(x, z)));
+        }
+        check(dx < 1e-9, "Gelände = gemessen + Änderung (dieselbe Zahl geht als R32F-Textur an die Grafikkarte)");
+        check(staub[0] > 0, f("Staub beim Aufschlag und Zerfall (F15 A): %d Stöße als Dünenkörner", staub[0]));
+        int vorher = r.sand.koerner().count;
+        int neu = r.sand.koerner().burst(s.x0, 5, (s.z0 + s.z1) / 2, 50, 2.5);
+        check(neu > 0, f("Grains.burst: %d Körner aufgewirbelt (vorher %d)", neu, vorher));
+        double abriss = k.abrissTiefe(s.r0, s.r1);
+        check(abriss > 1, f("neue Wand: Abrisskante bis %.1f m hinter dem alten Fuß; Kante oben %.1f m zurück", abriss, k.rueckgang(s.r0, s.r1)));
+        double kegel = k.vKegel;
+        k.rechnen = false;
+        r.vorspulen(r.sturmflut.stunden(clock) + 12, 5, false);
+        check(k.vAbtrag > 0 && k.vAbtrag <= kegel + 1e-6, f("die nächste Flut trägt %.0f m³ vom Kegel ab (%.0f m³)", k.vAbtrag, kegel));
+        k.rechnen = true;
+        k.manuell = false;
+        clock.set(SceneClock.START_DATE, SceneClock.START_HOUR);
+        r.sturmflut.aktiv = false;
+    }
 
     static void teil(String t) { System.out.println("\n— " + t); }
 
