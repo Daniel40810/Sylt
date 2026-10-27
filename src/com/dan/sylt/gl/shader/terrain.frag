@@ -36,7 +36,9 @@ vec3 artColor(uint a, vec2 p, float pxm) {
     if (a == 8u) return srgb(mix(vec3(0.22, 0.30, 0.18), vec3(0.28, 0.34, 0.20), f));         // Gebüsch, Kartoffelrose
     if (a == 9u) return srgb(mix(vec3(0.45, 0.55, 0.32), vec3(0.52, 0.58, 0.36), f));         // Wiese, Weide
     if (a == 10u) return srgb(mix(vec3(0.52, 0.48, 0.42), vec3(0.42, 0.40, 0.33), g));        // Siedlung: Reet, Gärten
-    if (a == 11u) return srgb(vec3(0.78, 0.74, 0.64));                                        // Weg
+    if (a == 11u) return srgb(vec3(0.62, 0.60, 0.55));                                        // Weg, Straße
+    if (a == 12u) return srgb(mix(vec3(0.62, 0.60, 0.46), vec3(0.46, 0.50, 0.34), 0.6 * f));  // Strandhafer (seit Phase 2)
+    if (a == 13u) return srgb(mix(vec3(0.36, 0.30, 0.26), vec3(0.48, 0.30, 0.24), g));        // Dach: Reet, Ziegel (seit Phase 2)
     return srgb(vec3(0.55, 0.55, 0.45));
 }
 

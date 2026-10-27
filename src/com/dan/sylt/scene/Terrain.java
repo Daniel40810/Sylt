@@ -22,7 +22,8 @@ import java.util.Properties;
  * der BAW, die Insel aus dem DGM1 (auf 10 m gemittelt). Auf den letzten {@link #NAHT} m blendet es in den Fernring über.</li>
  * <li><b>Fernring</b> ({@link #FN}² zu {@link #FCELL} m, 102 km um dieselbe Mitte): BAW, wo sie reicht, sonst gestaltet [G].</li>
  * </ul>
- * Je Zelle des Hauptrasters die Art des Grunds ({@link #ART}); ab Phase 2 aus DOP20 (RGB und Infrarot, F5 A).
+ * Je Zelle des Hauptrasters die Art des Grunds ({@link #ART}); ab Phase 2 aus DOP20 (RGB und Infrarot, F5 A), im Kern
+ * zusätzlich zu 1 m in {@code daten/kern/klasse.u8}.
  * Java ({@link #height}) und {@code terrain_height.glsl} rechnen dieselbe Fläche, darum sehen Kamera und Bild dasselbe.
  * Höhen liegen als 16-Bit-Werte vor ({@link #HMIN} bis {@link #HMAX}, 1,5 mm Stufe), dieselben Werte gehen als R16-Textur
  * auf die Grafikkarte. Ohne {@code daten/gelaende} entsteht das Gelände aus der Bühne ({@link Buehne}, Phase 1).
@@ -59,10 +60,14 @@ public final class Terrain {
     /** Wie viel gröber Fernring und Hauptraster sind (für die Mip-Stufe im Shader): log2 der Zellgrößen. */
     public static final double FERN_STUFE = Math.log(FCELL / CELL) / Math.log(2), KERN_STUFE = Math.log(CELL / KCELL) / Math.log(2);
 
-    /** Arten des Grunds je Zelle (Phase 1 aus der Bühne, ab Phase 2 aus DOP20). */
-    public static final byte KEINE = 0, SEE = 1, WATT = 2, STRAND = 3, NASS = 4, KLIFF = 5, DUENE = 6, HEIDE = 7, GEBUESCH = 8, WIESE = 9, SIEDLUNG = 10, WEG = 11;
+    /**
+     * Arten des Grunds je Zelle (Phase 1 aus der Bühne, ab Phase 2 aus DOP20 mit bDOM und DGM1, {@code tools.LuftbildImport}).
+     * Seit Phase 2 dazu Strandhafer (Düne mit Gras) und Dach (Haus, Reet oder Ziegel).
+     */
+    public static final byte KEINE = 0, SEE = 1, WATT = 2, STRAND = 3, NASS = 4, KLIFF = 5, DUENE = 6, HEIDE = 7, GEBUESCH = 8, WIESE = 9, SIEDLUNG = 10, WEG = 11,
+            STRANDHAFER = 12, DACH = 13;
     public static final String[] ART = {"ohne Angabe", "See", "Watt", "Strand", "nasser Sand", "Kliff", "Düne", "Heide", "Gebüsch",
-            "Wiese", "Siedlung", "Weg"};
+            "Wiese", "Siedlung", "Weg", "Strandhafer", "Dach"};
 
     /** Höhen als vorzeichenlose 16-Bit-Werte. */
     public final short[] h, fern;

@@ -20,7 +20,7 @@ import java.util.Locale;
  * eintragen.
  * <pre>
  * Tempo [bilder] [breite] [höhe] [png|-] [NIEDRIG|MITTEL|HOCH|ULTRA] [uhrzeit] [datum JJJJ-MM-TT]
- * Tempo 120 1920 1080 docs/status/Status_Phase1.png MITTEL 20.5 2026-07-20
+ * Tempo 120 1920 1080 docs/status/Status_Phase2.png MITTEL 20.5 2026-07-20
  * </pre>
  * Schalter (als -D… aus Ant oder als Umgebungsvariable in Großbuchstaben): {@code ansicht} = Name oder Taste einer
  * Ansicht (AmKliff, Treppe, Kliffkante, Spuelsaum, Quermarkenfeuer, KampenerLeuchtturm, UweDuene, Bohlenweg, Vogelauge),

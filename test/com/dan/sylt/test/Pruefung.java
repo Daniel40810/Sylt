@@ -8,11 +8,14 @@ import com.dan.sylt.gl.Quality;
 import com.dan.sylt.gl.Renderer;
 import com.dan.sylt.gl.TerrainLod;
 import com.dan.sylt.scene.Buehne;
+import com.dan.sylt.scene.Daten;
 import com.dan.sylt.scene.Geo;
 import com.dan.sylt.scene.SceneClock;
 import com.dan.sylt.scene.Site;
 import com.dan.sylt.scene.Sun;
 import com.dan.sylt.scene.Terrain;
+import com.dan.sylt.tools.GelaendeImport;
+import com.dan.sylt.tools.Inhalt;
 import com.dan.sylt.wiring.Wiring;
 
 import java.io.File;
@@ -25,10 +28,11 @@ import java.util.Locale;
 import java.util.stream.Stream;
 
 /**
- * Prüfung der App ohne Grafikkarte und ohne Datenbank (Ant-Target {@code pruefung}), Stand Phase 1: Raum und Orte,
+ * Prüfung der App ohne Grafikkarte und ohne Datenbank (Ant-Target {@code pruefung}), Stand Phase 2: Raum und Orte,
  * die Bühne gegen die Profile der BAW, das Gelände (16-Bit-Werte, Raster, Höhe gleich Bühne), die Auswahl der
  * Detailstufen, Ansichten und Kamera, Uhr und Sonne am Start, die Verdrahtung der Hüllen von surf und dune, Renderer.jar
- * mit den neuen Packages, die Shader-Dateien und die Regel aus dem Werkbuch 2.4 (kein Laufzeitcode liest C:\Daten).
+ * mit den neuen Packages, die Shader-Dateien, die aufbereiteten Daten (Prüfsummen, Gelände, Nähte, Kliff, Klassen) und
+ * die Regel aus dem Werkbuch 2.4 (kein Laufzeitcode liest C:\Daten oder benutzt die Werkzeuge).
  * Endet mit „ERGEBNIS: alles in Ordnung“ oder der Zahl der Fehler (Rückgabewert 1).
  */
 public final class Pruefung {
@@ -55,7 +59,7 @@ public final class Pruefung {
         check(Math.abs(Site.horizon(30) / 1000 - 21.0) < 0.6, f("Kimm aus 30 m: %.1f km", Site.horizon(30) / 1000));
 
         teil("Bühne gegen die Profile der BAW (Werkbuch 2.3)");
-        double[][] profil = {{6_088_000, 456_000}, {6_089_500, 456_650}, {6_091_000, 457_200}, {6_092_500, 457_900}};
+        double[][] profil = {{6_088_000, Site.wasserlinieE(6_088_000)}, {6_089_500, Site.wasserlinieE(6_089_500)}, {6_091_000, Site.wasserlinieE(6_091_000)}, {6_092_500, Site.wasserlinieE(6_092_500)}};
         for (double[] p : profil) {
             double[] xz = Site.fromUtm(p[1], p[0]);
             check(Math.abs(Buehne.height(xz[0], xz[1])) < 0.6, f("Wasserlinie bei N %.0f, E %.0f: %.2f m NHN", p[0], p[1], Buehne.height(xz[0], xz[1])));
@@ -190,6 +194,52 @@ public final class Pruefung {
         System.out.println("    " + w.surfZeile(see[0], see[1]));
         System.out.println("    " + w.duneZeile(trocken[0], trocken[1]));
 
+        teil("Aufbereitete Daten (Phase 2, Werkbuch 2.4)");
+        System.out.println("    " + Daten.zustand());
+        File inh = new File(Daten.ordner(), Daten.INHALT);
+        if (!inh.isFile()) System.out.println("    (keine aufbereiteten Daten: ant aufbereitung; Prüfungen der Daten übersprungen)");
+        else {
+            List<String> falsch = Inhalt.pruefen(Daten.ordner());
+            check(falsch.isEmpty(), "INHALT.txt: " + (falsch.isEmpty() ? "alle Prüfsummen stimmen" : String.join(", ", falsch.subList(0, Math.min(3, falsch.size())))));
+            Terrain m = Terrain.load(Terrain.defaultDir());
+            check(m.measured() && m.hasKern(), "Gelände aus daten/gelaende: " + m.source);
+            double hu = m.height(Site.UWE_DUENE.x(), Site.UWE_DUENE.z()), hl = m.height(Site.LEUCHTTURM.x(), Site.LEUCHTTURM.z());
+            check(hu > 49 && hu < 53, f("Uwe-Düne im DGM1: %.1f m (52,5 m mit Plattform)", hu));
+            check(Math.abs(hl - Site.LEUCHTTURM.grund()) < 1.5, f("Grund am Kampener Leuchtturm %.1f m (Site %.1f m)", hl, Site.LEUCHTTURM.grund()));
+            for (double[] wl : Site.WASSERLINIE) {
+                if (wl[0] < 6_082_000 || wl[0] > 6_098_000) continue;
+                double[] xz = Site.fromUtm(wl[1], wl[0]);
+                check(Math.abs(m.height(xz[0], xz[1])) < 0.8, f("Wasserlinie bei N %.0f: %.2f m NHN", wl[0], m.height(xz[0], xz[1])));
+            }
+            double[] see8 = Site.fromUtm(Site.wasserlinieE(6_089_500) - 8000, 6_089_500);
+            double hs8 = m.height(see8[0], see8[1]);
+            check(hs8 < -11 && hs8 > -16, f("8 km draußen (BAW): %.1f m", hs8));
+            Ansichten.Ansicht kk = Ansichten.byName("Kliffkante"), ss = Ansichten.byName("Spuelsaum");
+            check(m.height(kk.x(), kk.z()) > 20, f("Ansicht Kliffkante oben: Grund %.1f m", m.height(kk.x(), kk.z())));
+            check(Math.abs(m.height(ss.x(), ss.z())) < 1.0, f("Ansicht Spülsaum an der Wasserlinie: %+.2f m", m.height(ss.x(), ss.z())));
+            byte[] quelle = Files.readAllBytes(new File(Terrain.defaultDir(), "quelle.u8").toPath());
+            boolean[] valid = new boolean[quelle.length];
+            for (int i = 0; i < quelle.length; i++) valid[i] = quelle[i] == 1;
+            double[] nt = GelaendeImport.naehte(m, valid, quelle);
+            check(nt[0] - nt[6] < 0.3 && nt[7] < 0.05, f("keine Naht an den Kacheln des DGM1: Rand 99 %% %.2f m, Mitte %.2f m, Überschuss im Mittel %+.3f m", nt[0], nt[6], nt[7]));
+            check(nt[2] < 0.3, f("DGM1 → BAW ohne Stufe: 99 %% unter %.2f m", nt[2]));
+            check(nt[4] < 0.3 && nt[5] < 0.3, f("Bandkanten Kern → Hauptraster %.3f m, Hauptraster → Fernring %.3f m", nt[4], nt[5]));
+            List<String> kante = Files.readAllLines(new File(Daten.ordner(), "kliff/kante.csv").toPath());
+            double wmax = 0;
+            int zeilen = 0;
+            for (String l : kante) {
+                if (l.isEmpty() || !Character.isDigit(l.charAt(0))) continue;
+                zeilen++;
+                wmax = Math.max(wmax, Double.parseDouble(l.split(";")[7]));
+            }
+            check(zeilen > 2500 && wmax > 25 && wmax < 40, f("Kliff: %d m mit Wand, höchste %.1f m", zeilen, wmax));
+            byte[] kls = Files.readAllBytes(new File(Daten.ordner(), "kern/klasse.u8").toPath());
+            long[] c = new long[Terrain.ART.length];
+            for (byte b : kls) c[b]++;
+            check(c[Terrain.STRAND] > 0 && c[Terrain.KLIFF] > 0 && c[Terrain.HEIDE] > 0 && c[Terrain.DACH] > 0 && c[Terrain.SEE] > 0,
+                    f("Klassen im Kern: Strand %.1f %%, Kliff %.2f %%, Heide %.1f %%, Dach %.1f %%", 100.0 * c[3] / kls.length, 100.0 * c[5] / kls.length, 100.0 * c[7] / kls.length, 100.0 * c[13] / kls.length));
+        }
+
         teil("Renderer.jar und Shader");
         List<String> pk = Bibliothek.pakete();
         check(Bibliothek.fehlend().isEmpty(), "Renderer.jar: " + Bibliothek.kurz());
@@ -217,6 +267,16 @@ public final class Pruefung {
                 }
             }
             check(treffer == 0, "kein Laufzeitcode öffnet C:\\Daten (nur Werkzeuge in com.dan.sylt.tools, ab Phase 2)");
+            int werkzeug = 0;
+            try (Stream<Path> st = Files.walk(src.toPath())) {
+                for (Path p : (Iterable<Path>) st.filter(x -> x.toString().endsWith(".java"))::iterator) {
+                    String pp = p.toString().replace('\\', '/');
+                    if (pp.contains("/sylt/tools/")) continue;
+                    String txt = Files.readString(p, StandardCharsets.UTF_8);
+                    if (txt.contains("import com.dan.sylt.tools.") || txt.contains("Rohdaten.")) werkzeug++;
+                }
+            }
+            check(werkzeug == 0, "die App benutzt keine Werkzeuge (Rohdaten, Aufbereitung) zur Laufzeit");
         } else System.out.println("    (src nicht gefunden, übersprungen)");
 
         System.out.printf(Locale.GERMAN, "%n%d Prüfungen in %.1f s%n", n, (System.nanoTime() - t0) / 1e9);

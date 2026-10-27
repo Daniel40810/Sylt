@@ -79,12 +79,12 @@ public final class Startbild extends JDialog {
     /** Statuszeile unten rechts im Fenster. */
     public static String statuszeile() { return "Datenbank: " + Verbindung.stand(); }
 
-    /** Was über das Gelände zu sagen ist (Regel 2.4: die App liest nie aus C:\Daten). */
+    /** Was über Gelände und Daten zu sagen ist (Regel 2.4: die App liest nur daten/, nie C:\Daten). */
     public static String gelaendeZeile() {
         java.io.File g = Terrain.defaultDir();
-        if (new java.io.File(g, Terrain.HOEHE).isFile()) return "Gelände aus " + g.getPath() + ".";
-        return "Gelände: noch die Bühne von Phase 1. Ab Phase 2 schreiben die Werkzeuge in com.dan.sylt.tools das Gelände nach "
-                + g.getPath() + " (Rohdaten einmal aus dem Pfad in daten/rohdaten.properties, Vorgabe C:\\Daten\\Sylt; ant gelaende).";
+        String d = com.dan.sylt.scene.Daten.zustand();
+        if (new java.io.File(g, Terrain.HOEHE).isFile()) return "Gelände aus " + g.getPath() + ". " + d;
+        return "Gelände: die Bühne von Phase 1. " + d;
     }
 
     private Startbild() {

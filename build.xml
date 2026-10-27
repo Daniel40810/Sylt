@@ -97,11 +97,12 @@
             <classpath><pathelement path="${run.test.classpath}"/></classpath>
         </java>
     </target>
-    <!-- Phase 1: das Statusbild auf der Grafikkarte: docs/status/Status_Phase1.png (Grundansicht von See auf die Küste,
+    <!-- Das Statusbild auf der Grafikkarte: docs/status/Status_Phase${phase}.png (Grundansicht von See auf die Küste,
          20.7.2026 20:30 MESZ, Stufe Mittel, Full HD, volles HUD mit den Zeiten jedes Durchgangs). Auf der Radeon laufen
          lassen; die Zeiten stehen auch in der Ausgabe. -Dansicht=Name wählt eine der neun Ansichten. -->
-    <target name="tempo" depends="jar" description="Phase 1: docs/status/Status_Phase1.png (Grundansicht, volles HUD).">
+    <target name="tempo" depends="jar" description="docs/status/Status_PhaseN.png (Grundansicht, volles HUD).">
         <property name="platform.java" value="java"/>
+        <property name="phase" value="2"/>
         <property name="ansicht" value=""/>
         <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
             <jvmarg value="-Dstdout.encoding=UTF-8"/>
@@ -109,7 +110,21 @@
             <jvmarg value="-Xmx6g"/>
             <jvmarg value="-Dhud=voll"/>
             <jvmarg value="-Dansicht=${ansicht}"/>
-            <arg line="120 1920 1080 docs/status/Status_Phase1.png MITTEL 20.5 2026-07-20"/>
+            <arg line="120 1920 1080 docs/status/Status_Phase${phase}.png MITTEL 20.5 2026-07-20"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+    </target>
+    <!-- Phase 2: die Aufbereitung (Werkbuch 2.4). Liest die Rohdaten einmal aus dem Pfad in daten/rohdaten.properties
+         (Vorgabe C:\Daten\Sylt, die BAW aus Rungholt) und schreibt daten/ mit INHALT.txt und die Prüfbilder in docs/status.
+         Alle Schritte rund 4 Minuten; einzeln mit -Dschritt=baw,gelaende,kante,luftbild,bauten,inhalt. -->
+    <target name="aufbereitung" depends="jar" description="Phase 2: Rohdaten einmal nach daten/ (Gelände, Kante, Luftbild, Bauten, INHALT.txt).">
+        <property name="platform.java" value="java"/>
+        <property name="schritt" value="alle"/>
+        <java classname="com.dan.sylt.tools.Aufbereitung" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="-Djava.awt.headless=true"/>
+            <jvmarg value="-Xmx4g"/>
+            <jvmarg value="-Dschritt=${schritt}"/>
             <classpath><pathelement path="${run.classpath}"/></classpath>
         </java>
     </target>

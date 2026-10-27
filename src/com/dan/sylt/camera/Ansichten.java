@@ -41,7 +41,7 @@ public final class Ansichten {
     public static final List<Ansicht> ALLE = List.of(
             at(1, "Am Kliff", quer(6_089_300, 38), 18, -10, 1.7),
             at(2, "Treppe", quer(6_089_900, 66), 192, 8, 1.7),
-            at(3, "Kliffkante", quer(6_089_500, 74), 258, 24, 1.7),
+            at(3, "Kliffkante", quer(6_089_500, 157), 258, 24, 1.7),   // Kante seit Phase 2 gemessen: 154 m landwärts (kante.csv)
             at(4, "Spülsaum", quer(6_089_000, 1), 292, 2, 0.6),
             at(5, "Quermarkenfeuer", new double[]{Site.QUERMARKE.x() - 85, Site.QUERMARKE.z() + 85}, 45, -6, 1.7),
             at(6, "Kampener Leuchtturm", new double[]{Site.LEUCHTTURM.x() - 260, Site.LEUCHTTURM.z()}, 90, -7, 1.7),
