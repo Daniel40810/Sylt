@@ -192,5 +192,16 @@ public final class Kliff {
                 check.isEmpty() ? "" : " · " + check);
     }
 
+    /** Kurz für das HUD (die volle Zeile kostete auf der Radeon 4 ms Text je Bild). */
+    String hudLine() {
+        if (map == null) return describe();
+        int pts = 0;
+        for (Sod s : sods) pts += s.points();
+        double wm = 0;
+        for (double w : kante.wand) wm = Math.max(wm, w);
+        return String.format(Locale.GERMAN, "Kante %.1f km, Wand bis %.0f m · Grasnarbe %.1f km · %d Findlinge in Sicht%s",
+                kante.n / 1000.0, wm, pts * 2 / 1000.0, findlinge.count(), check.isEmpty() ? "" : " · " + check);
+    }
+
     void dispose(GL4 g) { if (ok) gl.dispose(g); }
 }

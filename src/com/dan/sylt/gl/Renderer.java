@@ -947,7 +947,7 @@ public final class Renderer implements GLEventListener {
                 meer.describe(),
                 (groundOk ? "" : "!") + "Boden (ground, Biom " + meadow.biome + "): " + (groundOk ? groundGl.info() : "nicht gestartet"),
                 karte.describe(),
-                (kliff.ok ? "" : "!") + "Kliff (cliff, Lockergestein): " + kliff.describe(),
+                (kliff.ok ? "" : "!") + "Kliff (cliff, Lockergestein): " + kliff.hudLine(),
                 wiring.surfZeile(camera.eye[0], camera.eye[2]),
                 wiring.duneZeile(camera.eye[0], camera.eye[2]),
                 physik.describe(),
