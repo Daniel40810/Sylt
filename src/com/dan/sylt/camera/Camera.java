@@ -20,6 +20,8 @@ public final class Camera {
 
     public static final double MIN_DIST = 3, MAX_DIST = 60_000, MIN_EYE = 1.5, MAX_EYE = 8_000;
     public static final double FOVY = 55;
+    /** Öffnung senkrecht in Grad (seit Phase 10 je Ansicht: Fernrohr für Kampen1–3, 2 bis 55°). */
+    public volatile double fovy = FOVY;
     /** Wo der Drehpunkt liegen darf (m in der Szene): das Hauptraster (20,5 km um die Mitte des Fernfelds). */
     public static final double X_MIN = -11_000, X_MAX = 9_500, Z_MIN = -9_000, Z_MAX = 11_700;
 
@@ -103,6 +105,7 @@ public final class Camera {
         mitfahrt = null;
         mode = Mode.KREISEN;
         autoOrbit = false;
+        fovy = FOVY;
         tx = com.dan.sylt.scene.Site.KLIFFKANTE.x(); ty = 20; tz = com.dan.sylt.scene.Site.KLIFFKANTE.z();
         yaw = 62; pitch = 16; dist = 1800;
         clamp();

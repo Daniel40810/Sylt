@@ -1,0 +1,257 @@
+Microsoft Windows [Version 10.0.26300.9711]
+(c) Microsoft Corporation. Alle Rechte vorbehalten.
+
+C:\Users\Dan40810\Documents\NetBeansProjects\Sylt>ant tempo -Dsandsturm=an
+Buildfile: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build.xml
+
+-pre-init:
+
+-init-private:
+
+-pre-init-libraries:
+
+-init-private-libraries:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-init-modules-supported:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-ap-cmdline-properties:
+
+-init-macrodef-modulename:
+
+-init-source-module-properties:
+
+-init-macrodef-javac-with-module:
+
+-init-macrodef-javac-with-processors:
+
+-init-macrodef-javac-without-processors:
+
+-init-macrodef-javac:
+
+-init-macrodef-test-impl:
+
+-init-macrodef-junit-init:
+
+-init-test-properties:
+
+-init-macrodef-junit-prototype-with-module:
+
+-init-macrodef-junit-prototype-without-module:
+
+-init-macrodef-junit-single:
+
+-init-macrodef-junit-batch:
+
+-init-macrodef-junit:
+
+-init-macrodef-junit-impl:
+
+-init-macrodef-testng:
+
+-init-macrodef-testng-impl:
+
+-init-macrodef-test:
+
+-init-macrodef-junit-debug-impl:
+
+-init-macrodef-test-debug-junit:
+
+-init-macrodef-testng-debug:
+
+-init-macrodef-testng-debug-impl:
+
+-init-macrodef-test-debug-testng:
+
+-init-macrodef-test-debug:
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+
+-init-macrodef-debug:
+
+-init-macrodef-java-with-module:
+
+-init-macrodef-java-with-unnamed-module:
+
+-init-macrodef-java-without-module:
+
+-init-macrodef-java:
+
+-init-presetdef-jar:
+
+-init-ap-cmdline-supported:
+
+-init-ap-cmdline:
+
+init:
+
+-deps-jar-init:
+   [delete] Deleting: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build\built-jar.properties
+
+deps-jar:
+
+-warn-already-built-jar:
+[propertyfile] Updating property file: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build\built-jar.properties
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-copy-persistence-xml:
+
+-compile-depend:
+
+-do-compile:
+
+check-packages:
+     [exec] check-packages: Renderer.jar mit 40 Packages (Quelle: Projekt Renderer)
+     [exec]   Package        Klassen  README  Java
+     [exec]   ocean          27       ok      21
+     [exec]   wave           20       ok      21
+     [exec]   tide           11       ok      21
+     [exec]   mudflat        11       ok      21
+     [exec]   spray          16       ok      21
+     [exec]   cliff          24       ok      21
+     [exec]   fracture       38       ok      21
+     [exec]   reed           13       ok      21
+     [exec]   wind           14       ok      21
+     [exec]   sky            43       ok      21
+     [exec]   cloud          16       ok      21
+     [exec]   rain           12       ok      21
+     [exec]   fog            25       ok      21
+     [exec]   weather        14       ok      21
+     [exec]   lightning      24       ok      21
+     [exec]   flock          42       ok      21
+     [exec]   soundscape     53       ok      21
+     [exec]   season         17       ok      21
+     [exec]   kino           11       ok      21
+     [exec]   store          23       ok      21
+     [exec]   ground         27       ok      21
+     [exec]   weathering     10       ok      21
+     [exec]   wetglass       10       ok      21
+     [exec]   surf           46       ok      21
+     [exec]   dune           27       ok      21
+     [exec]   beacon         27       ok      21
+     [exec] check-packages: alle 26 gebrauchten Packages in Renderer.jar, dazu Kern, Darstellung, Shader und Prüfklassen von surf und dune (Hüllen seit Phase 1) und beacon (aus Lighthouse, F18 A).
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-check-module-main-class:
+
+-set-module-main-class:
+
+-pre-pre-jar:
+
+-do-jar-create-manifest:
+
+-do-jar-copy-manifest:
+     [copy] Copying 1 file to C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build
+
+-do-jar-set-mainclass:
+
+-do-jar-set-profile:
+
+-do-jar-set-splashscreen:
+
+-check-do-mkdist:
+
+-do-jar-jar:
+
+-init-macrodef-copylibs:
+
+-do-jar-copylibs:
+ [copylibs] Copy libraries to C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\dist\lib.
+ [copylibs] Building jar: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\dist\Sylt.jar
+     [echo] To run this application from the command line without Ant, try:
+     [echo] C:\Program Files\Java\jdk-21/bin/java -jar "C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\dist\Sylt.jar"
+
+-do-jar-delete-manifest:
+
+-do-jar-without-libraries:
+
+-do-jar-with-libraries:
+
+-post-jar:
+
+-do-jar:
+
+-pre-deploy:
+
+-check-jlink:
+
+-do-deploy:
+
+-post-deploy:
+
+deploy:
+
+jar:
+
+tempo:
+     [java] Sylt: ATI Technologies Inc. · AMD Radeon(TM) Graphics · 4.6.0 Core Profile Context 26.10.1.261008
+     [java] Sylt: Compute 4.3: in Ordnung (64×64, 0,028 ms, bis 1024 Fäden, 64 KiB geteilt)
+     [java] Sylt: Gelände DGM1 2024 (138 Kacheln) + BAW 2015?2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+     [java] Sylt: Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren
+     [java] Sylt: Wolken Rauschen 128³ + 32³, Karte 512², Schatten 256² über 24 km
+     [java] Sylt: Meer
+     [java] Sylt: Kliff Kante 3074 m (N 6.087.775 bis 6.091.723) · Wand bis 35,4 m · Wandkarte 2048² zu 2 m · Wand 0,2 %, Geröll 0,5 %, Absatz 0,3 % · 0 Fälle · Schichtkarte 1773 × 4029 zu 1,0 m · Oberkante bis 50,8 m · untere Grenze -3,0 bis 7,0 m · Decke im Mittel 1,9 m · Hohlkehle bis 0,0 m · Grasnarbe 25 Stücke, 3,0 km · 0 Findlinge in Sicht · 1089 ms
+     [java] Sylt: Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19 · Arten im Kern zu 1 m
+     [java] AMD Radeon(TM) Graphics · OpenGL 4.6
+     [java] Compute 4.3: in Ordnung (64×64, 0,028 ms, bis 1024 Fäden, 64 KiB geteilt)
+     [java] 1920×1080 Mittel, 20.7.2026 20:30 MESZ: bestes Bild 15,88 ms, Mittel 20,11 ms (50 Bilder/s)
+     [java] Durchgänge (ms): Himmel 3,16 · Gelände 6,89 · Boden 0,00 · Meer 2,76 · Wolken 1,42 · Nachbearbeitung 0,23 ·HUD 0,68
+     [java]   57 Bilder/s   Grafikkarte 15,14 ms   Prozessor 13,55 ms   Budget 16,5 ms
+     [java]   Himmel 3,16 · Gelände 6,89 · Boden 0,00 · Meer 2,76 · Wolken 1,42 · Nachbearbeitung 0,23 · HUD 0,68
+     [java]   Compute 4.3: in Ordnung (64×64, 0,028 ms, bis 1024 Fäden, 64 KiB geteilt)
+     [java]   20.7.2026 20:30 MESZ · Sonne 8,9° / 293° · Belichtung 4,05 (Auge, im Bild gemessen)
+     [java]   Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren · Sonne 9,0° · Mond 43 % · Sicht 40 km · Grafikkarte = Prozessor: Himmel ± 0,0 %, Durchlässigkeit ± 0,12 %, Mehrfachstreuung ± 0,0 %
+     [java]   Wolken Cumulus 3/8 · Basis 900 m · Gipfel bis 2500 m · Zug 35 m/s aus 300° · hoher Schleier 35 % · Sonne am Auge 0 % · Grafikkarte = Prozessor: Wolkenschatten Median ± 0,000, 0 von 64 Randpunkten über 0,05 (mittleres Licht 0,05)
+     [java]   Wetter: 3/8 Cumulus, hoher Schleier 35 %, Sicht 40 km, Wind 22 m/s aus 280°
+     [java]   See (ocean) FFT 3 × 256², Ringgitter 51.201 Ecken · Wind 22,0 m/s aus 280° · Dünung 1,4 m, 7 s aus 285° ·Pegel +0,68 m · Grafikkarte = Prozessor: größte Abweichung 1,0 mm (Höhen bis 2,78 m)
+     [java]   Boden (ground, Biom Sylt · Düne und Heide): Bodendecke: aus
+     [java]   Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19
+     [java]   Kliff (cliff, Lockergestein): Kante 3,1 km, Wand bis 35 m · Grasnarbe 3,0 km · 61 Findlinge in Sicht · Grafikkarte = Prozessor: Farbe ± 0,78 %, Relief ± 3,5 mm
+     [java]   Brandung: See H_s 1,4 m, T_p 7 s aus 285° · Pegel +0,68 m NHN (Tide) · an Land
+     [java]   Tide: Westerland [G] Ebbe, Hochwasser 6:09 +0,80 m · Niedrigwasser 0:34 -0,97 m · Windstau +0,10 m
+     [java]   Brandung: Textur 835² (Version 1) · nah: Netz 40 Reihen auf 160 m, Wasserlinie 245 m vom Rand zur See · 4Wellen · R_2% 0,38 m (Stockdon 0,45 m) · Rechnen 0,9 ms, Netz 0,6 ms
+     [java]   Flugsand: Wind hier 21 m/s aus 279° (Feld aus wind, 0,9 s) · u* 0,76 m/s, Schwelle 99,00 m/s · nass, liegt · 4185 Körner (1,1 ms)
+     [java]   Physik 1/120 s · 0 Aufgaben · 0,00 ms je Schritt · Faden 0 % belegt
+     [java]   Gelände: DGM1 2024 (138 Kacheln) + BAW 2015?2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+     [java]   Gelände 109 Knoten, 313.133 Punkte · fein bis 8 m, im Kern 2 m · Grund hier 1,2 m über NHN · See
+     [java]   Frei · Auge 2,8 m über NHN, 1,6 m über Grund · Blick 025° · Kern · 230 m bis Strand am Kliff
+     [java]   UTM 32 N  E 456532  N 6089300 · 54°56?56? N · 8°19?17? E · Kimm 5,6 km
+     [java]   Renderer.jar: 40 Packages in Renderer.jar, alle 23 gebrauchten da, dazu surf, dune, beacon
+     [java]   Neu für Sylt: surf ? · dune ? · beacon ?
+     [java]   Mittel · 1632×918 · umgekehrte Tiefe
+     [java]   AMD Radeon(TM) Graphics · OpenGL 4.6
+     [java] Bild: docs\status\Status_Phase9a.png
+
+BUILD SUCCESSFUL
+Total time: 15 seconds
+
+C:\Users\Dan40810\Documents\NetBeansProjects\Sylt>

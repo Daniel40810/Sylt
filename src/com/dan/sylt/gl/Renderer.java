@@ -102,6 +102,19 @@ public final class Renderer implements GLEventListener {
     public final com.dan.sylt.scene.Sand sand;
     public volatile boolean showKoerner = true;
     final SandGl sandGl = new SandGl();
+    /**
+     * Seit Phase 10: Türme und Bauten (Häuser aus LOD2, Quermarkenfeuer, Kampener Leuchtturm, Treppe, Wege, Strandlokal,
+     * Rettungstürme), Strandkörbe nach Jahreszeit und Wind, die Galloways am Kampener Leuchtturm und die Leuchtfeuer.
+     */
+    public final com.dan.sylt.scene.Bauwerke bauwerke;
+    public final com.dan.sylt.scene.Strandkoerbe koerbe;
+    public final com.dan.sylt.scene.Herde herde;
+    public final com.dan.sylt.scene.Leuchtfeuer feuer;
+    final BautenGl bautenGl = new BautenGl();
+    final FeuerGl feuerGl = new FeuerGl();
+    public volatile boolean showBauten = true, showKoerbe = true, showHerde = true;
+    private boolean koerbeNeu = true;
+    private double umgebungLux = 1e4;
     /** Strömung der Brandung in der See zeigen (Rippströme trüben das Wasser), stärker als „DLRG-Blick“. */
     public volatile boolean showStroemung = true, dlrgBlick;
     private double naesseTakt;
@@ -160,8 +173,9 @@ public final class Renderer implements GLEventListener {
             meerShader = new Shader("Meer", null, "fullscreen.vert", "meer.frag"),
             post = new Shader("Nachbearbeitung", null, "fullscreen.vert", "post.frag"),
             overlay = new Shader("Überlagerung", null, "fullscreen.vert", "overlay.frag"),
-            lumShader = new Shader("Belichtung", null, "fullscreen.vert", "lum.frag");
-    private final Shader[] all = {skyShader, terrainShader, meerShader, post, overlay, lumShader};
+            lumShader = new Shader("Belichtung", null, "fullscreen.vert", "lum.frag"),
+            bautenShader = new Shader("Bauten", null, "bauten.vert", "bauten.frag");
+    private final Shader[] all = {skyShader, terrainShader, meerShader, post, overlay, lumShader, bautenShader};
     private final HudOverlay hud = new HudOverlay();
     private int emptyVao, hdrTex, depthTex, hdrFbo, hdrColorFbo, hdrW, hdrH, surfW = 1, surfH = 1, defaultFbo;
     private boolean reversedZ, ready;
@@ -201,6 +215,12 @@ public final class Renderer implements GLEventListener {
         }, () -> wiring.pegel);
         wiring.stepTide();
         kliff = new Kliff(terrain, com.dan.sylt.scene.Kante.load(Daten.ordner()));
+        // seit Phase 10: Bauten aus LOD2 (die Türme dort weg, sie werden genauer gebaut), Strandkörbe, Herde, Leuchtfeuer
+        double[][] tuerme = {{Site.QUERMARKE.x(), Site.QUERMARKE.z()}, {Site.LEUCHTTURM.x(), Site.LEUCHTTURM.z()}};
+        bauwerke = new com.dan.sylt.scene.Bauwerke(com.dan.sylt.scene.Bauten.laden(Daten.ordner(), tuerme, 7), terrain::height, kliff.kante);
+        koerbe = new com.dan.sylt.scene.Strandkoerbe(terrain::height);
+        herde = new com.dan.sylt.scene.Herde(14, Site.LEUCHTTURM.x(), Site.LEUCHTTURM.z(), terrain::height, haeuserNahe(Site.LEUCHTTURM.x(), Site.LEUCHTTURM.z(), 500));
+        feuer = new com.dan.sylt.scene.Leuchtfeuer(bauwerke.fokusKampen, bauwerke.fokusQuermarke, com.dan.beacon.Beacon.Quality.MEDIUM);
         meadow = new Meadow(Biome.sylt(), new Bodendecke(terrain, karte, kliff::talus));
         meadow.near = 6.5f;
         meadow.seed = 2026;
@@ -226,6 +246,34 @@ public final class Renderer implements GLEventListener {
         if (nah.an) nah.jetzt(camera.tx, camera.tz, wiring.pegel);
     }
 
+    /** Mitten der Häuser im Umkreis r um (x, z) (für die Weide der Galloways). */
+    double[][] haeuserNahe(double x, double z, double r) {
+        java.util.List<double[]> l = new java.util.ArrayList<>();
+        for (com.dan.sylt.scene.Bauten.Haus h : bauwerke.bauten.haeuser)
+            if (Math.hypot(h.x() - x, h.z() - z) < r) l.add(new double[]{h.x(), h.z()});
+        return l.toArray(new double[0][]);
+    }
+
+    /** Seit Phase 10, für Standbilder: Strandkörbe, Herde und die Schalter der Leuchtfeuer sofort nach Licht und Wetter. */
+    public void bautenJetzt() {
+        double[] sp = clock.sun();
+        koerbe.stellen(clock.date(), wiring.windFromDeg, wiring.windSpeed, sp[1]);
+        koerbeNeu = true;
+        umgebungLux = umgebungLux();
+        feuer.schritt(10, umgebungLux, wiring.visibilityKm, 0);
+        feuer.sofort(umgebungLux);
+    }
+
+    /** Licht am Kampener Turm in lx (für den Dämmerungsschalter): aus com.dan.sky, sonst aus der Sonnenhöhe. */
+    double umgebungLux() {
+        double[] sp = clock.sun();
+        if (wetter.skyOk) {
+            Sky.State st = wetter.state();
+            return com.dan.sylt.scene.Leuchtfeuer.lux(st.sunColor, st.sunDir[1], st.skyIrradiance) * (wetter.cloudsOk && showClouds ? 0.5 + 0.5 * cloudShade : 1);
+        }
+        return 30_000 * Sun.skyBrightness(sp[0]);
+    }
+
     /** Für Prüfungen und Werkzeuge: Uhr am Start, Gelände aus daten/gelaende (sonst die Bühne). */
     public Renderer() { this(new SceneClock()); }
 
@@ -243,7 +291,8 @@ public final class Renderer implements GLEventListener {
     public double[] lastPassTimes() { return passMs.clone(); }
     public long frames() { return frame; }
     public double takeWorstFrameMs() { double w = worstMs; worstMs = 0; return w; }
-    public double fovy() { return Camera.FOVY; }
+    /** Öffnung der Kamera senkrecht (Grad); seit Phase 10 je Ansicht (Fernrohr für Kampen1–3). */
+    public double fovy() { return camera.fovy; }
 
     /** Alle Shader-Programme mit ihren Dateien (für die Prüfung). */
     public String[][] shaderFiles() {
@@ -281,6 +330,20 @@ public final class Renderer implements GLEventListener {
     }
 
     /**
+     * Seit Phase 10: eine Vorlage der Türme (Leuchturm1–4, Kampen1–4) mit Tag, Stunde, Bedeckung und dem Quermarkenfeuer
+     * (wie früher, wenn die Vorlage es zeigt); danach Augenanpassung neu.
+     */
+    public void placeVorlage(Ansichten.Vorlage v) {
+        clock.set(v.datum(), v.uhr());
+        if (!Double.isNaN(v.bedeckung())) wiring.oktas = v.bedeckung();
+        feuer.quermarkeFrueher = v.frueher();
+        placeView(v.ansicht());
+        wetter.sky.epochMillis = clock.epochMillis();
+        readapt();
+        hudMeldung("Vorlage " + v.name() + " (" + v.bild() + ")");
+    }
+
+    /**
      * Seit Phase 9a: „Sandsturm am Strand“ – Wind Bft 9 aus 280°, trocken (kein Regen), mäßige See (der obere Strand bleibt
      * trocken), Flugsand und Körner an, Blick vom Strand längs nach Nordnordost.
      */
@@ -293,8 +356,18 @@ public final class Renderer implements GLEventListener {
         sand.regen = 0;
         sand.an = true;
         showKoerner = true;
-        placeView(Ansichten.SANDSTURM);
-        hudMeldung("Sandsturm am Strand: Bft 9 aus West, trockener Sand");
+        // seit Phase 10: auf trockenem Sand stehen – bei Hochwasser (Pegel +0,7 m) war die Stelle 22 m vor der Wasserlinie nass
+        Ansichten.Ansicht a = Ansichten.SANDSTURM;
+        double n = Site.N0 - a.z(), wl = Site.wasserlinieE(n), trocken = wiring.pegel + Math.max(0.8, brandung.auflaufR2() * 0.8) + 0.3;
+        int row = kliff.kante != null ? kliff.kante.row(a.z()) : -1;
+        double s0 = a.x() + Site.E0 - wl, sMax = row >= 0 ? kliff.kante.fussE[row] - wl - 4 : s0 + 12, sBest = Math.max(s0, sMax);
+        for (double sq = s0; sq <= sMax; sq += 1) {   // höchstens bis 4 m vor den Fuß des Kliffs
+            double[] xz = Site.fromUtm(wl + sq, n);
+            if (terrain.height(xz[0], xz[1]) >= trocken) { sBest = Math.min(sMax, sq + 3); break; }
+        }
+        double[] xz = Site.fromUtm(wl + sBest, n);
+        placeView(new Ansichten.Ansicht(a.key(), a.name(), xz[0], xz[1], a.heading(), a.pitch(), a.eyeAboveGround(), a.phase(), a.fovy()));
+        hudMeldung(String.format(Locale.GERMAN, "Sandsturm am Strand: Bft 9 aus West, trockener Sand (%.0f m vor der Wasserlinie)", sBest));
     }
 
     /** Seit Phase 9a: Windfeld und Flugsand um das Auge sofort, Körner 3 s vorlaufen (für Standbilder). */
@@ -396,6 +469,10 @@ public final class Renderer implements GLEventListener {
         meer.init(gl, terrain, compute.ok(), errorListener);
         brandungGl.init(gl, brandung);
         sandGl.init(gl);
+        bautenGl.init(gl);
+        bautenGl.upload(gl, BautenGl.FEST, bauwerke.netz);
+        feuerGl.init(gl);
+        System.out.println("Sylt: Bauten " + bauwerke.describe() + " · " + bautenGl.info);
         klasseTex = klasseTexture(gl, karte);
         kliff.init(gl);
         System.out.println("Sylt: " + karte.describe() + (karte.hatKarte() ? " · Arten im Kern zu 1 m" : " · ohne Karte des Kerns"));
@@ -457,6 +534,11 @@ public final class Renderer implements GLEventListener {
         }
         // seit Phase 9a: Flugsand (Windfeld und Feld um das Auge im Hintergrund, Körner hier)
         sand.schritt(dt, camera.eye, wiring.windSpeed, wiring.windFromDeg);
+        // seit Phase 10: Galloways, Strandkörbe (nur bei Änderung neu), Leuchtfeuer mit Dämmerungsschalter
+        herde.schritt(dt);
+        if (koerbe.stellen(clock.date(), wiring.windFromDeg, wiring.windSpeed, sp7[1])) koerbeNeu = true;
+        umgebungLux = umgebungLux();
+        feuer.schritt(dt, umgebungLux, wiring.visibilityKm, 0);
         if (wetter.skyOk) {
             Sky.State st = wetter.sky.step(dt);
             wetter.clouds.step(dt);
@@ -635,6 +717,8 @@ public final class Renderer implements GLEventListener {
             }
             gl.glBindVertexArray(emptyVao);
         }
+        // seit Phase 10: Türme und Bauten, Strandkörbe, Galloways (Licht wie das Gelände, vorbelichtet)
+        if (showBauten && bautenGl.ok) drawBauten(gl, vp, inv, sun, st, pre, cloudsNow);
         mark(gl, 2);
 
         // 3 Boden: die Bodendecke um das Auge (nur zu Fuß, Biom Sylt)
@@ -738,6 +822,15 @@ public final class Renderer implements GLEventListener {
             wetter.cloudGl.draw(gl, cs, cl, cv);
             gl.glBindVertexArray(emptyVao);
         }
+        // seit Phase 10: Strahlen und Lichtpunkte der Leuchtfeuer (additiv, mit der Tiefe der Szene)
+        if (feuer.an && feuerGl.ok) {
+            feuerGl.draw(gl, feuer, vp, inv, camera.eye, reversedZ, w, h, fovy(), depthTex, hdrColorFbo, frameSky ? pre : exposure(), !frozen);
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrColorFbo);
+            gl.glViewport(0, 0, w, h);
+            gl.glDisable(GL.GL_BLEND);
+            gl.glDisable(GL.GL_DEPTH_TEST);
+            gl.glBindVertexArray(emptyVao);
+        }
         // Belichtung im Bild messen (alle 0,2 s, gelesen ohne Warten beim nächsten Mal)
         if (frameSky && bildMessung) {
             gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrColorFbo);
@@ -767,6 +860,56 @@ public final class Renderer implements GLEventListener {
         gl.glBindVertexArray(0);
         gl.glUseProgram(0);
         mark(gl, 7);
+    }
+
+    /** Seit Phase 10: Bauten zeichnen (in hdrFbo, mit Tiefe), die Laternen aus dem Zustand der Leuchtfeuer. */
+    private void drawBauten(GL4 gl, float[] vp, float[] inv, double[] sun, Sky.State st, double pre, boolean cloudsNow) {
+        if (koerbeNeu) { bautenGl.upload(gl, BautenGl.KOERBE, koerbe.netz); koerbeNeu = false; }
+        if (showHerde) {
+            herde.bauen();
+            bautenGl.upload(gl, BautenGl.HERDE, herde.netz);
+        }
+        if (feuer.an && feuerGl.ok && umgebungLux < 2000) feuerGl.update(gl, feuer);
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrFbo);
+        gl.glEnable(GL.GL_DEPTH_TEST);
+        gl.glDepthMask(true);
+        gl.glDepthFunc(reversedZ ? GL.GL_GREATER : GL.GL_LESS);
+        gl.glDisable(GL.GL_BLEND);
+        common(gl, bautenShader, vp, inv, sun);
+        gl.glActiveTexture(GL.GL_TEXTURE0 + 13);
+        gl.glBindTexture(GL.GL_TEXTURE_2D, cloudsNow ? wetter.cloudGl.shadowTexture() : 0);
+        gl.glActiveTexture(GL.GL_TEXTURE0);
+        bautenShader.set(gl, "uCloudShadow", 13);
+        double[] cr = cloudsNow ? wetter.cloudGl.shadowRect() : new double[]{0, 0, 1};
+        bautenShader.set(gl, "uCloudRect", (float) cr[0], (float) cr[1], (float) Math.max(1, cr[2]), cloudsNow ? 1f : 0f);
+        double e = clock.sun()[0];
+        bautenShader.set(gl, "uNight", (float) smooth(-1, -6, e));
+        // erleuchtetes Fenster rund 15 cd/m², warm [G]; Laternen aus com.dan.beacon (cd/m² → Szeneneinheiten)
+        double k = (frameSky ? pre : exposure()) / Sky.CD_PER_UNIT;
+        bautenShader.set(gl, "uWarm", (float) (15 * k), (float) (15 * k * 0.72), (float) (15 * k * 0.42));
+        laterne(gl, "Q", feuer.quermarke.snapshot(), feuer.quermarkeFrueher, k);
+        laterne(gl, "K", feuer.kampen.snapshot(), true, k);
+        bautenGl.draw(gl, true, showKoerbe, showHerde);
+        gl.glBindVertexArray(emptyVao);
+    }
+
+    /** Die Uniforms einer Laterne: Lage, Brennpunkt, Linse zum Auge und Streulicht (vorbelichtet). */
+    private void laterne(GL4 gl, String t, com.dan.beacon.Beacon.Snapshot s, boolean an, double k) {
+        double half = s.lensHalfHeight();
+        bautenShader.set(gl, "uTurm" + t, (float) s.x(), (float) s.z(), (float) s.y(), (float) half);
+        if (!an || !s.lit()) {
+            bautenShader.set(gl, "uLens" + t, 0f, 0f, 0f);
+            bautenShader.set(gl, "uGlow" + t, 0f, 0f, 0f);
+            return;
+        }
+        double dx = camera.eye[0] - s.x(), dy = camera.eye[1] - s.y(), dz = camera.eye[2] - s.z(), dl = Math.max(0.1, Math.sqrt(dx * dx + dy * dy + dz * dz));
+        double g = s.lensGlow();
+        double[] tint = s.tint(), L = s.lensLuminance(dx / dl, dy / dl, dz / dl);
+        for (int c = 0; c < 3; c++) L[c] = Math.max(0, L[c] - g * tint[c]);
+        // die Linse zum Auge: begrenzt (der Lichtpunkt zeigt die volle Leuchtdichte)
+        double cap = 5e4;
+        bautenShader.set(gl, "uLens" + t, (float) (Math.min(cap, L[0]) * k), (float) (Math.min(cap, L[1]) * k), (float) (Math.min(cap, L[2]) * k));
+        bautenShader.set(gl, "uGlow" + t, (float) (g * tint[0] * k), (float) (g * tint[1] * k), (float) (g * tint[2] * k));
     }
 
     /** Richtung, in die der Wind weht (x Ost, z Süd), als Einheitsvektor. */
@@ -1045,6 +1188,9 @@ public final class Renderer implements GLEventListener {
                 "Tide: " + wiring.tideZeile(),
                 brandungGl.describe(brandung, nah),
                 sand.zeile(camera.eye[0], camera.eye[2]),
+                "Bauten: " + bauwerke.describe(),
+                "Leuchtfeuer (beacon): " + feuer.describe(),
+                koerbe.describe() + " · " + herde.describe(),
                 physik.describe(),
                 (terrain.measured() ? "" : "!") + "Gelände: " + terrain.describe(),
                 String.format(Locale.GERMAN, "Gelände %d Knoten, %,d Punkte · fein bis %d m, im Kern %d m · Grund hier %.1f m über NHN · %s",
@@ -1123,6 +1269,8 @@ public final class Renderer implements GLEventListener {
         meer.dispose(gl);
         brandungGl.dispose(gl);
         sandGl.dispose(gl);
+        bautenGl.dispose(gl);
+        feuerGl.dispose(gl);
         kliff.dispose(gl);
         if (groundOk) groundGl.dispose(gl);
         mudGl.dispose(gl);

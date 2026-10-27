@@ -63,6 +63,11 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
             dlrgBox = new FCheckBox("DLRG-Blick: Rinnen und Rückstrom deutlich"),
             sandBox = new FCheckBox("Flugsand (com.dan.dune, Wind aus com.dan.wind)"), koernerBox = new FCheckBox("Körner zeigen (Fahnen, Kammfahnen)");
     private final FSlider regenSl = new FSlider(0, 60, 0);
+    private final FCheckBox bautenBox = new FCheckBox("Türme und Bauten (LOD2, Treppe, Wege, Strand)"),
+            feuerBox = new FCheckBox("Leuchtfeuer (com.dan.beacon)"), strahlBox = new FCheckBox("Strahl im Dunst"),
+            frueherBox = new FCheckBox("Quermarkenfeuer wie früher (F WRG, bis 1975)"),
+            koerbeBox = new FCheckBox("Strandkörbe (Saison, Wind, Sturmwarnung)"), herdeBox = new FCheckBox("Galloways am Kampener Leuchtturm");
+    private final JLabel tuermeLbl = small("");
     private final JLabel regenLbl = label("");
     private final JLabel tideLbl = small(""), brandungLbl = small("");
     private FComboBox lapseBox, qualBox, hudBox, artBox;
@@ -299,9 +304,49 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         block("KLIFF", false);
         put(small("<html><body style='width:215px'>Kommt mit Phase 4 und 4a (Lockergestein aus com.dan.cliff: Flugsand, Geschiebelehm, "
                 + "Kaolinsand, Runsen, Grasnarbe) und Phase 11 und 12 (Abbruch aus com.dan.fracture bei Sturmflut).</body></html>"));
-        block("TÜRME", false);
-        put(small("<html><body style='width:215px'>Kommt mit Phase 10: Quermarkenfeuer und Kampener Leuchtturm, Leuchtfeuer aus com.dan.beacon "
-                + "(Iso, Sektoren; das Quermarkenfeuer heute dunkel oder wie früher, F19 A), Treppen, Bohlenwege, Strandkörbe, Buhnen.</body></html>"));
+        // ============================================================== TÜRME (seit Phase 10)
+        block("TÜRME", true);
+        bautenBox.setSelected(r.showBauten);
+        bautenBox.addActionListener(e -> { r.showBauten = bautenBox.isSelected(); view.requestFocusInWindow(); });
+        put(bautenBox);
+        feuerBox.setSelected(r.feuer.an);
+        feuerBox.addActionListener(e -> { r.feuer.an = feuerBox.isSelected(); view.requestFocusInWindow(); });
+        put(feuerBox);
+        strahlBox.setSelected(r.feuer.strahl);
+        strahlBox.addActionListener(e -> { r.feuer.strahl = strahlBox.isSelected(); view.requestFocusInWindow(); });
+        put(strahlBox);
+        frueherBox.setSelected(r.feuer.quermarkeFrueher);
+        frueherBox.addActionListener(e -> { r.feuer.quermarkeFrueher = frueherBox.isSelected(); labels(); view.requestFocusInWindow(); });
+        put(frueherBox);
+        koerbeBox.setSelected(r.koerbe.an);
+        koerbeBox.addActionListener(e -> { r.koerbe.an = koerbeBox.isSelected(); r.showKoerbe = koerbeBox.isSelected(); view.requestFocusInWindow(); });
+        put(koerbeBox);
+        herdeBox.setSelected(r.showHerde);
+        herdeBox.addActionListener(e -> { r.showHerde = herdeBox.isSelected(); view.requestFocusInWindow(); });
+        put(herdeBox);
+        put(tuermeLbl);
+        sub("Vorlagen (Tag und Stunde wie im Bild)");
+        JPanel vg = grid(2);
+        for (Ansichten.Vorlage v : Ansichten.VORLAGEN) {
+            FButton b = new FButton(v.name());
+            b.setToolTipText(Ansichten.describe(v.ansicht(), Renderer.PHASE) + " · " + v.datum() + " " + String.format(Locale.GERMAN, "%.2f Uhr", v.uhr()));
+            b.addActionListener(e -> {
+                r.placeVorlage(v);
+                frueherBox.setSelected(r.feuer.quermarkeFrueher);
+                free.setSelected(r.camera.mode == Camera.Mode.FREI);
+                orbit.setSelected(false);
+                syncFromScene();
+                view.requestFocusInWindow();
+            });
+            vg.add(b);
+        }
+        put(vg);
+        put(small("<html><body style='width:215px'>Seit Phase 10: die Häuser aus LOD2 mit Reet, Backstein, Putz und Klinker, das "
+                + "Quermarkenfeuer (Backstein, Kupferdach) und der Kampener Leuchtturm (weiß, schwarzes Band) genauer gebaut, "
+                + "Treppe am Kliff, Bohlenweg und Kiesweg zum Quermarkenfeuer, Strandlokal, Rettungstürme. Kampen brennt Iso WR 7s "
+                + "mit Dämmerungsschalter; das Quermarkenfeuer ist seit 1975 dunkel, „wie früher“ brennt es F WRG. Strandkörbe von "
+                + "Mai bis September, mit dem Rücken zum Wind, bei Sturmwarnung (ab Bft 8) weggeräumt. Die Vorlagen stellen "
+                + "Ansicht, Öffnung (Fernrohr für Kampen1–3), Tag und Stunde.</body></html>"));
         block("KLANG", false);
         put(small("<html><body style='width:215px'>Kommt mit Phase 14: Brandung je Brechertyp und Entfernung, Sand am Ohr, Wind an der Kante, Abbruch, Vögel.</body></html>"));
         block("REGIEBÜCHER", false);
@@ -527,6 +572,7 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         txt(dirLbl, String.format(Locale.GERMAN, "aus %03.0f° (%s)", sf.seaFromDeg, compass(sf.seaFromDeg)));
         txt(surfLbl, "<html><body style='width:215px'>" + esc(r.wiring.surfZeile(r.camera.eye[0], r.camera.eye[2])) + "</body></html>");
         txt(windLbl, String.format(Locale.GERMAN, "Wind in 10 m: %.0f m/s", r.wiring.windSpeed));
+        txt(tuermeLbl, "<html><body style='width:215px'>" + esc(r.feuer.describe() + " · " + r.koerbe.describe() + " · " + r.herde.describe()) + "</body></html>");
         txt(windDirLbl, String.format(Locale.GERMAN, "aus %03.0f° (%s)", r.wiring.windFromDeg, compass(r.wiring.windFromDeg)));
         txt(duneLbl, "<html><body style='width:215px'>" + esc(r.sand.zeile(r.camera.eye[0], r.camera.eye[2])) + "</body></html>");
         txt(regenLbl, r.sand.regen <= 0 ? "Strand trocken (kein Regen)" : String.format(Locale.GERMAN, "nach Regen: Sand %.1f %% nass", r.sand.regen * 100));

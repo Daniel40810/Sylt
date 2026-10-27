@@ -99,10 +99,10 @@
     </target>
     <!-- Das Statusbild auf der Grafikkarte: docs/status/Status_Phase${phase}.png (Grundansicht von See auf die Küste,
          20.7.2026 20:30 MESZ, Stufe Mittel, Full HD, volles HUD mit den Zeiten jedes Durchgangs). Auf der Radeon laufen
-         lassen; die Zeiten stehen auch in der Ausgabe. -Dansicht=Name wählt eine der neun Ansichten, -Dbild=… den Namen des Bilds; seit Phase 3 -Dwolken=aus, -Dboden=aus, -Dbedeckung=Achtel; seit Phase 4a -Dkamera=x,z,Richtung,Neigung,Höhe; seit Phase 7a -Dsee=H_s,T_p,Richtung (etwa 2,9,290), -Dpegel=m (von Hand, sonst die Tide), -Duhr=Stunde und -Ddatum=JJJJ-MM-TT; seit Phase 9a -Dsandsturm=an und -Dwind=m/s,Richtung. -->
+         lassen; die Zeiten stehen auch in der Ausgabe. -Dansicht=Name wählt eine der neun Ansichten, -Dbild=… den Namen des Bilds; seit Phase 3 -Dwolken=aus, -Dboden=aus, -Dbedeckung=Achtel; seit Phase 4a -Dkamera=x,z,Richtung,Neigung,Höhe; seit Phase 7a -Dsee=H_s,T_p,Richtung (etwa 2,9,290), -Dpegel=m (von Hand, sonst die Tide), -Duhr=Stunde und -Ddatum=JJJJ-MM-TT; seit Phase 9a -Dsandsturm=an und -Dwind=m/s,Richtung; seit Phase 10 -Dvorlage=Leuchturm1 … Kampen4 (Ansicht, Tag und Stunde der Vorlage) und -Dquermarke=frueher. Werte mit Komma in Anführungszeichen: "-Dsee=2.5,9,290" (sonst trennt Windows sie). -->
     <target name="tempo" depends="jar" description="docs/status/Status_PhaseN.png (Grundansicht, volles HUD).">
         <property name="platform.java" value="java"/>
-        <property name="phase" value="9a"/>
+        <property name="phase" value="10"/>
         <property name="bild" value="docs/status/Status_Phase${phase}.png"/>
         <property name="ansicht" value=""/>
         <property name="wolken" value=""/>
@@ -113,6 +113,8 @@
         <property name="pegel" value=""/>
         <property name="sandsturm" value=""/>
         <property name="wind" value=""/>
+        <property name="vorlage" value=""/>
+        <property name="quermarke" value=""/>
         <property name="uhr" value="20.5"/>
         <property name="datum" value="2026-07-20"/>
         <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
@@ -129,7 +131,46 @@
             <jvmarg value="-Dpegel=${pegel}"/>
             <jvmarg value="-Dsandsturm=${sandsturm}"/>
             <jvmarg value="-Dwind=${wind}"/>
+            <jvmarg value="-Dvorlage=${vorlage}"/>
+            <jvmarg value="-Dquermarke=${quermarke}"/>
             <arg line="120 1920 1080 ${bild} MITTEL ${uhr} ${datum}"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+    </target>
+    <!-- Phase 10: die acht Vorlagen der Türme auf der Grafikkarte, je docs/status/Vorlage_<Name>.png (Ansicht, Öffnung, Tag
+         und Stunde der Vorlage, volles HUD). Zum Vergleich mit templates/Leuchturm1–4 und Kampen1–4. -->
+    <macrodef name="vorlage">
+        <attribute name="name"/>
+        <sequential>
+            <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+                <jvmarg value="-Dstdout.encoding=UTF-8"/>
+                <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+                <jvmarg value="-Xmx6g"/>
+                <jvmarg value="-Dhud=kurz"/>
+                <jvmarg value="-Dvorlage=@{name}"/>
+                <arg line="30 1920 1080 docs/status/Vorlage_@{name}.png MITTEL"/>
+                <classpath><pathelement path="${run.classpath}"/></classpath>
+            </java>
+        </sequential>
+    </macrodef>
+    <target name="vorlagen" depends="jar" description="Phase 10: die acht Vorlagen der Türme als docs/status/Vorlage_*.png.">
+        <property name="platform.java" value="java"/>
+        <vorlage name="Leuchturm1"/>
+        <vorlage name="Leuchturm2"/>
+        <vorlage name="Leuchturm3"/>
+        <vorlage name="Leuchturm4"/>
+        <vorlage name="Kampen1"/>
+        <vorlage name="Kampen2"/>
+        <vorlage name="Kampen3"/>
+        <vorlage name="Kampen4"/>
+    </target>
+    <!-- Phase 10: Vorschau der Bauten ohne Grafikkarte neben den Vorlagen (docs/status/Vorschau_*.png): Lage, Größe, Gestalt. -->
+    <target name="bautenbild" depends="jar" description="Phase 10: Vorschau der Bauten ohne Grafikkarte neben den Vorlagen.">
+        <property name="platform.java" value="java"/>
+        <java classname="com.dan.sylt.tools.BautenBild" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="-Xmx6g"/>
+            <arg line="alle docs/status"/>
             <classpath><pathelement path="${run.classpath}"/></classpath>
         </java>
     </target>

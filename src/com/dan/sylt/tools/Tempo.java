@@ -27,7 +27,9 @@ import java.util.Locale;
  * {@code kamera} = x,z,Richtung,Neigung,Höhe über Grund (frei stehend), {@code hud} = kurz|voll|aus,
  * {@code marken} = an|aus (seit Phase 3 aus), {@code meer} = aus, {@code pegel} = m über NHN (von Hand), seit Phase 3
  * {@code wolken} = aus, {@code boden} = aus, {@code bedeckung} = Achtel, seit Phase 7a {@code see} = H_s,T_p,Richtung,
- * seit Phase 9a {@code sandsturm} = an und {@code wind} = m/s,Richtung.
+ * seit Phase 9a {@code sandsturm} = an und {@code wind} = m/s,Richtung, seit Phase 10 {@code vorlage} = Leuchturm1 … Kampen4
+ * (Ansicht, Öffnung, Tag, Stunde und Bedeckung der Vorlage; Uhrzeit und Datum der Befehlszeile gelten dann nicht) und
+ * {@code quermarke} = frueher (das Quermarkenfeuer brennt F WRG wie bis 1975).
  */
 public final class Tempo {
     private Tempo() { }
@@ -88,6 +90,14 @@ public final class Tempo {
             if (v == null) System.err.println("FEHLER: keine Ansicht „" + an + "“");
             else r.placeView(v);
         }
+        // seit Phase 10: -Dvorlage=Leuchturm1 … Kampen4, -Dquermarke=frueher
+        String vl = opt("vorlage");
+        if (vl != null && !vl.isBlank()) {
+            Ansichten.Vorlage v = Ansichten.vorlage(vl);
+            if (v == null) System.err.println("FEHLER: keine Vorlage „" + vl + "“");
+            else r.placeVorlage(v);
+        }
+        if ("frueher".equals(opt("quermarke")) || "früher".equals(opt("quermarke"))) r.feuer.quermarkeFrueher = true;
         // seit Phase 9a: -Dsandsturm=an (Bft 9 aus West, Blick vom Strand), -Dwind=m/s,Richtung
         if ("an".equals(opt("sandsturm"))) r.sandsturm();
         String wi = opt("wind");
@@ -102,6 +112,7 @@ public final class Tempo {
         r.brandungJetzt();     // Phase 7a: Wellenfeld und Netz nahe am Auge vor dem Bild
         r.sandJetzt();         // Phase 9a: Windfeld, Flugsand um das Auge und 3 s Körner
         r.wetter.sky.updateNow();   // Phase 3: das Licht des Himmels sofort, nicht im Hintergrund
+        r.bautenJetzt();       // Phase 10: Strandkörbe, Herde, Schalter der Leuchtfeuer nach dem Licht
         for (int i = 0; i < 40; i++) { r.step(1 / 60.0); d.display(); }
         double best = Double.MAX_VALUE, sum = 0;
         for (int i = 0; i < frames; i++) {

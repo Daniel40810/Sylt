@@ -333,6 +333,9 @@ public final class Pruefung {
         teil("Flugsand in der Szene (Phase 9a)");
         sand(r3);
 
+        teil("Türme und Bauten (Phase 10)");
+        tuerme(r3);
+
         teil("Renderer.jar und Shader");
         List<String> pk = Bibliothek.pakete();
         check(Bibliothek.fehlend().isEmpty(), "Renderer.jar: " + Bibliothek.kurz());
@@ -341,7 +344,7 @@ public final class Pruefung {
         for (String[] prog : rd.shaderFiles())
             for (String file : prog)
                 check(Renderer.class.getResource("/com/dan/sylt/gl/shader/" + file) != null, "Shader " + file + " im Jar");
-        for (String c : new String[]{"com.dan.surf.demo.SurfCheck", "com.dan.dune.demo.DuneCheck", "com.dan.tide.demo.TideCheck"}) {
+        for (String c : new String[]{"com.dan.surf.demo.SurfCheck", "com.dan.dune.demo.DuneCheck", "com.dan.tide.demo.TideCheck", "com.dan.beacon.demo.BeaconCheck"}) {
             Process p = new ProcessBuilder(javaBin(), "-Dstdout.encoding=UTF-8", "-cp", System.getProperty("java.class.path"), c).redirectErrorStream(true).start();
             String out = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             check(p.waitFor() == 0 && out.contains("Alles in Ordnung."), c + ": " + (out.contains("Alles in Ordnung.") ? "Alles in Ordnung." : out.strip()));
@@ -524,6 +527,133 @@ public final class Pruefung {
         String z = s.zeile(e[0], e[2]);
         check(z.startsWith("Flugsand:") && java.util.Arrays.stream(r.hudLines()).anyMatch(l -> l.startsWith("Flugsand:")), "HUD: " + z);
         r.wiring.tideAn = true;
+    }
+
+    /**
+     * Seit Phase 10: Häuser aus LOD2 mit Baustoffen, die beiden Türme (Maße, Feuerhöhe, Band), Wärterhäuser, Treppe und
+     * Bohlenweg, Strandkörbe (Saison, Wind, Sturm), Galloways, Leuchtfeuer (Dämmerungsschalter, Quermarke heute und
+     * früher), die Vorlagen und der trockene Platz für „Sandsturm am Strand“.
+     */
+    static void tuerme(Renderer r) {
+        com.dan.sylt.scene.Bauwerke b = r.bauwerke;
+        com.dan.sylt.scene.Bauten lod = b.bauten;
+        boolean daten = !lod.haeuser.isEmpty();
+        check(!daten || (lod.haeuser.size() > 15_000 && lod.ausgelassen == 2), "LOD2: " + lod.describe());
+        double naechst = Double.MAX_VALUE;
+        for (com.dan.sylt.scene.Bauten.Haus h : lod.haeuser)
+            for (Site.Ort o : new Site.Ort[]{Site.QUERMARKE, Site.LEUCHTTURM}) naechst = Math.min(naechst, Math.hypot(h.x() - o.x(), h.z() - o.z()));
+        check(!daten || naechst > 7, f("die Türme aus LOD2 sind weg (nächstes Haus %.0f m), sie werden genauer gebaut", naechst));
+        int m = com.dan.sylt.scene.Netz.merkmal(com.dan.sylt.scene.Netz.REET, true, 300, 27.35);
+        check(com.dan.sylt.scene.Netz.baustoff(m) == com.dan.sylt.scene.Netz.REET && com.dan.sylt.scene.Netz.fenster(m)
+                && com.dan.sylt.scene.Netz.kennzahl(m) == 300 && Math.abs(com.dan.sylt.scene.Netz.grund(m) - 27.35) < 0.026, "Merkmal je Ecke: Baustoff, Fenster, Kennzahl, Grund auf 5 cm");
+        // Türme: höchste Ecke an der Achse, Feuerhöhe
+        double[] qT = b.turmQ, kT = b.turmK;
+        double qTop = 0, kTop = 0;
+        int band = 0;
+        com.dan.sylt.scene.Netz n = b.netz;
+        for (int i = 0; i < n.ecken(); i++) {
+            double dq = Math.hypot(n.x(i) - qT[0], n.z(i) - qT[2]), dk = Math.hypot(n.x(i) - kT[0], n.z(i) - kT[2]);
+            if (dq < 3) qTop = Math.max(qTop, n.y(i) - qT[1]);
+            if (dk < 5) {
+                kTop = Math.max(kTop, n.y(i) - kT[1]);
+                if (com.dan.sylt.scene.Netz.baustoff(n.merkmal(i)) == com.dan.sylt.scene.Netz.LACK_SCHWARZ && n.y(i) - kT[1] > 12 && n.y(i) - kT[1] < 20) band++;
+            }
+        }
+        check(qTop > 11.5 && qTop < 12.5 && Math.abs(b.fokusQuermarke[1] - 23) < 1.5,
+                f("Quermarkenfeuer: Spitze %.1f m über Grund (LOD2 bis zum Dach 11,0 m), Feuerhöhe %.1f m NHN (23 m)", qTop, b.fokusQuermarke[1]));
+        check(kTop > 39 && kTop < 41.5 && Math.abs(b.fokusKampen[1] - 62) < 0.5 && band > 50,
+                f("Kampener Leuchtturm: %.1f m hoch (40 m), Feuerhöhe %.1f m NHN (62 m), schwarzes Band (%d Ecken)", kTop, b.fokusKampen[1], band));
+        if (daten) {
+            int weiss = 0, wh = 0, reetK = 0, nK = 0, reetW = 0, nW = 0;
+            for (com.dan.sylt.scene.Bauten.Haus h : lod.haeuser) {
+                com.dan.sylt.scene.Bauten.Stil st = lod.stil(h, new double[]{kT[0], kT[2]});
+                if (Math.hypot(h.x() - kT[0], h.z() - kT[2]) < com.dan.sylt.scene.Bauten.WAERTER) {
+                    wh++;
+                    if (st.wand() == com.dan.sylt.scene.Netz.PUTZ && st.dach() == com.dan.sylt.scene.Netz.DACH_GRAU) weiss++;
+                }
+                double[] u = Site.toUtm(h.x(), h.z());
+                boolean kampen = com.dan.sylt.scene.Bauten.reetAnteil(u[0], u[1]) > 0.5, west = u[1] < 6_085_500;
+                if (kampen) { nK++; if (st.dach() == com.dan.sylt.scene.Netz.REET) reetK++; }
+                if (west) { nW++; if (st.dach() == com.dan.sylt.scene.Netz.REET) reetW++; }
+            }
+            check(wh >= 3 && weiss == wh, f("Wärterhäuser am Kampener Leuchtturm: %d von %d weiß mit grauem Dach (Kampen1–4)", weiss, wh));
+            check(nK > 50 && reetK / (double) nK > 2 * reetW / Math.max(1.0, nW),
+                    f("Reetdächer: Kampen %.0f %% der Häuser, Westerland %.0f %%", 100.0 * reetK / nK, 100.0 * reetW / Math.max(1, nW)));
+        }
+        check(b.teile.stream().anyMatch(t -> t.startsWith("Treppe bei")) || r.kliff.kante == null, "Treppe am Kliff: " + b.teile.stream().filter(t -> t.startsWith("Treppe bei")).findFirst().orElse("–"));
+        double[] ende = b.bohlenweg.get(b.bohlenweg.size() - 1);
+        double unter = Double.MAX_VALUE;
+        for (double[] p : b.bohlenweg) unter = Math.min(unter, p[1] - r.terrain.height(p[0], p[2]));
+        check(Math.hypot(ende[0] - qT[0], ende[2] - qT[2]) < 12 && unter > 0.1,
+                f("Bohlenweg: %d Bohlen bis %.0f m vor das Quermarkenfeuer, überall mindestens %.2f m über dem Grund", b.bohlenweg.size(), Math.hypot(ende[0] - qT[0], ende[2] - qT[2]), unter));
+        // Strandkörbe (F20 A)
+        com.dan.sylt.scene.Strandkoerbe k = r.koerbe;
+        k.stellen(java.time.LocalDate.of(2026, 7, 20), 270, 8, 200);
+        int sommer = k.gezeigt();
+        double oeff = com.dan.sylt.scene.Strandkoerbe.oeffnung(270, 8, 200);
+        k.stellen(java.time.LocalDate.of(2026, 1, 20), 270, 8, 200);
+        int winter = k.gezeigt();
+        k.stellen(java.time.LocalDate.of(2026, 7, 20), 270, 19, 200);
+        int sturm = k.gezeigt();
+        k.stellen(java.time.LocalDate.of(2026, 4, 20), 270, 8, 200);
+        int april = k.gezeigt();
+        check(sommer > 100 && winter == 0 && sturm == 0 && april > 0 && april < sommer && Math.abs(oeff - 90) < 1,
+                f("Strandkörbe: Juli %d, 20. April %d, Januar %d, bei Bft 8 (Sturmwarnung) %d; Westwind 8 m/s: Öffnung nach %03.0f° (Lee)", sommer, april, winter, sturm, oeff));
+        k.stellen(r.clock.date(), r.wiring.windFromDeg, r.wiring.windSpeed, 200);
+        // Galloways (F24 A)
+        com.dan.sylt.scene.Herde h = r.herde;
+        double[][] vorher = new double[h.tiere.size()][];
+        for (int i = 0; i < vorher.length; i++) vorher[i] = new double[]{h.tiere.get(i).x, h.tiere.get(i).z};
+        for (int i = 0; i < 600; i++) h.schritt(1);
+        boolean erlaubt = true;
+        double weg = 0;
+        for (int i = 0; i < vorher.length; i++) {
+            com.dan.sylt.scene.Herde.Tier t = h.tiere.get(i);
+            erlaubt &= h.erlaubt(t.x, t.z);
+            weg += Math.hypot(t.x - vorher[i][0], t.z - vorher[i][1]);
+        }
+        h.bauen();
+        check(h.tiere.size() >= 10 && erlaubt && weg > 10 && h.netz.dreiecke() > 1000,
+                f("Galloways: nach 10 min alle auf der Weide, zusammen %.0f m gegangen · %s · %,d Dreiecke", weg, h.describe(), h.netz.dreiecke()));
+        // Leuchtfeuer (F18, F19 A)
+        com.dan.sylt.scene.Leuchtfeuer lf = r.feuer;
+        lf.quermarkeFrueher = false;
+        lf.schritt(10, 20, 30, 0);
+        lf.sofort(20);
+        boolean nachtK = lf.kampen.isOn(), nachtQ = lf.quermarke.isOn();
+        lf.schritt(10, 30_000, 30, 0);
+        lf.sofort(30_000);
+        boolean tagK = lf.kampen.isOn();
+        lf.quermarkeFrueher = true;
+        lf.schritt(10, 20, 30, 0);
+        lf.sofort(20);
+        boolean frueher = lf.quermarke.isOn();
+        lf.quermarkeFrueher = false;
+        check(nachtK && !tagK && !nachtQ && frueher && lf.kampen.characteristic().text.startsWith("Iso"),
+                f("Leuchtfeuer: Kampen nachts an, am Tag aus; Quermarkenfeuer heute dunkel, wie früher an (%s)", lf.quermarke.characteristic().text));
+        double[] lx = {com.dan.sylt.scene.Leuchtfeuer.lux(new double[]{2.3, 2.3, 2.3}, 0.8, new double[]{0.5, 0.5, 0.5}), com.dan.sylt.scene.Leuchtfeuer.lux(new double[3], -0.1, new double[]{1e-4, 1e-4, 1e-4})};
+        check(lx[0] > 50_000 && lx[1] < 50, f("Licht am Turm: Tag %,.0f lx, Dämmerung %.1f lx", lx[0], lx[1]));
+        // Vorlagen
+        int gut = 0;
+        for (Ansichten.Vorlage v : Ansichten.VORLAGEN) {
+            Ansichten.Ansicht a = v.ansicht();
+            Site.Ort ziel = v.name().startsWith("Kampen") ? Site.LEUCHTTURM : Site.QUERMARKE;
+            double brg = Math.toDegrees(Math.atan2(ziel.x() - a.x(), -(ziel.z() - a.z())));
+            double d = ((brg - a.heading()) % 360 + 540) % 360 - 180;
+            if (Site.FERNFELD.contains(a.x(), a.z()) && Math.abs(d) < a.fovy() * 0.6 && a.fovy() >= 2 && a.fovy() <= 55) gut++;
+        }
+        Ansichten.Ansicht k1 = Ansichten.byName("Kampen1");
+        check(gut == 8 && k1 != null && k1.fovy() < 5, f("Vorlagen: %d von 8 haben ihren Turm im Bild; Kampen1 mit Fernrohr (Öffnung %.1f°)", gut, k1 == null ? 0 : k1.fovy()));
+        // Sandsturm bei Hochwasser auf trockenem Sand
+        boolean tide = r.wiring.tideAn;
+        r.wiring.tideAn = false;
+        r.wiring.pegel = 0.68;
+        r.sandsturm();
+        double gE = r.terrain.height(r.camera.eye[0], r.camera.eye[2]);
+        r.wiring.tideAn = tide;
+        check(gE > 0.68 + 0.8, f("Sandsturm am Strand bei Pegel +0,68 m: das Auge steht über %.1f m NHN (trocken, bis 4 m vor dem Fuß des Kliffs)", gE));
+        check(java.util.Arrays.stream(r.hudLines()).anyMatch(l -> l.startsWith("Bauten:")) && java.util.Arrays.stream(r.hudLines()).anyMatch(l -> l.startsWith("Leuchtfeuer")),
+                "HUD: Bauten und Leuchtfeuer");
     }
 
     static String f(String fmt, Object... a) { return String.format(Locale.GERMAN, fmt, a); }
