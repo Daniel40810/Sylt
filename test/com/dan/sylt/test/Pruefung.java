@@ -270,6 +270,39 @@ public final class Pruefung {
             check(kliffAussen == 0 && (tw[j1 * Terrain.KN + i1] & com.dan.sylt.scene.KernKarte.BAND_BIT) != 0 && (tw[j1 * Terrain.KN + i2] & com.dan.sylt.scene.KernKarte.BAND_BIT) == 0,
                     f("Band des Kliffs aus kante.csv: %d Zeilen, %.2f km², nur dort die Wand; „Kliff“ außerhalb zur Düne (Befund Phase 3)", kk.bandZeilen, inBand / 1e6));
         }
+        // Phase 4a: das Kliff in der Szene
+        com.dan.sylt.gl.Kliff kf = r3.kliff;
+        if (kf.map != null) {
+            com.dan.sylt.scene.Kante kt = kf.kante;
+            int kr = kt.row(Site.fromUtm(0, 6_089_600)[1]);
+            double kxm = (kt.fussX(kr) + kt.kanteX(kr)) / 2, kzr = kt.z(kr);
+            double wallBand = 0, wallInland = 0;
+            for (double x = Math.min(kt.fussX(kr), kt.kanteX(kr)); x <= Math.max(kt.fussX(kr), kt.kanteX(kr)); x += 1) wallBand = Math.max(wallBand, kf.wall(x, kzr));
+            for (double dx = 300; dx <= 900; dx += 4) wallInland = Math.max(wallInland, kf.wall(kt.kanteX(kr) + dx, kzr));
+            check(wallBand > 0.5 && wallInland == 0, f("Kliff: Wand im Band (bis %.2f), landeinwärts keine (Dünen bleiben Sand); %s", wallBand, kf.map.describe()));
+            double[] ksu = kf.strata.valuesAt(kxm, Site.fromUtm(0, 6_088_750)[1]), kno = kf.strata.valuesAt(kxm, Site.fromUtm(0, 6_091_400)[1]);
+            check(ksu[1] > 5 && kno[1] < 0 && ksu[2] < kno[2] + 0.01, f("Schichten je Ort: Kaolinsand im Süden bis %.1f m, im Norden unter dem Strand (%.1f m); Flugsand %.1f m im Süden, %.1f m im Norden", ksu[1], kno[1], ksu[2], kno[2]));
+            double topHere = kf.strata.valuesAt(kxm, kzr)[0];
+            check(Math.abs(topHere - kt.hKante[kr]) < 4, f("Oberkante aus dem Gelände %.1f m, Kante aus dem bDOM %.1f m (N 6 089 600)", topHere, kt.hKante[kr]));
+            int spts = 0;
+            for (com.dan.cliff.Sod sd : kf.sods) spts += sd.points();
+            check(kf.sods.size() > 0 && spts * 2 > 1500, f("Grasnarbe entlang der Kante: %d Stücke, %.1f km", kf.sods.size(), spts * 2 / 1000.0));
+            double fdl = kf.findlinge.density.at(kt.fussX(kr) - 5, kzr), fdlLand = kf.findlinge.density.at(kt.kanteX(kr) + 50, kzr);
+            check(fdl > 0 && fdlLand == 0, f("Findlinge nur auf dem Strand vor dem Fuß (Dichte %.2f, hinter der Kante 0)", fdl));
+            // Strandhafer auf den Sturzkegeln: irgendwo vor dem Fuß im Band
+            com.dan.sylt.wiring.Bodendecke kbd = new com.dan.sylt.wiring.Bodendecke(r3.terrain, r3.karte, kf::talus);
+            float[] kco = new float[5];
+            int hafer = 0, nT = 0;
+            for (int i = 0; i < kt.n; i += 7)
+                for (double dx = -12; dx <= 4; dx += 2) {
+                    double x = kt.fussX(i) + dx, z = kt.z(i);
+                    if (kf.talus(x, z) < 0.3) continue;
+                    nT++;
+                    kbd.cover(x, z, kco);
+                    if (kco[0] > 0.2) hafer++;
+                }
+            check(nT > 50 && hafer > nT / 10, f("Strandhafer am Fuß: %d von %d Stellen mit Sturzkegel", hafer, nT));
+        } else check(false, "Kliff: keine Kante (daten/kliff/kante.csv)");
         check(com.dan.ground.Biome.sylt().entries.stream().anyMatch(eb -> eb.plant.name.equals("Strandhafer"))
                 && com.dan.ground.Biome.sylt().entries.stream().anyMatch(eb -> eb.plant.name.equals("Kartoffelrose")), "Biom Sylt mit Strandhafer, Krähenbeere, Besenheide, Kartoffelrose");
         byte[] mask = com.dan.sylt.gl.Meer.binnen(r3.terrain);

@@ -10,6 +10,9 @@
 #include "terrain_height.glsl"
 #include "marken.glsl"
 #include "/com/dan/mudflat/gl/mudflat.glsl"
+#include "/com/dan/cliff/gl/cliff.glsl"
+uniform int uCliffOn;          // seit Phase 4a: das Kliff aus com.dan.cliff im Band (sonst die Wand aus Phase 3)
+uniform float uCliffRain;      // Nässe nach Regen 0..1 (Phase 13)
 in vec3 vWorld;
 in vec3 vNormal;
 in float vDist;
@@ -122,17 +125,27 @@ void main() {
         alb *= mix(1.0, 1.0 - 0.45 * clamp(1.0 - ueber * 0.5, 0.0, 1.0), sand);
     }
 
-    // steile Wand: das Kliff in Schichten [G]: unten heller Kaolinsand, darüber rot oxidierter Geschiebelehm, oben
-    // eine dünne Lage Flugsand und die Grasnarbe; Phase 4 ersetzt das durch das Schichtprofil aus cliff (F14 A)
-    float wand = smoothstep(0.75, 0.45, n.y) * (1.0 - step(vWorld.y, 1.0)) * (uKlasseOn == 1 ? band : 0.0);
-    if (wand > 0.0) {
-        float rel = clamp((vWorld.y - 3.0) / 25.0, 0.0, 1.0);
-        float bandRausch = fleck(vec2(p.x + p.y, vWorld.y * 6.0), 2.0, pxm);
-        vec3 kaolin = srgb(mix(vec3(0.74, 0.71, 0.64), vec3(0.67, 0.63, 0.55), bandRausch));
-        vec3 lehm = srgb(mix(vec3(0.62, 0.31, 0.16), vec3(0.52, 0.26, 0.13), bandRausch));
-        vec3 wandFarbe = mix(kaolin, lehm, smoothstep(0.30, 0.42, rel + 0.06 * (bandRausch - 0.5)));
-        alb = mix(alb, wandFarbe, wand);
-        m.film *= 1.0 - wand;
+    // das Rote Kliff (seit Phase 4a): Material aus com.dan.cliff im Band des Kliffs; außerhalb des Bands bekommt das
+    // Material eine flache Normale (kein Fels, nichts zu rechnen). Aufruf ohne Verzweigung (Ableitungen im Bild).
+    CliffSample cs = cliffMaterial(vWorld, band > 0.0 ? n : vec3(0.0, 1.0, 0.0), uCliffRain, 0.0, pxD);
+    if (uCliffOn == 1) {
+        float wk = band * cs.rock;
+        alb = mix(alb, cs.albedo, wk);
+        n = normalize(mix(n, cs.normal, band));
+        m.film *= 1.0 - wk;
+    } else {
+        // steile Wand: das Kliff in Schichten [G]: unten heller Kaolinsand, darüber rot oxidierter Geschiebelehm, oben
+        // eine dünne Lage Flugsand und die Grasnarbe; Phase 4 ersetzt das durch das Schichtprofil aus cliff (F14 A)
+        float wand = smoothstep(0.75, 0.45, n.y) * (1.0 - step(vWorld.y, 1.0)) * (uKlasseOn == 1 ? band : 0.0);
+        if (wand > 0.0) {
+            float rel = clamp((vWorld.y - 3.0) / 25.0, 0.0, 1.0);
+            float bandRausch = fleck(vec2(p.x + p.y, vWorld.y * 6.0), 2.0, pxm);
+            vec3 kaolin = srgb(mix(vec3(0.74, 0.71, 0.64), vec3(0.67, 0.63, 0.55), bandRausch));
+            vec3 lehm = srgb(mix(vec3(0.62, 0.31, 0.16), vec3(0.52, 0.26, 0.13), bandRausch));
+            vec3 wandFarbe = mix(kaolin, lehm, smoothstep(0.30, 0.42, rel + 0.06 * (bandRausch - 0.5)));
+            alb = mix(alb, wandFarbe, wand);
+            m.film *= 1.0 - wand;
+        }
     }
     // Fernring: außerhalb des Hauptrasters eine Mischfarbe nach der Höhe (Sand, Marsch)
     float fern = 1.0 - smoothstep(0.0, uNaht, insideDist(p));

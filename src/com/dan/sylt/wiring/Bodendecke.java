@@ -15,15 +15,23 @@ import com.dan.sylt.scene.Terrain;
  * <li>Wiese: lockeres Silbergras und Sandsegge;</li>
  * <li>Strand, nasser Sand, Watt, See, Weg, Dach, Siedlung, Kliff: nichts.</li>
  * </ul>
- * An steilen Hängen (Kliffwand, Abrisse) wächst nichts. Flecken aus Rauschen machen die Decke ungleich.
+ * An steilen Hängen (Kliffwand, Abrisse) wächst nichts. Flecken aus Rauschen machen die Decke ungleich. Seit Phase 4a
+ * wächst Strandhafer auch auf den Sturzkegeln und dem Sandfuß vor dem Kliff (wie in RotesKliff1), über dem Spülsaum.
  */
 public final class Bodendecke implements Site {
     private final Terrain terrain;
     private final KernKarte karte;
+    /** Sturzkegel am Ort 0..1 (aus der Wandkarte des Kliffs), seit Phase 4a. */
+    private final java.util.function.DoubleBinaryOperator talus;
+    /** Unter dieser Höhe (m NHN) kein Strandhafer am Fuß: dort läuft im Winter die Brandung auf [G]. */
+    public static final double FUSS_AB = 3.0;
 
-    public Bodendecke(Terrain terrain, KernKarte karte) {
+    public Bodendecke(Terrain terrain, KernKarte karte) { this(terrain, karte, (x, z) -> 0); }
+
+    public Bodendecke(Terrain terrain, KernKarte karte, java.util.function.DoubleBinaryOperator talus) {
         this.terrain = terrain;
         this.karte = karte;
+        this.talus = talus;
     }
 
     @Override public float height(double x, double z) { return (float) terrain.height(x, z); }
@@ -42,6 +50,14 @@ public final class Bodendecke implements Site {
             case Terrain.GEBUESCH -> { o[0] = 0.6f * f; o[1] = 0.9f; o[3] = 0.2f; o[4] = 0.3f; }
             case Terrain.WIESE -> { o[0] = 0.55f * f; o[3] = 0.2f; o[4] = 0.4f; }
             default -> { }
+        }
+        // Strandhafer auf den Sturzkegeln am Fuß des Kliffs, in Bulten
+        double tl = talus.applyAsDouble(x, z);
+        if (tl > 0.2 && terrain.height(x, z) > FUSS_AB) {
+            float k = (float) (Math.min(1, (tl - 0.2) / 0.4) * (wert(x / 4 + 3, z / 4 + 1) > 0.45 ? 1 : 0.15));
+            o[0] = Math.max(o[0], 0.8f * f * k);
+            o[3] = Math.max(o[3], 0.6f);
+            o[4] = 1f;
         }
         if (steil > 0.6) for (int i = 0; i < 4; i++) o[i] *= (float) ((1.0 - steil) / 0.4);
     }

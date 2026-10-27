@@ -2,9 +2,15 @@
 // Eingaben: aGrid (0..1 im Knoten), aNode (x0, z0, Kante in m, Stufe). Höhe aus terrain_height.glsl.
 // Geomorphing: im äußeren Teil ihres Bereichs gleiten die ungeraden Punkte auf die Lage der gröberen Stufe; Höhe und
 // Mip-Stufe hängen nur von der Endlage ab, darum passen Nachbarknoten. Ausgaben: vWorld, vNormal (grob), vDist.
-// Die Feinform (Granit aus cliff, Moor aus ground) kommt in Phase 8 hier dazu.
+// Seit Phase 4a die Feinform des Kliffs aus com.dan.cliff (Runsen, Hohlkehle) im Kern; die Wandkarte ist außerhalb des
+// Bands am Kliff 0, dort verschiebt sich nichts.
 #include "common.glsl"
 #include "terrain_height.glsl"
+#define CLIFF_VERTEX
+#include "/com/dan/cliff/gl/cliff.glsl"
+uniform int uCliffOn;
+uniform float uCliffPx;      // Öffnung eines Bildpunkts (rad)
+uniform float uCliffRange;   // Reichweite der Feinform (m)
 layout(location = 0) in vec2 aGrid;
 layout(location = 1) in vec4 aNode;
 uniform float uGridDim;
@@ -28,6 +34,7 @@ void main() {
     float hx0 = terrainHeight(w - vec2(e, 0.0), d), hx1 = terrainHeight(w + vec2(e, 0.0), d);
     float hz0 = terrainHeight(w - vec2(0.0, e), d), hz1 = terrainHeight(w + vec2(0.0, e), d);
     vNormal = normalize(vec3(hx0 - hx1, 2.0 * e, hz0 - hz1));
+    if (uCliffOn == 1 && insideOf(w, uKernGrid, uKernN) > 0.5) world = cliffDisplace(world, vNormal, d * uCliffPx * 4.0, d, uCliffRange);
     vWorld = world;
     vDist = d;
     // Erdkrümmung: in 10 km liegt der Boden 7,8 m tiefer als seine Höhe sagt, in 100 km 785 m. Seit Phase 3 ohne die

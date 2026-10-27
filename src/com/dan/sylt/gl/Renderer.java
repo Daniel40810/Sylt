@@ -13,6 +13,7 @@ import com.dan.sylt.camera.Ansichten;
 import com.dan.sylt.camera.Camera;
 import com.dan.sylt.scene.Buehne;
 import com.dan.sylt.scene.Daten;
+import com.dan.cliff.gl.CliffGl;
 import com.dan.sylt.scene.KernKarte;
 import com.dan.sylt.scene.Physik;
 import com.dan.sylt.scene.SceneClock;
@@ -92,6 +93,8 @@ public final class Renderer implements GLEventListener {
     public final KernKarte karte;
     public final Strandnaesse naesse;
     public final Meadow meadow;
+    /** Phase 4a: das Rote Kliff aus com.dan.cliff (Lockergestein), Grasnarbe, Findlinge. */
+    public final Kliff kliff;
     private final GroundGl groundGl = new GroundGl();
     private final MudflatGl mudGl = new MudflatGl();
     private final Belichtung belichtung = new Belichtung();
@@ -99,6 +102,8 @@ public final class Renderer implements GLEventListener {
     private int klasseTex;
     /** Ebenen zum Abschalten (Bedienfeld). */
     public volatile boolean showClouds = true, showGround = true, showOcean = true;
+    /** Phase 4a: das Kliff aus com.dan.cliff (aus: die Wand wie in Phase 3). */
+    public volatile boolean showCliff = true;
     /** Belichtung im Bild messen (sonst nur aus dem Himmel geschätzt). */
     public volatile boolean bildMessung = !Boolean.getBoolean("sylt.belichtung.schaetzen");
     /** Anpassung des Auges: 0 = feste Belichtung des Tags, 1 = volle Anpassung an das Bild (wie com.dan.sky). */
@@ -173,7 +178,8 @@ public final class Renderer implements GLEventListener {
         lod.use(terrain);
         karte = KernKarte.load(Daten.ordner());
         naesse = terrain.hasKern() ? new Strandnaesse(terrain, karte) : null;
-        meadow = new Meadow(Biome.sylt(), new Bodendecke(terrain, karte));
+        kliff = new Kliff(terrain, com.dan.sylt.scene.Kante.load(Daten.ordner()));
+        meadow = new Meadow(Biome.sylt(), new Bodendecke(terrain, karte, kliff::talus));
         meadow.near = 6.5f;
         meadow.seed = 2026;
         wetter.sky.latDeg = Site.LAT;
@@ -332,6 +338,7 @@ public final class Renderer implements GLEventListener {
         wiring.cloudsDrawn = wetter.cloudsOk;
         meer.init(gl, terrain, compute.ok(), errorListener);
         klasseTex = klasseTexture(gl, karte);
+        kliff.init(gl);
         System.out.println("Sylt: " + karte.describe() + (karte.hatKarte() ? " · Arten im Kern zu 1 m" : " · ohne Karte des Kerns"));
         try {
             groundGl.init(gl);
@@ -513,10 +520,44 @@ public final class Renderer implements GLEventListener {
         if (naesse != null) mudGl.upload(gl, naesse.feld);
         mudGl.time = clock.t();
         mudGl.ripples = 0.7;
-        mudGl.bind(gl, terrainShader.id(), 14, naesse != null ? naesse.feld : null, naesse != null ? naesse.feld.material : com.dan.mudflat.Mudflat.beach());
-        terrainShader.set(gl, "uMudTracks", 15);
+        // seit Phase 4a: Nässe auf 4, Spuren auf 5 (15 trägt das Rauschen von cliff), Wandkarte 2, Schichtkarte 3
+        mudGl.bind(gl, terrainShader.id(), 4, naesse != null ? naesse.feld : null, naesse != null ? naesse.feld.material : com.dan.mudflat.Mudflat.beach());
+        terrainShader.set(gl, "uMudTracks", 5);
+        kliff.bind(gl, terrainShader.id());
+        terrainShader.set(gl, "uCliffOn", kliff.ok && showCliff ? 1 : 0);
+        terrainShader.set(gl, "uCliffPx", (float) (Math.toRadians(fovy()) / Math.max(1, h)));
+        terrainShader.set(gl, "uCliffRange", (float) kliff.cliff.quality.reliefRange);
+        terrainShader.set(gl, "uCliffRain", 0f);
         lod.draw(gl, terrainShader, camera.eye, vp);
         gl.glBindVertexArray(emptyVao);
+        // Grasnarbe und Findlinge (Licht wie das Gelände, vorbelichtet)
+        if (kliff.ok && showCliff) {
+            CliffGl.View kv = new CliffGl.View();
+            kv.viewProj = vp;
+            kv.eye = camera.eye.clone();
+            kv.reversedZ = reversedZ;
+            kv.pixelAngle = Math.toRadians(fovy()) / Math.max(1, h);
+            CliffGl.Light kl = new CliffGl.Light();
+            kl.sunDir = sun;
+            if (frameSky) {
+                kl.sunColor = Wetter.scale(st.sunColor, pre);
+                kl.ambient = Wetter.scale(wetter.ambient(st, showClouds), pre / Math.PI);
+                kl.fogColor = Wetter.scale(st.skyIrradiance, pre / Math.PI);
+                kl.fogDistance = Wetter.fogDistance(st);
+                kl.shade = cloudShade;
+            } else {
+                kl.sunColor = sunLight(sp[0]);
+                kl.ambient = new double[]{0.25, 0.3, 0.38};
+                kl.fogDistance = FOG_DISTANCE;
+            }
+            kliff.drawExtras(gl, kv, kl);
+            if (kliff.check.isEmpty() && frame > 50) {
+                kliff.check = kliff.gl.selfCheck(gl, kliff.cliff);
+                gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrFbo);
+                gl.glViewport(0, 0, w, h);
+            }
+            gl.glBindVertexArray(emptyVao);
+        }
         mark(gl, 2);
 
         // 3 Boden: die Bodendecke um das Auge (nur zu Fuß, Biom Sylt)
@@ -906,6 +947,7 @@ public final class Renderer implements GLEventListener {
                 meer.describe(),
                 (groundOk ? "" : "!") + "Boden (ground, Biom " + meadow.biome + "): " + (groundOk ? groundGl.info() : "nicht gestartet"),
                 karte.describe(),
+                (kliff.ok ? "" : "!") + "Kliff (cliff, Lockergestein): " + kliff.describe(),
                 wiring.surfZeile(camera.eye[0], camera.eye[2]),
                 wiring.duneZeile(camera.eye[0], camera.eye[2]),
                 physik.describe(),
@@ -984,6 +1026,7 @@ public final class Renderer implements GLEventListener {
         hud.dispose(gl);
         wetter.dispose(gl);
         meer.dispose(gl);
+        kliff.dispose(gl);
         if (groundOk) groundGl.dispose(gl);
         mudGl.dispose(gl);
         belichtung.dispose(gl);
