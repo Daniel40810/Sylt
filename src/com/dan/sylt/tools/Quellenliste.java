@@ -65,7 +65,7 @@ public final class Quellenliste {
                 .append("und `rohdaten.md`. Dieselben Zeilen stehen in den Tabellen `SY_QUELLE`, `SY_BEFUND`, `SY_STURMFLUT` und `SY_VORSPUELUNG` (Schema SYLT). ")
                 .append("Jeder Befund ist **belegt** (eine Quelle nennt es), **gemessen** (aus Daten wie dem DGM1 oder den Küstenhöhen der BAW abgeleitet) ")
                 .append("oder **gestaltet** [G] (so gebaut, dass es glaubhaft ist, ohne Beleg).\n\n");
-        s.append(String.format(Locale.GERMAN, "%d Quellen · %d Befunde (%d belegt, %d gemessen, %d gestaltet) · %d Sturmfluten · %d Vorspülungen%n%n",
+        s.append(String.format(Locale.GERMAN, "%d Quellen · %d Befunde (%d belegt, %d gemessen, %d gestaltet) · %d Sturmfluten · %d Vorspülungen\n\n",
                 q.size(), b.size(), art.getOrDefault("BELEGT", 0), art.getOrDefault("GEMESSEN", 0), art.getOrDefault("GESTALTET", 0), sf.size(), vs.size()));
         s.append("Geodaten: © GeoBasis-DE/LVermGeo SH, Datenlizenz Deutschland – Namensnennung – Version 2.0 (Daten verändert). Küstenhöhen: © Bundesanstalt für Wasserbau (BAW), ")
                 .append("EasyGSH-DB. Die Lizenzvermerke der einzelnen Daten stehen in den Quellen und unten bei den Rohdaten.\n\n");
