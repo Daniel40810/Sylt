@@ -57,6 +57,7 @@ public final class Abbruch {
         r.setQuality(Quality.MITTEL);
         r.autoScale = false;
         r.hudFull = false;
+        if ("aus".equals(System.getProperty("hud"))) r.showHud = false;   // seit Phase 19b: für das Video ohne HUD
         Kliffabbruch k = r.abbruch;
         if (k == null) { System.err.println("FEHLER: keine Kante (daten/kliff/kante.csv)"); System.exit(1); }
         k.manuell = true;

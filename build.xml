@@ -384,6 +384,80 @@
         <wetterbild name="Spuelsaum" uhr="10" datum="2026-09-20" d1="-Dansicht=Spuelsaum" d2="-Dblick=200,5,12"/>
         <wetterbild name="Gruen" uhr="21.85" datum="2026-07-20" d1="-Dfernrohr=sonne" d2="-Dgruen=3"/>
     </target>
+    <!-- Phase 19b: Vorschaubilder ohne HUD nach docs/bilder (README) und Bildfolgen der Clips nach docs/bilder/clip_* (Video,
+         tools/vorschau/vorschau.py). Stufe Hoch, Full HD; die Clips laufen 6 s mit 30 Bildern/s (Grafikkarte, gut 15 min). -->
+    <macrodef name="vorschaubild">
+        <attribute name="name"/>
+        <attribute name="uhr" default="20.5"/>
+        <attribute name="datum" default="2026-07-20"/>
+        <attribute name="film" default=""/>
+        <attribute name="d1" default="-Dhud=aus"/>
+        <attribute name="d2" default="-Dhud=aus"/>
+        <attribute name="d3" default="-Dhud=aus"/>
+        <attribute name="d4" default="-Dhud=aus"/>
+        <sequential>
+            <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+                <jvmarg value="-Dstdout.encoding=UTF-8"/>
+                <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+                <jvmarg value="-Xmx6g"/>
+                <jvmarg value="-Dhud=aus"/>
+                <jvmarg value="-Dfilm=@{film}"/>
+                <jvmarg value="@{d1}"/>
+                <jvmarg value="@{d2}"/>
+                <jvmarg value="@{d3}"/>
+                <jvmarg value="@{d4}"/>
+                <arg line="2 1920 1080 docs/bilder/@{name}.png HOCH @{uhr} @{datum}"/>
+                <classpath><pathelement path="${run.classpath}"/></classpath>
+            </java>
+        </sequential>
+    </macrodef>
+    <property name="clips" value="ja"/>
+    <target name="vorschaubilder" depends="jar" description="Phase 19b: Bilder ohne HUD nach docs/bilder und Bildfolgen für das Video (Grafikkarte).">
+        <property name="platform.java" value="java"/>
+        <mkdir dir="docs/bilder"/>
+        <vorschaubild name="Abend_am_Kliff" d1="-Dansicht=AmKliff" d2="-Dlage=Sommerabend"/>
+        <vorschaubild name="Brecher" uhr="15" datum="2026-09-20" d1="-Dansicht=Spuelsaum" d2="-Dlage=Westwind" d3="-Dsee=3.5,10,285" d4="-Dblick=250,3,6"/>
+        <vorschaubild name="Sturmflut" uhr="13" datum="2013-12-05" d1="-Dansicht=AmKliff" d2="-Dlage=Sturm" d3="-Dpegel=2.6"/>
+        <vorschaubild name="Nacht_Kampen" uhr="23.5" datum="2026-08-15" d1="-Dansicht=KampenerLeuchtturm" d2="-Dlage=Sommerabend"/>
+        <vorschaubild name="Vogelauge" uhr="16" datum="2026-07-20" d1="-Dansicht=Vogelauge" d2="-Dlage=Sommerabend"/>
+        <vorschaubild name="Gewitter" uhr="21.5" datum="2026-08-02" d1="-Dansicht=AmKliff" d2="-Dlage=Gewitter" d3="-Dblitz=see"/>
+        <vorschaubild name="Seenebel" uhr="9" datum="2026-09-20" d1="-Dansicht=Treppe" d2="-Dlage=Seenebel"/>
+        <vorschaubild name="Kliffkante" uhr="18" datum="2026-07-20" d1="-Dansicht=Kliffkante" d2="-Dlage=Westwind"/>
+        <java classname="com.dan.sylt.tools.Abbruch" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+            <jvmarg value="-Xmx6g"/>
+            <jvmarg value="-Dhud=aus"/>
+            <arg line="1920 1080 docs/bilder"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+        <antcall target="-vorschauclips"/>
+    </target>
+    <target name="-vorschauclips" if="clips" unless="ohne.clips">
+        <property name="platform.java" value="java"/>
+        <vorschaubild name="clip_abend" film="docs/bilder/clip_abend,6,30,1.5" d1="-Dansicht=AmKliff" d2="-Dlage=Sommerabend"/>
+        <vorschaubild name="clip_brecher" film="docs/bilder/clip_brecher,6,30" uhr="15" datum="2026-09-20" d1="-Dansicht=Spuelsaum" d2="-Dlage=Westwind" d3="-Dsee=3.5,10,285" d4="-Dblick=250,3,6"/>
+        <vorschaubild name="clip_drohne" film="docs/bilder/clip_drohne,6,30" uhr="17" datum="2026-07-20" d1="-Dfahrt=drohne" d2="-Dlage=Sommerabend"/>
+        <vorschaubild name="clip_sturmflut" film="docs/bilder/clip_sturmflut,6,30,-1" uhr="13" datum="2013-12-05" d1="-Dansicht=AmKliff" d2="-Dlage=Sturm" d3="-Dpegel=2.6"/>
+        <vorschaubild name="clip_nacht" film="docs/bilder/clip_nacht,6,30" uhr="23.5" datum="2026-08-15" d1="-Dansicht=KampenerLeuchtturm" d2="-Dlage=Sommerabend"/>
+    </target>
+    <!-- Phase 19b (F55 A): der Dauerlauf, 30 Minuten ohne Fenster (wie Lighthouse); -Ddauerlauf.minuten=…, -Dbehalten=ja lässt die
+         Zeilen der Chronik in der Datenbank stehen. Protokoll: docs/status/Dauerlauf_Phase19.txt. -->
+    <property name="dauerlauf.minuten" value="30"/>
+    <property name="behalten" value="nein"/>
+    <target name="dauerlauf" depends="jar" description="Phase 19b: die Szene 30 Minuten ohne Fenster (tools.Dauerlauf), Protokoll docs/status/Dauerlauf_Phase19.txt.">
+        <property name="platform.java" value="java"/>
+        <java classname="com.dan.sylt.tools.Dauerlauf" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+            <jvmarg value="-Xmx6g"/>
+            <jvmarg value="-Dbehalten=${behalten}"/>
+            <arg value="${dauerlauf.minuten}"/>
+            <arg value="1920"/>
+            <arg value="docs/status/Dauerlauf_Phase19.txt"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+    </target>
     <!-- Phase 14: die Hörproben (WAV mit Spektrogramm) nach docs/hoerproben, ohne Grafikkarte; nur eine: -Dnur=saum|kliffuss|kante|heide|sand|gewitter|abbruch -->
     <property name="nur" value=""/>
     <target name="hoerproben" depends="jar" description="Phase 14: Hörproben als WAV mit Spektrogramm nach docs/hoerproben (ohne Grafikkarte).">

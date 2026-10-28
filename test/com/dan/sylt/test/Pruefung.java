@@ -1374,6 +1374,15 @@ public final class Pruefung {
         File jar = new File("lib/Renderer.jar");
         java.util.List<String> ks = jar.isFile() ? com.dan.sylt.tools.Vorgaenger.pruefklassen(jar) : java.util.List.of();
         check(ks.size() >= 20, ks.size() + " Prüfklassen in lib/Renderer.jar für ant vorgaenger");
+        // Phase 19b: Mittel rechnet in 78 %, Video-Skript, Ziele für Bilder und Dauerlauf
+        check(Math.abs(Quality.MITTEL.renderScale - 0.78) < 1e-9 && Quality.NIEDRIG.renderScale < Quality.MITTEL.renderScale
+                && Quality.MITTEL.renderScale < Quality.HOCH.renderScale, "Stufe Mittel rechnet in 78 % der Bildgröße (Phase 19b)");
+        File py = new File("tools/vorschau/vorschau.py");
+        String bx = java.nio.file.Files.readString(new File("build.xml").toPath(), StandardCharsets.UTF_8);
+        check(py.isFile() && java.nio.file.Files.readString(py.toPath(), StandardCharsets.UTF_8).contains("clip_sturmflut")
+                && bx.contains("name=\"vorschaubilder\"") && bx.contains("name=\"dauerlauf\"") && bx.contains("-Dfilm=@{film}"),
+                "Vorschauvideo (tools/vorschau/vorschau.py), ant vorschaubilder mit Bildfolgen und ant dauerlauf");
+        check(com.dan.sylt.tools.Dauerlauf.EREIGNIS.length == 12, "Dauerlauf mit zwölf Ereignissen im Wechsel");
     }
 
     static void teil(String t) { System.out.println("\n— " + t); }
