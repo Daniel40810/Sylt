@@ -1,35 +1,5 @@
-1_Abend_am_Spuelsaum.wav (zum Anhören um +11 dB angehoben)
-  Abend am Spülsaum: 12.9.2026 18:30, Lage Sommerabend (See 1 m, 8 s, Wind 6 m/s aus West), am Wasser, Blick die Küste entlang nach Süden
-  am Ohr 64 dB SPL (Mittel) · Wind 48 · See 41 · Brandung fern 61 · Ereignisse 60
-  Wellen: 6 Schwallbrecher, 6 Sturzbrecher, 6 Schwälle · Rufe: 24 Möwen, 9 Sanderlinge, 2 Austernfischer, 0 Seehund, 2 Kuh · 0 Donner · Abbruch 0, Brocken 0, Rieseln 0
-  Brandung fern 59 dB (Linie 152 Stücke, nächstes 102 m, 5062 W/m vergehen gegenüber, Sturzbrecher 3 %, über die Kante 0 dB) · See 83 % · Sand 0,000 kg/(m·s) · Strandhafer 0 % · gerechnet in 21,9 s
-2_Westwind_am_Strand.wav (zum Anhören um +21 dB angehoben)
-  Westwind am Strand: 3.10.2026 14 Uhr, Lage Westwind (See 2 m, 7 s, Wind 11 m/s aus 260°), 18 m vom Wasser, Blick auf die See
-  am Ohr 66 dB SPL (Mittel) · Wind 61 · Äolstöne 32 · See 49 · Brandung fern 64 · Sand und Halme 48 · Ereignisse 58
-  Wellen: 6 Schwallbrecher, 0 Sturzbrecher, 15 Schwälle · Rufe: 21 Möwen, 5 Sanderlinge, 8 Austernfischer, 0 Seehund, 0 Kuh · 0 Donner · Abbruch 0, Brocken 0, Rieseln 0
-  Brandung fern 65 dB (Linie 152 Stücke, nächstes 203 m, 5342 W/m vergehen gegenüber, Sturzbrecher 5 %, über die Kante 0 dB) · See 67 % · Sand 0,005 kg/(m·s) · Strandhafer 0 % · gerechnet in 35,7 s
-3_Kliffkante_bei_Westwind.wav (zum Anhören um +17 dB angehoben)
-  Oben an der Kliffkante bei Westwind (11 m/s): Wind über der Kante, Strandhafer, Möwen im Aufwind, unten die Brandung
-  am Ohr 69 dB SPL (Mittel) · Wind 67 · Äolstöne 37 · See 36 · Brandung fern 63 · Sand und Halme 61 · Ereignisse 45
-  Wellen: 3 Schwallbrecher, 0 Sturzbrecher, 12 Schwälle · Rufe: 19 Möwen, 8 Sanderlinge, 3 Austernfischer, 0 Seehund, 1 Kuh · 0 Donner · Abbruch 0, Brocken 0, Rieseln 0
-  Brandung fern 66 dB (Linie 175 Stücke, nächstes 234 m, 15580 W/m vergehen gegenüber, Sturzbrecher 4 %, über die Kante 0 dB) · See 28 % · Sand 0,031 kg/(m·s) · Strandhafer 34 % · gerechnet in 34,0 s
-4_Uwe-Duene.wav (zum Anhören um +12 dB angehoben)
-  Auf der Uwe-Düne (349 m von der Wasserlinie), Westwind 11 m/s: die Brandung nur noch als Rollen
-  am Ohr 72 dB SPL (Mittel) · Wind 72 · Äolstöne 34 · See 29 · Brandung fern 58 · Sand und Halme 64 · Ereignisse 44
-  Wellen: 3 Schwallbrecher, 0 Sturzbrecher, 9 Schwälle · Rufe: 18 Möwen, 2 Sanderlinge, 5 Austernfischer, 0 Seehund, 1 Kuh · 0 Donner · Abbruch 0, Brocken 0, Rieseln 0
-  Brandung fern 57 dB (Linie 176 Stücke, nächstes 398 m, 870 W/m vergehen gegenüber, Sturzbrecher 21 %, über die Kante -2 dB) · See 14 % · Sand 0,015 kg/(m·s) · Strandhafer 29 % · gerechnet in 23,8 s
-5_Sandsturm_am_Strand.wav (zum Anhören um +7 dB angehoben)
-  Sandsturm am Strand: Bft 9 aus West (22 m/s), trocken, oben am Strand, Flugsand prasselt
-  am Ohr 76 dB SPL (Mittel) · Wind 76 · Äolstöne 52 · See 46 · Brandung fern 63 · Sand und Halme 59 · Ereignisse 63
-  Wellen: 4 Schwallbrecher, 0 Sturzbrecher, 6 Schwälle · Rufe: 12 Möwen, 0 Sanderlinge, 0 Austernfischer, 0 Seehund, 1 Kuh · 0 Donner · Abbruch 0, Brocken 0, Rieseln 0
-  Brandung fern 62 dB (Linie 165 Stücke, nächstes 131 m, 5322 W/m vergehen gegenüber, Sturzbrecher 12 %, über die Kante 0 dB) · See 69 % · Sand 0,062 kg/(m·s) · Strandhafer 0 % · gerechnet in 18,8 s
-6_Gewitter_ueber_der_See.wav (zum Anhören um +17 dB angehoben)
-  Gewitter über der See: 2.8.2026 21:30, Lage Gewitter (Regen, Wind 9 m/s), am Strand vor dem Kliff, Blick auf die See, Blitze über der See nach 4 und 24 s
-  am Ohr 64 dB SPL (Mittel) · Wind 55 · Äolstöne 28 · See 41 · Regen 54 · Brandung fern 62 · Ereignisse 58
-  Wellen: 3 Schwallbrecher, 0 Sturzbrecher, 12 Schwälle · Rufe: 29 Möwen, 11 Sanderlinge, 3 Austernfischer, 0 Seehund, 1 Kuh · 3 Donner · Abbruch 0, Brocken 0, Rieseln 0
-  Brandung fern 61 dB (Linie 166 Stücke, nächstes 120 m, 4297 W/m vergehen gegenüber, Sturzbrecher 8 %, über die Kante 0 dB) · See 53 % · Sand 0,000 kg/(m·s) · Strandhafer 0 % · gerechnet in 33,2 s
-7_Abbruch_bei_Xaver.wav (zum Anhören um +11 dB angehoben)
+7_Abbruch_bei_Xaver.wav (zum Anhören um +13 dB angehoben)
   Der Abbruch: Sturmflut nach Xaver, 6.12.2013 11 Uhr (Pegel +1,0 m NHN, Wind 21 m/s), am Strand 35 m vor dem Stück bei N 6.090.335; nach 6 s bricht das Kliff
-  am Ohr 74 dB SPL (Mittel) · Wind 69 · Äolstöne 55 · See 64 · Regen 49 · Brandung fern 70 · Sand und Halme 36 · Ereignisse 61
-  Wellen: 6 Schwallbrecher, 0 Sturzbrecher, 3 Schwälle · Rufe: 17 Möwen, 0 Sanderlinge, 0 Austernfischer, 0 Seehund, 1 Kuh · 1 Donner · Abbruch 1, Brocken 5, Rieseln 0
-  Brandung fern 69 dB (Linie 163 Stücke, nächstes 508 m, 102819 W/m vergehen gegenüber, Sturzbrecher 5 %, über die Kante 0 dB) · See 91 % · Sand 0,000 kg/(m·s) · Strandhafer 0 % · gerechnet in 49,3 s
+  am Ohr 74 dB SPL (Mittel) · Wind 67 · Äolstöne 53 · See 69 · Regen 49 · Brandung fern 71 · Sand und Halme 47 · Ereignisse 61
+  Wellen: 6 Schwallbrecher, 0 Sturzbrecher, 3 Schwälle · Rufe: 14 Möwen, 0 Sanderlinge, 0 Austernfischer, 0 Seehund, 1 Kuh · 0 Donner · Abbruch 1, Brocken 5, Rieseln 0
+  Brandung fern 70 dB (Linie 163 Stücke, nächstes 508 m, 102819 W/m vergehen gegenüber, Sturzbrecher 5 %, über die Kante 0 dB) · See 91 % · Sand 0,002 kg/(m·s) · Strandhafer 0 % · gerechnet in 22,8 s
