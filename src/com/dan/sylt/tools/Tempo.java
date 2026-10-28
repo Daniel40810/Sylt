@@ -37,6 +37,10 @@ import java.util.Locale;
  * die Regie auf „von Hand“. Seit Phase 15 {@code regiebuch} = Name[,Name…] oder {@code alle}: die Regiebücher laufen ohne
  * Fenster in Schritten von 0,1 s bis zum Ende, gezeichnet wird nur für die Fotos, am Ende je ein Blatt in docs/status
  * ({@code ant regiebuecher}).
+ * <p>Seit Phase 19b misst Tempo nach 60 Bildern Vorlauf und ohne HUD (das HUD wird nur für das PNG gemalt, sonst
+ * kostete es in jedem Bild mehrere Millisekunden). {@code film} = Ordner,Sekunden,Bilder/s[,Grad/s] schreibt statt der
+ * Messung eine Bildfolge {@code bild_0000.jpg …} ohne HUD (die Szene läuft, die Uhr der Sonne steht; mit Grad/s dreht sich
+ * der Blick), {@code fahrt} = drohne|treppe|moewe|welle startet dazu eine Fahrt ({@code ant vorschaubilder}).
  */
 public final class Tempo {
     private Tempo() { }
@@ -207,6 +211,17 @@ public final class Tempo {
             d.destroy();
             System.exit(ok ? 0 : 1);
         }
+        // seit Phase 19b: -Dfilm=Ordner,Sekunden,Bilder/s[,Grad/s] schreibt eine Bildfolge für das Video
+        String fi = opt("film");
+        if (fi != null && !fi.isBlank()) {
+            int n = film(r, d, fi, opt("fahrt"));
+            d.destroy();
+            System.exit(r.error() == null && n > 0 ? 0 : 1);
+        }
+        // seit Phase 19b: gemessen wird ohne HUD und nach 60 Bildern Vorlauf (Puffer, Schatten, Wolken eingeschwungen)
+        boolean hudZeigen = r.showHud;
+        r.showHud = false;
+        if (bl == null || bl.isBlank()) for (int i = 0; i < 60; i++) { r.step(1 / 60.0); d.display(); }
         double best = Double.MAX_VALUE, sum = 0;
         for (int i = 0; i < frames; i++) {
             long t0 = System.nanoTime();
@@ -226,6 +241,7 @@ public final class Tempo {
         System.out.println("Durchgänge (ms): " + r.passTimes());
         for (String l : r.hudLines()) System.out.println("  " + l);
         if (png != null) {
+            if (hudZeigen) { r.showHud = true; d.display(); }
             File dir = png.getAbsoluteFile().getParentFile();
             if (dir != null) dir.mkdirs();
             final java.awt.image.BufferedImage[] img = new java.awt.image.BufferedImage[1];
@@ -235,5 +251,55 @@ public final class Tempo {
         }
         d.destroy();
         System.exit(r.error() == null ? 0 : 1);
+    }
+
+    /** Seit Phase 19b: eine Bildfolge ohne HUD, JPEG mit 92 % Güte. Gibt die Zahl der Bilder zurück. */
+    static int film(Renderer r, GLOffscreenAutoDrawable d, String spec, String fahrt) throws java.io.IOException {
+        String[] p = spec.split("[,;]");
+        File dir = new File(p[0].trim());
+        double sek = p.length > 1 ? Double.parseDouble(p[1]) : 6, fps = p.length > 2 ? Double.parseDouble(p[2]) : 30;
+        double dreh = p.length > 3 ? Double.parseDouble(p[3]) : 0;
+        dir.mkdirs();
+        File[] alt = dir.listFiles((x, n) -> n.startsWith("bild_") && n.endsWith(".jpg"));
+        if (alt != null) for (File f : alt) f.delete();
+        r.showHud = false;
+        if (fahrt != null && !fahrt.isBlank()) {
+            boolean ok = switch (fahrt.trim().toLowerCase(Locale.ROOT)) {
+                case "drohne" -> { com.dan.sylt.camera.Fahrt f = r.drohnenFahrt(); if (f != null) r.camera.startFahrt(f); yield f != null; }
+                case "treppe" -> { com.dan.sylt.camera.Fahrt f = r.treppenFahrt(); if (f != null) r.camera.startFahrt(f); yield f != null; }
+                case "moewe", "möwe" -> r.moewenFlug();
+                case "welle" -> r.wellenritt();
+                default -> false;
+            };
+            if (!ok) System.err.println("FEHLER: Fahrt „" + fahrt + "“ ließ sich nicht starten");
+            r.step(1 / fps);
+            r.brandungJetzt();
+            r.sandJetzt();
+            r.bautenJetzt();
+            for (int i = 0; i < 45; i++) { r.step(1 / fps); d.display(); }   // eine gute Sekunde Anlauf: Brandung und Gelände am neuen Ort
+        }
+        javax.imageio.ImageWriter iw = javax.imageio.ImageIO.getImageWritersByFormatName("jpg").next();
+        javax.imageio.ImageWriteParam wp = iw.getDefaultWriteParam();
+        wp.setCompressionMode(javax.imageio.ImageWriteParam.MODE_EXPLICIT);
+        wp.setCompressionQuality(0.92f);
+        int n = (int) Math.round(sek * fps);
+        long t0 = System.nanoTime();
+        final java.awt.image.BufferedImage[] img = new java.awt.image.BufferedImage[1];
+        for (int i = 0; i < n; i++) {
+            r.step(1 / fps);
+            if (dreh != 0) r.camera.orbit(dreh / fps, 0);
+            d.display();
+            d.invoke(true, x -> { img[0] = r.grab(x); return true; });
+            java.awt.image.BufferedImage rgb = new java.awt.image.BufferedImage(img[0].getWidth(), img[0].getHeight(), java.awt.image.BufferedImage.TYPE_INT_RGB);
+            rgb.getGraphics().drawImage(img[0], 0, 0, null);
+            try (javax.imageio.stream.ImageOutputStream os = javax.imageio.ImageIO.createImageOutputStream(new File(dir, String.format("bild_%04d.jpg", i)))) {
+                iw.setOutput(os);
+                iw.write(null, new javax.imageio.IIOImage(rgb, null, null), wp);
+            }
+            if (r.error() != null) break;
+        }
+        iw.dispose();
+        System.out.printf(Locale.GERMAN, "Film: %d Bilder (%.1f s bei %.0f Bilder/s) in %s, %.0f s Rechenzeit%n", n, sek, fps, dir.getPath(), (System.nanoTime() - t0) / 1e9);
+        return n;
     }
 }

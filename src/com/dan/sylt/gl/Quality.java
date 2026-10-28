@@ -13,11 +13,12 @@ import java.util.Locale;
  * {@link #ordinal()}.
  * <p>
  * Ziel (F28 A, Werkbuch Abschnitt 13): „Mittel“ hält 60 Bilder/s in Full HD auf der Radeon 680M mit 2 GB, nie unter
- * 30; „Hoch“ und „Ultra“ sind für Standbilder und Kino.
+ * 30; „Hoch“ und „Ultra“ sind für Standbilder und Kino. Phase 19b: „Mittel“ rechnet in 78 % statt 85 % der Bildgröße
+ * (die Sturmflut brauchte auf der Radeon ohne HUD gut 19 ms, mit 78 % sind es rund 16).
  */
 public enum Quality {
     NIEDRIG("Niedrig", 0.67, 2.2, 3, 2, Ocean.Quality.LOW, Clouds.Quality.FLAT, 12),
-    MITTEL("Mittel", 0.85, 2.6, 3, 1, Ocean.Quality.MEDIUM, Clouds.Quality.MEDIUM, 18),
+    MITTEL("Mittel", 0.78, 2.6, 3, 1, Ocean.Quality.MEDIUM, Clouds.Quality.MEDIUM, 18),
     HOCH("Hoch", 1.0, 3.0, 2, 0, Ocean.Quality.HIGH, Clouds.Quality.HIGH, 24),
     ULTRA("Ultra", 1.0, 3.4, 2, 0, Ocean.Quality.ULTRA, Clouds.Quality.ULTRA, 30);
 

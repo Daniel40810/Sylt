@@ -68,7 +68,7 @@ import java.util.function.Consumer;
  */
 public final class Renderer implements GLEventListener {
     public static final int MIN_MAJOR = 4, MIN_MINOR = 3;
-    public static final String VERSION = "Phase 16";
+    public static final String VERSION = "Phase 19b";
     /** Phase des Stands (für Ansichten und Bedienfeld). */
     public static final int PHASE = 3;
     public static final String[] PASSES = {"Himmel", "Gelände", "Boden", "Meer", "Wolken", "Nachbearbeitung", "HUD"};

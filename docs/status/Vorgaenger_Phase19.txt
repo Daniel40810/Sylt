@@ -1,0 +1,51 @@
+Sylt · Vorgänger mit Renderer.jar (6644 KB), Phase 19 · 2026-10-28T13:55:33
+1 · Prüfklassen in Renderer.jar
+  ok      com.dan.beacon.demo.BeaconCheck                 8,1 s
+  ok      com.dan.buoyancy.demo.BergCheck                 1,7 s
+  ok      com.dan.buoyancy.demo.BuoyancyCheck             3,1 s
+  ok      com.dan.cliff.demo.CliffCheck                   1,5 s
+  ok      com.dan.cloud.demo.CloudCheck                   3,7 s
+  ok      com.dan.dune.demo.DuneCheck                    10,5 s
+  ok      com.dan.fall.demo.FallCheck                     3,4 s
+  ok      com.dan.figure.demo.FigureCheck                 1,3 s
+  ok      com.dan.flock.demo.FlockCheck                   1,3 s
+  ok      com.dan.flock.demo.WaderCheck                   3,8 s
+  ok      com.dan.fog.demo.FogCheck                       0,4 s
+  ok      com.dan.forest.demo.ForestCheck                 6,1 s
+  ok      com.dan.fracture.demo.FractureCheck             9,2 s
+  ok      com.dan.ground.demo.GroundCheck                 5,7 s
+  ok      com.dan.hearth.demo.HearthCheck                 0,5 s
+  ok      com.dan.ice.demo.IceCheck                       1,9 s
+  ok      com.dan.lightning.demo.LightningCheck           0,5 s
+  ok      com.dan.mudflat.demo.MudflatCheck               1,3 s
+  ok      com.dan.muster.demo.MusterCheck                 0,3 s
+  ok      com.dan.ocean.demo.OceanCheck                  10,4 s
+  ok      com.dan.rail.demo.RailCheck                     0,5 s
+  ok      com.dan.rain.demo.RainCheck                     1,2 s
+  ok      com.dan.reed.demo.ReedCheck                     0,4 s
+  ok      com.dan.rime.demo.RimeCheck                     1,2 s
+  ok      com.dan.river.demo.RiverCheck                   0,5 s
+  ok      com.dan.road.demo.RoadCheck                     2,4 s
+  ok      com.dan.seal.demo.SealCheck                     4,4 s
+  ok      com.dan.season.demo.SeasonCheck                 1,4 s
+  ok      com.dan.sky.demo.SkyCheck                       2,9 s
+  ok      com.dan.smoke.demo.SmokeCheck                   1,3 s
+  ok      com.dan.soundscape.demo.SoundscapeCheck        14,4 s
+  ok      com.dan.spray.demo.SprayCheck                   1,7 s
+  ok      com.dan.store.demo.StoreCheck                   0,5 s
+  ok      com.dan.surf.demo.SurfCheck                    38,2 s
+  ok      com.dan.tide.demo.TideCheck                     4,4 s
+  ok      com.dan.timber.demo.TimberCheck                 1,4 s
+  ok      com.dan.wave.demo.WaveCheck                     9,3 s
+  ok      com.dan.weather.demo.WeatherCheck               1,5 s
+  ok      com.dan.weathering.demo.WeatheringCheck         0,6 s
+  ok      com.dan.wetglass.demo.WetglassCheck            11,6 s
+  ok      com.dan.wind.demo.WindCheck                     1,6 s
+  41 von 41 Prüfklassen in Ordnung · 176 s
+2 · Die Vorgänger mit diesem Jar übersetzen (ihre Ordner bleiben unverändert)
+  ok      Brocken       74 Quellen,   3,3 s
+  ok      Geiranger     92 Quellen,   1,9 s
+  ok      Glacier      326 Quellen,   3,4 s
+  ok      Lighthouse   145 Quellen,   1,3 s
+  ok      Thunder       56 Quellen,   0,4 s
+ERGEBNIS: die Vorgänger bauen unverändert

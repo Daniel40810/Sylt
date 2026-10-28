@@ -1,0 +1,424 @@
+Sylt: ATI Technologies Inc. · AMD Radeon(TM) Graphics · 4.6.0 Core Profile Context 26.10.1.261008
+Sylt: Compute 4.3: in Ordnung (64×64, 0,029 ms, bis 1024 Fäden, 64 KiB geteilt)
+Sylt: Gelände DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+Sylt: Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren
+Sylt: Wolken Rauschen 128³ + 32³, Karte 512², Schatten 256² über 24 km
+Sylt: Meer 
+Sylt: Bauten 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 88 ms · 495.558 Dreiecke, 30 MB
+Sylt: Unwetter · Regen bereit · Nebel bereit · Blitze bereit
+Sylt: Kliff Kante 3074 m (N 6.087.775 bis 6.091.723) · Wand bis 35,4 m · Wandkarte 2048² zu 2 m · Wand 0,2 %, Geröll 0,5 %, Absatz 0,3 % · 0 Fälle · Schichtkarte 1773 × 4029 zu 1,0 m · Oberkante bis 50,8 m · untere Grenze -3,0 bis 7,0 m · Decke im Mittel 1,9 m · Hohlkehle bis 0,0 m · Grasnarbe 17 Stücke, 0,2 km · 0 Findlinge in Sicht · 1076 ms
+Sylt: Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19 · Arten im Kern zu 1 m
+AMD Radeon(TM) Graphics · OpenGL 4.6
+Compute 4.3: in Ordnung (64×64, 0,029 ms, bis 1024 Fäden, 64 KiB geteilt)
+1920×1080 Niedrig, 20.7.2026 20:30 MESZ: bestes Bild 23,06 ms, Mittel 29,52 ms (34 Bilder/s)
+Durchgänge (ms): Himmel 5,29 · Gelände 13,71 · Boden 0,00 · Meer 1,36 · Wolken 0,87 · Nachbearbeitung 0,34 · HUD 8,21
+  32 Bilder/s   Grafikkarte 29,79 ms   Prozessor 28,10 ms   Budget 8,0 ms
+  Himmel 5,29 · Gelände 13,71 · Boden 0,00 · Meer 1,36 · Wolken 0,87 · Nachbearbeitung 0,34 · HUD 8,21
+  Compute 4.3: in Ordnung (64×64, 0,029 ms, bis 1024 Fäden, 64 KiB geteilt)
+  20.7.2026 20:30 MESZ · Sonne 8,9° / 293° · Belichtung 3,63 (Auge, im Bild gemessen)
+  Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren · Sonne 9,0° · Mond 43 % · Sicht 40 km · Grafikkarte = Prozessor: Himmel ± 0,0 %, Durchlässigkeit ± 0,12 %, Mehrfachstreuung ± 0,0 %
+  Wolken Cumulus 3/8 · Basis 900 m · Gipfel bis 2500 m · Zug 10 m/s aus 290° · hoher Schleier 35 % · Sonne am Auge 0 % · Grafikkarte = Prozessor: Wolkenschatten Median ± 0,000, 0 von 64 Randpunkten über 0,05 (mittleres Licht 0,05)
+  Wetter (Lage Sommerabend): 3/8 Cumulus, hoher Schleier 35 %, Sicht 40 km, Wind 6 m/s aus 270° (Bft 4, Böe 6 m/s), 18 °C
+  See (ocean) FFT 3 × 128², Ringgitter 51.201 Ecken · Wind 6,0 m/s aus 270° · Dünung 1,0 m, 8 s aus 285° · Pegel +0,68 m · Grafikkarte = Prozessor: größte Abweichung 0,2 mm (Höhen bis 0,14 m)
+  Boden (ground, Biom Sylt · Düne und Heide): Bodendecke: aus
+  Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19
+  Kliff (cliff, Lockergestein): Kante 3,1 km, Wand bis 35 m · Grasnarbe 0,2 km · 50 Findlinge in Sicht · Grafikkarte = Prozessor: Farbe ± 0,78 %, Relief ± 3,5 mm
+  Brandung: See H_s 1,0 m, T_p 8 s aus 285° · Pegel +0,68 m NHN (Tide) · an Land
+  Tide: Westerland [G] Ebbe, Hochwasser 6:09 +0,80 m · Niedrigwasser 0:34 -0,97 m · Windstau +0,10 m
+  Brandung: Textur 835² (Version 2) · nah: Netz 24 Reihen auf 160 m, Wasserlinie 60 m vom Rand zur See · 1 Wellen · R_2% 0,10 m (Stockdon 0,50 m) · Rechnen 0,4 ms, Netz 0,3 ms
+  Flugsand: Wind hier 6 m/s aus 267° (Feld aus wind, 1,4 s) · u* 0,17 m/s, Schwelle 99,00 m/s · liegt (unter der Schwelle) · 0 Körner (0,2 ms)
+  Sturmflut: aus · Kliff: Kehle bis 0,0 m · 0 Abbrüche · Kegel 0 m³, Abtrag 0 m³ · Bilanz 0 = 0 steht + 0 Blöcke + 0 zerfallen + 0 ausgespült
+  Regen (rain): trocken
+  Seenebel (fog): keiner
+  Gewitter (lightning): keins
+  8 Möwen: 7 fliegen, 1 stehen im Aufwind, 0 sitzen, 0 schwimmen, 0 weg · 0 Rufe · Am Spülsaum 9 Vögel: 5 Sanderlinge, 2 Austernfischer, 2 Silbermöwen · 0 Hüpfer vor dem Schwall, 0 Fluchten, 146 Tritte
+  Spuren im nassen Sand: 5 (0 gelöscht vom Schwall) · ein Seehund vor dem Strand: Seehunde 1: 0 liegen, 1 im Wasser (0 tauchen) · Bank 0 % trocken · Tiere: Möwen 12 Netze (7 Arten), 9526 Dreiecke, je Vogel eine Instanz · Spülsaum 32 Netze, 17.600 Dreiecke · 9 Vögel gezeichnet · Seehund 1 Netz, 1568 Dreiecke · 1 Tiere, 0 Schatten · Grafikkarte = Prozessor: Flügelspitze ± 0,00 mm (Median), größte 0,00 mm, 8 Möwen
+  Licht: Meeresleuchten Blüte 0,56, im stürzenden Kamm 0,0e+00 cd/m² · grünes Leuchten nur die Brechung (heute keine Spiegelung)
+  Klang aus · am Ohr 0 dB · Ohr +0 dB · Wellen: 0 Schwallbrecher, 0 Sturzbrecher, 2 Schwälle · Rufe: 1 Möwen, 1 Sanderlinge, 1 Austernfischer, 0 Seehund, 0 Kuh
+  Regie: kein Regiebuch
+  Serie: ruhig · 0 Serien aus 2 Wellen, größte 0
+  Vorspülung: keine · Spur der Eiszeit: noch kein Abbruch
+  Bauten: 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 88 ms
+  Leuchtfeuer (beacon): Kampen Iso WR 7s aus · Quermarkenfeuer dunkel (seit 1975) · Licht am Turm 6.684 lx
+  132 von 132 Strandkörben (Saison), Öffnung nach 090° · 14 Galloways, 12 grasen, Mitte 158 m vom Turm
+  Physik 1/120 s · 1 Aufgaben · 0,00 ms je Schritt · Faden 0 % belegt
+  Gelände: DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+  Gelände 78 Knoten, 213.518 Punkte · fein bis 8 m, im Kern 4 m · Grund hier 1,2 m über NHN · See
+  Frei · Auge 2,9 m über NHN, 1,7 m über Grund · Blick 018° · Kern · 222 m bis Strand am Kliff
+  UTM 32 N  E 456548  N 6089300 · 54°56′56″ N · 8°19′18″ E · Kimm 5,8 km
+  Renderer.jar: 40 Packages in Renderer.jar, alle 23 gebrauchten da, dazu surf, dune, beacon
+  Neu für Sylt: surf ✓ · dune ✓ · beacon ✓
+  Niedrig · 1286×724 · umgekehrte Tiefe
+  AMD Radeon(TM) Graphics · OpenGL 4.6
+Bild: docs\status\Stufe_Niedrig_Sommerabend.png
+Sylt: ATI Technologies Inc. · AMD Radeon(TM) Graphics · 4.6.0 Core Profile Context 26.10.1.261008
+Sylt: Compute 4.3: in Ordnung (64×64, 0,029 ms, bis 1024 Fäden, 64 KiB geteilt)
+Sylt: Gelände DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+Sylt: Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren
+Sylt: Wolken Rauschen 128³ + 32³, Karte 512², Schatten 256² über 24 km
+Sylt: Meer 
+Sylt: Bauten 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 90 ms · 495.558 Dreiecke, 30 MB
+Sylt: Unwetter · Regen bereit · Nebel bereit · Blitze bereit
+Sylt: Kliff Kante 3074 m (N 6.087.775 bis 6.091.723) · Wand bis 35,4 m · Wandkarte 2048² zu 2 m · Wand 0,2 %, Geröll 0,5 %, Absatz 0,3 % · 0 Fälle · Schichtkarte 1773 × 4029 zu 1,0 m · Oberkante bis 50,8 m · untere Grenze -3,0 bis 7,0 m · Decke im Mittel 1,9 m · Hohlkehle bis 0,0 m · Grasnarbe 17 Stücke, 0,2 km · 0 Findlinge in Sicht · 1133 ms
+Sylt: Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19 · Arten im Kern zu 1 m
+AMD Radeon(TM) Graphics · OpenGL 4.6
+Compute 4.3: in Ordnung (64×64, 0,029 ms, bis 1024 Fäden, 64 KiB geteilt)
+1920×1080 Niedrig, 20.7.2026 20:30 MESZ: bestes Bild 24,59 ms, Mittel 30,27 ms (33 Bilder/s)
+Durchgänge (ms): Himmel 3,37 · Gelände 5,46 · Boden 0,00 · Meer 0,80 · Wolken 3,65 · Nachbearbeitung 0,19 · HUD 12,96
+  33 Bilder/s   Grafikkarte 26,42 ms   Prozessor 26,24 ms   Budget 8,0 ms
+  Himmel 3,37 · Gelände 5,46 · Boden 0,00 · Meer 0,80 · Wolken 3,65 · Nachbearbeitung 0,19 · HUD 12,96
+  Compute 4.3: in Ordnung (64×64, 0,029 ms, bis 1024 Fäden, 64 KiB geteilt)
+  20.7.2026 20:30 MESZ · Sonne 8,9° / 293° · Belichtung 6,94 (Auge, im Bild gemessen)
+  Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren · Sonne 9,0° · Mond 43 % · Sicht 8 km · Grafikkarte = Prozessor: Himmel ± 0,1 %, Durchlässigkeit ± 0,15 %, Mehrfachstreuung ± 0,0 %
+  Wolken Stratocumulus 8/8 · Basis 700 m · Gipfel bis 1500 m · Zug 35 m/s aus 275° · Niederschlag 55 % · Sonne am Auge 0 % · Grafikkarte = Prozessor: Wolkenschatten Median ± 0,000, 0 von 64 Randpunkten über 0,05 (mittleres Licht 0,02)
+  Wetter (Lage Sturm): 8/8 Stratocumulus, hoher Schleier 0 %, Sicht 8 km, Wind 22 m/s aus 255° (Bft 9, Böe 20 m/s), Regen 5,0 mm/h, 10 °C
+  See (ocean) FFT 3 × 128², Ringgitter 51.201 Ecken · Wind 22,0 m/s aus 255° · Dünung 3,4 m, 10 s aus 265° · Pegel +2,60 m · Grafikkarte = Prozessor: größte Abweichung 1,2 mm (Höhen bis 1,76 m)
+  Boden (ground, Biom Sylt · Düne und Heide): Bodendecke: aus
+  Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19
+  Kliff (cliff, Lockergestein): Kante 3,1 km, Wand bis 35 m · Grasnarbe 0,2 km · 50 Findlinge in Sicht · Grafikkarte = Prozessor: Farbe ± 0,78 %, Relief ± 3,5 mm
+  Brandung: See H_s 3,4 m, T_p 10 s aus 265° · Pegel +2,60 m NHN (von Hand) · bricht hier (76 % der Wellen): H_s 1,27 m in 1,2 m Wasser, Schwallbrecher, Set-up +0,17 m
+  Tide: Westerland [G] Ebbe, Hochwasser 6:09 +0,80 m · Niedrigwasser 0:34 -0,97 m · Windstau +0,10 m
+  Brandung: Textur 835² (Version 1) · nah: Netz 24 Reihen auf 160 m, Wasserlinie 470 m vom Rand zur See · 4 Wellen · R_2% noch keine Spitze (Stockdon 0,99 m) · Rechnen 0,8 ms, Netz 0,8 ms
+  Flugsand: Wind hier 21 m/s aus 252° (Feld aus wind, 1,0 s) · u* 0,67 m/s, Schwelle 99,00 m/s · nass, liegt · 0 Körner (0,3 ms)
+  Sturmflut: aus · Kliff: Kehle bis 0,0 m · 0 Abbrüche · Kegel 0 m³, Abtrag 0 m³ · Bilanz 0 = 0 steht + 0 Blöcke + 0 zerfallen + 0 ausgespült
+  Regen (rain): 5,0 mm/h unter den Vorhängen, hier 4,2 mm/h · Sicht im Regen 6,4 km · 6.000 Streifen (32 % leben hier), Vorhang 16 Schritte, Ringkarte 128² · Grafikkarte = Prozessor: Regentropfen ± 0,0 mm (Median), größte 0,1 mm, 1224 Proben, 0 am Rand
+  Seenebel (fog): keiner
+  Gewitter (lightning): keins
+  8 Möwen: 8 fliegen, 0 stehen im Aufwind, 0 sitzen, 0 schwimmen, 0 weg · 0 Rufe · Am Spülsaum: alle fort (kein Strand oder Sturm)
+  Spuren im nassen Sand: 0 (0 gelöscht vom Schwall) · ein Seehund vor dem Strand: Seehunde 1: 0 liegen, 1 im Wasser (0 tauchen) · Bank 0 % trocken · Tiere: Möwen 12 Netze (7 Arten), 9526 Dreiecke, je Vogel eine Instanz · Spülsaum 32 Netze, 17.600 Dreiecke · 0 Vögel gezeichnet · Seehund 1 Netz, 1568 Dreiecke · 1 Tiere, 0 Schatten · Grafikkarte = Prozessor: Flügelspitze ± 0,00 mm (Median), größte 0,00 mm, 8 Möwen
+  Licht: Meeresleuchten Blüte 0,56, im stürzenden Kamm 0,0e+00 cd/m² · grünes Leuchten nur die Brechung (heute keine Spiegelung)
+  Klang aus · am Ohr 0 dB · Ohr +0 dB · Wellen: 0 Schwallbrecher, 0 Sturzbrecher, 0 Schwälle · Rufe: 0 Möwen, 0 Sanderlinge, 0 Austernfischer, 0 Seehund, 0 Kuh
+  Regie: kein Regiebuch
+  Serie: ruhig · 0 Serien aus 4 Wellen, größte 0
+  Vorspülung: keine · Spur der Eiszeit: noch kein Abbruch
+  Bauten: 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 90 ms
+  Leuchtfeuer (beacon): Kampen Iso WR 7s aus · Quermarkenfeuer dunkel (seit 1975) · Licht am Turm 3.737 lx
+  0 von 132 Strandkörben (Sturmwarnung, weggeräumt), Öffnung nach 075° · 14 Galloways, 12 grasen, Mitte 158 m vom Turm
+  Physik 1/120 s · 1 Aufgaben · 0,00 ms je Schritt · Faden 0 % belegt
+  Gelände: DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+  Gelände 78 Knoten, 213.518 Punkte · fein bis 8 m, im Kern 4 m · Grund hier 1,2 m über NHN · See
+  Frei · Auge 4,3 m über NHN, 1,7 m über Grund · Blick 018° · Kern · 222 m bis Strand am Kliff
+  UTM 32 N  E 456548  N 6089300 · 54°56′56″ N · 8°19′18″ E · Kimm 5,0 km
+  Renderer.jar: 40 Packages in Renderer.jar, alle 23 gebrauchten da, dazu surf, dune, beacon
+  Neu für Sylt: surf ✓ · dune ✓ · beacon ✓
+  Niedrig · 1286×724 · umgekehrte Tiefe
+  AMD Radeon(TM) Graphics · OpenGL 4.6
+Bild: docs\status\Stufe_Niedrig_Sturmflut.png
+Sylt: ATI Technologies Inc. · AMD Radeon(TM) Graphics · 4.6.0 Core Profile Context 26.10.1.261008
+Sylt: Compute 4.3: in Ordnung (64×64, 0,023 ms, bis 1024 Fäden, 64 KiB geteilt)
+Sylt: Gelände DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+Sylt: Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren
+Sylt: Wolken Rauschen 128³ + 32³, Karte 512², Schatten 256² über 24 km
+Sylt: Meer 
+Sylt: Bauten 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 92 ms · 495.558 Dreiecke, 30 MB
+Sylt: Unwetter · Regen bereit · Nebel bereit · Blitze bereit
+Sylt: Kliff Kante 3074 m (N 6.087.775 bis 6.091.723) · Wand bis 35,4 m · Wandkarte 2048² zu 2 m · Wand 0,2 %, Geröll 0,5 %, Absatz 0,3 % · 0 Fälle · Schichtkarte 1773 × 4029 zu 1,0 m · Oberkante bis 50,8 m · untere Grenze -3,0 bis 7,0 m · Decke im Mittel 1,9 m · Hohlkehle bis 0,0 m · Grasnarbe 17 Stücke, 0,2 km · 0 Findlinge in Sicht · 1153 ms
+Sylt: Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19 · Arten im Kern zu 1 m
+AMD Radeon(TM) Graphics · OpenGL 4.6
+Compute 4.3: in Ordnung (64×64, 0,023 ms, bis 1024 Fäden, 64 KiB geteilt)
+1920×1080 Mittel, 20.7.2026 20:30 MESZ: bestes Bild 24,71 ms, Mittel 30,51 ms (33 Bilder/s)
+Durchgänge (ms): Himmel 3,32 · Gelände 7,27 · Boden 0,00 · Meer 1,14 · Wolken 1,23 · Nachbearbeitung 0,19 · HUD 13,10
+  33 Bilder/s   Grafikkarte 26,25 ms   Prozessor 26,39 ms   Budget 16,5 ms
+  Himmel 3,32 · Gelände 7,27 · Boden 0,00 · Meer 1,14 · Wolken 1,23 · Nachbearbeitung 0,19 · HUD 13,10
+  Compute 4.3: in Ordnung (64×64, 0,023 ms, bis 1024 Fäden, 64 KiB geteilt)
+  20.7.2026 20:30 MESZ · Sonne 8,9° / 293° · Belichtung 3,69 (Auge, im Bild gemessen)
+  Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren · Sonne 9,0° · Mond 43 % · Sicht 40 km · Grafikkarte = Prozessor: Himmel ± 0,0 %, Durchlässigkeit ± 0,12 %, Mehrfachstreuung ± 0,0 %
+  Wolken Cumulus 3/8 · Basis 900 m · Gipfel bis 2500 m · Zug 10 m/s aus 290° · hoher Schleier 35 % · Sonne am Auge 0 % · Grafikkarte = Prozessor: Wolkenschatten Median ± 0,000, 0 von 64 Randpunkten über 0,05 (mittleres Licht 0,05)
+  Wetter (Lage Sommerabend): 3/8 Cumulus, hoher Schleier 35 %, Sicht 40 km, Wind 6 m/s aus 270° (Bft 4, Böe 6 m/s), 18 °C
+  See (ocean) FFT 3 × 256², Ringgitter 51.201 Ecken · Wind 6,0 m/s aus 270° · Dünung 1,0 m, 8 s aus 285° · Pegel +0,68 m · Grafikkarte = Prozessor: größte Abweichung 0,3 mm (Höhen bis 0,54 m)
+  Boden (ground, Biom Sylt · Düne und Heide): Bodendecke: aus
+  Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19
+  Kliff (cliff, Lockergestein): Kante 3,1 km, Wand bis 35 m · Grasnarbe 0,2 km · 61 Findlinge in Sicht · Grafikkarte = Prozessor: Farbe ± 0,78 %, Relief ± 3,5 mm
+  Brandung: See H_s 1,0 m, T_p 8 s aus 285° · Pegel +0,68 m NHN (Tide) · an Land
+  Tide: Westerland [G] Ebbe, Hochwasser 6:09 +0,80 m · Niedrigwasser 0:34 -0,97 m · Windstau +0,10 m
+  Brandung: Textur 835² (Version 1) · nah: Netz 40 Reihen auf 160 m, Wasserlinie 60 m vom Rand zur See · 1 Wellen · R_2% 0,10 m (Stockdon 0,50 m) · Rechnen 0,6 ms, Netz 0,4 ms
+  Flugsand: Wind hier 6 m/s aus 267° (Feld aus wind, 1,1 s) · u* 0,17 m/s, Schwelle 99,00 m/s · liegt (unter der Schwelle) · 0 Körner (0,3 ms)
+  Sturmflut: aus · Kliff: Kehle bis 0,0 m · 0 Abbrüche · Kegel 0 m³, Abtrag 0 m³ · Bilanz 0 = 0 steht + 0 Blöcke + 0 zerfallen + 0 ausgespült
+  Regen (rain): trocken
+  Seenebel (fog): keiner
+  Gewitter (lightning): keins
+  14 Möwen: 12 fliegen, 2 stehen im Aufwind, 0 sitzen, 0 schwimmen, 0 weg · 0 Rufe · Am Spülsaum 25 Vögel: 14 Sanderlinge, 5 Austernfischer, 6 Silbermöwen · 2 Hüpfer vor dem Schwall, 0 Fluchten, 351 Tritte
+  Spuren im nassen Sand: 0 (0 gelöscht vom Schwall) · ein Seehund vor dem Strand: Seehunde 1: 0 liegen, 1 im Wasser (0 tauchen) · Bank 0 % trocken · Tiere: Möwen 12 Netze (7 Arten), 9526 Dreiecke, je Vogel eine Instanz · Spülsaum 32 Netze, 17.600 Dreiecke · 25 Vögel gezeichnet · Seehund 1 Netz, 1568 Dreiecke · 1 Tiere, 0 Schatten · Grafikkarte = Prozessor: Flügelspitze ± 0,00 mm (Median), größte 0,00 mm, 14 Möwen
+  Licht: Meeresleuchten Blüte 0,56, im stürzenden Kamm 0,0e+00 cd/m² · grünes Leuchten nur die Brechung (heute keine Spiegelung)
+  Klang aus · am Ohr 0 dB · Ohr +0 dB · Wellen: 0 Schwallbrecher, 0 Sturzbrecher, 2 Schwälle · Rufe: 1 Möwen, 0 Sanderlinge, 1 Austernfischer, 0 Seehund, 0 Kuh
+  Regie: kein Regiebuch
+  Serie: ruhig · 0 Serien aus 2 Wellen, größte 0
+  Vorspülung: keine · Spur der Eiszeit: noch kein Abbruch
+  Bauten: 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 92 ms
+  Leuchtfeuer (beacon): Kampen Iso WR 7s aus · Quermarkenfeuer dunkel (seit 1975) · Licht am Turm 6.684 lx
+  132 von 132 Strandkörben (Saison), Öffnung nach 090° · 14 Galloways, 12 grasen, Mitte 158 m vom Turm
+  Physik 1/120 s · 1 Aufgaben · 0,00 ms je Schritt · Faden 0 % belegt
+  Gelände: DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+  Gelände 111 Knoten, 315.311 Punkte · fein bis 8 m, im Kern 2 m · Grund hier 1,2 m über NHN · See
+  Frei · Auge 2,9 m über NHN, 1,7 m über Grund · Blick 018° · Kern · 222 m bis Strand am Kliff
+  UTM 32 N  E 456548  N 6089300 · 54°56′56″ N · 8°19′18″ E · Kimm 5,8 km
+  Renderer.jar: 40 Packages in Renderer.jar, alle 23 gebrauchten da, dazu surf, dune, beacon
+  Neu für Sylt: surf ✓ · dune ✓ · beacon ✓
+  Mittel · 1632×918 · umgekehrte Tiefe
+  AMD Radeon(TM) Graphics · OpenGL 4.6
+Bild: docs\status\Stufe_Mittel_Sommerabend.png
+Sylt: ATI Technologies Inc. · AMD Radeon(TM) Graphics · 4.6.0 Core Profile Context 26.10.1.261008
+Sylt: Compute 4.3: in Ordnung (64×64, 0,007 ms, bis 1024 Fäden, 64 KiB geteilt)
+Sylt: Gelände DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+Sylt: Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren
+Sylt: Wolken Rauschen 128³ + 32³, Karte 512², Schatten 256² über 24 km
+Sylt: Meer 
+Sylt: Bauten 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 92 ms · 495.558 Dreiecke, 30 MB
+Sylt: Unwetter · Regen bereit · Nebel bereit · Blitze bereit
+Sylt: Kliff Kante 3074 m (N 6.087.775 bis 6.091.723) · Wand bis 35,4 m · Wandkarte 2048² zu 2 m · Wand 0,2 %, Geröll 0,5 %, Absatz 0,3 % · 0 Fälle · Schichtkarte 1773 × 4029 zu 1,0 m · Oberkante bis 50,8 m · untere Grenze -3,0 bis 7,0 m · Decke im Mittel 1,9 m · Hohlkehle bis 0,0 m · Grasnarbe 17 Stücke, 0,2 km · 0 Findlinge in Sicht · 1208 ms
+Sylt: Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19 · Arten im Kern zu 1 m
+AMD Radeon(TM) Graphics · OpenGL 4.6
+Compute 4.3: in Ordnung (64×64, 0,007 ms, bis 1024 Fäden, 64 KiB geteilt)
+1920×1080 Mittel, 20.7.2026 20:30 MESZ: bestes Bild 25,96 ms, Mittel 31,94 ms (31 Bilder/s)
+Durchgänge (ms): Himmel 3,86 · Gelände 6,38 · Boden 0,00 · Meer 1,45 · Wolken 6,85 · Nachbearbeitung 0,16 · HUD 8,74
+  30 Bilder/s   Grafikkarte 27,44 ms   Prozessor 27,72 ms   Budget 16,5 ms
+  Himmel 3,86 · Gelände 6,38 · Boden 0,00 · Meer 1,45 · Wolken 6,85 · Nachbearbeitung 0,16 · HUD 8,74
+  Compute 4.3: in Ordnung (64×64, 0,007 ms, bis 1024 Fäden, 64 KiB geteilt)
+  20.7.2026 20:30 MESZ · Sonne 8,9° / 293° · Belichtung 7,40 (Auge, im Bild gemessen)
+  Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren · Sonne 9,0° · Mond 43 % · Sicht 8 km · Grafikkarte = Prozessor: Himmel ± 0,1 %, Durchlässigkeit ± 0,15 %, Mehrfachstreuung ± 0,0 %
+  Wolken Stratocumulus 8/8 · Basis 700 m · Gipfel bis 1500 m · Zug 35 m/s aus 275° · Niederschlag 55 % · Sonne am Auge 0 % · Grafikkarte = Prozessor: Wolkenschatten Median ± 0,000, 0 von 64 Randpunkten über 0,05 (mittleres Licht 0,02)
+  Wetter (Lage Sturm): 8/8 Stratocumulus, hoher Schleier 0 %, Sicht 8 km, Wind 22 m/s aus 255° (Bft 9, Böe 20 m/s), Regen 5,0 mm/h, 10 °C
+  See (ocean) FFT 3 × 256², Ringgitter 51.201 Ecken · Wind 22,0 m/s aus 255° · Dünung 3,4 m, 10 s aus 265° · Pegel +2,60 m · Grafikkarte = Prozessor: größte Abweichung 1,8 mm (Höhen bis 2,96 m)
+  Boden (ground, Biom Sylt · Düne und Heide): Bodendecke: aus
+  Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19
+  Kliff (cliff, Lockergestein): Kante 3,1 km, Wand bis 35 m · Grasnarbe 0,2 km · 61 Findlinge in Sicht · Grafikkarte = Prozessor: Farbe ± 0,78 %, Relief ± 3,5 mm
+  Brandung: See H_s 3,4 m, T_p 10 s aus 265° · Pegel +2,60 m NHN (von Hand) · bricht hier (76 % der Wellen): H_s 1,27 m in 1,2 m Wasser, Schwallbrecher, Set-up +0,17 m
+  Tide: Westerland [G] Ebbe, Hochwasser 6:09 +0,80 m · Niedrigwasser 0:34 -0,97 m · Windstau +0,10 m
+  Brandung: Textur 835² (Version 1) · nah: Netz 40 Reihen auf 160 m, Wasserlinie 470 m vom Rand zur See · 4 Wellen · R_2% noch keine Spitze (Stockdon 0,99 m) · Rechnen 1,1 ms, Netz 1,2 ms
+  Flugsand: Wind hier 21 m/s aus 252° (Feld aus wind, 1,3 s) · u* 0,67 m/s, Schwelle 99,00 m/s · nass, liegt · 0 Körner (0,2 ms)
+  Sturmflut: aus · Kliff: Kehle bis 0,0 m · 0 Abbrüche · Kegel 0 m³, Abtrag 0 m³ · Bilanz 0 = 0 steht + 0 Blöcke + 0 zerfallen + 0 ausgespült
+  Regen (rain): 5,0 mm/h unter den Vorhängen, hier 4,2 mm/h · Sicht im Regen 6,4 km · 16.000 Streifen (32 % leben hier), Vorhang 24 Schritte, Ringkarte 256² · Grafikkarte = Prozessor: Regentropfen ± 0,0 mm (Median), größte 0,1 mm, 1221 Proben, 0 am Rand
+  Seenebel (fog): keiner
+  Gewitter (lightning): keins
+  14 Möwen: 14 fliegen, 0 stehen im Aufwind, 0 sitzen, 0 schwimmen, 0 weg · 0 Rufe · Am Spülsaum: alle fort (kein Strand oder Sturm)
+  Spuren im nassen Sand: 0 (0 gelöscht vom Schwall) · ein Seehund vor dem Strand: Seehunde 1: 0 liegen, 1 im Wasser (0 tauchen) · Bank 0 % trocken · Tiere: Möwen 12 Netze (7 Arten), 9526 Dreiecke, je Vogel eine Instanz · Spülsaum 32 Netze, 17.600 Dreiecke · 0 Vögel gezeichnet · Seehund 1 Netz, 1568 Dreiecke · 1 Tiere, 0 Schatten · Grafikkarte = Prozessor: Flügelspitze ± 0,00 mm (Median), größte 0,00 mm, 14 Möwen
+  Licht: Meeresleuchten Blüte 0,56, im stürzenden Kamm 0,0e+00 cd/m² · grünes Leuchten nur die Brechung (heute keine Spiegelung)
+  Klang aus · am Ohr 0 dB · Ohr +0 dB · Wellen: 0 Schwallbrecher, 0 Sturzbrecher, 0 Schwälle · Rufe: 0 Möwen, 0 Sanderlinge, 0 Austernfischer, 0 Seehund, 0 Kuh
+  Regie: kein Regiebuch
+  Serie: ruhig · 0 Serien aus 4 Wellen, größte 0
+  Vorspülung: keine · Spur der Eiszeit: noch kein Abbruch
+  Bauten: 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 92 ms
+  Leuchtfeuer (beacon): Kampen Iso WR 7s aus · Quermarkenfeuer dunkel (seit 1975) · Licht am Turm 3.737 lx
+  0 von 132 Strandkörben (Sturmwarnung, weggeräumt), Öffnung nach 075° · 14 Galloways, 12 grasen, Mitte 158 m vom Turm
+  Physik 1/120 s · 1 Aufgaben · 0,00 ms je Schritt · Faden 0 % belegt
+  Gelände: DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+  Gelände 111 Knoten, 315.311 Punkte · fein bis 8 m, im Kern 2 m · Grund hier 1,2 m über NHN · See
+  Frei · Auge 4,3 m über NHN, 1,7 m über Grund · Blick 018° · Kern · 222 m bis Strand am Kliff
+  UTM 32 N  E 456548  N 6089300 · 54°56′56″ N · 8°19′18″ E · Kimm 5,0 km
+  Renderer.jar: 40 Packages in Renderer.jar, alle 23 gebrauchten da, dazu surf, dune, beacon
+  Neu für Sylt: surf ✓ · dune ✓ · beacon ✓
+  Mittel · 1632×918 · umgekehrte Tiefe
+  AMD Radeon(TM) Graphics · OpenGL 4.6
+Bild: docs\status\Stufe_Mittel_Sturmflut.png
+Sylt: ATI Technologies Inc. · AMD Radeon(TM) Graphics · 4.6.0 Core Profile Context 26.10.1.261008
+Sylt: Compute 4.3: in Ordnung (64×64, 0,005 ms, bis 1024 Fäden, 64 KiB geteilt)
+Sylt: Gelände DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+Sylt: Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren
+Sylt: Wolken Rauschen 128³ + 32³, Karte 512², Schatten 256² über 24 km
+Sylt: Meer 
+Sylt: Bauten 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 95 ms · 495.558 Dreiecke, 30 MB
+Sylt: Unwetter · Regen bereit · Nebel bereit · Blitze bereit
+Sylt: Kliff Kante 3074 m (N 6.087.775 bis 6.091.723) · Wand bis 35,4 m · Wandkarte 2048² zu 2 m · Wand 0,2 %, Geröll 0,5 %, Absatz 0,3 % · 0 Fälle · Schichtkarte 1773 × 4029 zu 1,0 m · Oberkante bis 50,8 m · untere Grenze -3,0 bis 7,0 m · Decke im Mittel 1,9 m · Hohlkehle bis 0,0 m · Grasnarbe 17 Stücke, 0,2 km · 0 Findlinge in Sicht · 1141 ms
+Sylt: Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19 · Arten im Kern zu 1 m
+AMD Radeon(TM) Graphics · OpenGL 4.6
+Compute 4.3: in Ordnung (64×64, 0,005 ms, bis 1024 Fäden, 64 KiB geteilt)
+1920×1080 Hoch, 20.7.2026 20:30 MESZ: bestes Bild 25,71 ms, Mittel 31,10 ms (32 Bilder/s)
+Durchgänge (ms): Himmel 3,48 · Gelände 7,90 · Boden 0,00 · Meer 1,42 · Wolken 3,99 · Nachbearbeitung 0,22 · HUD 9,49
+  32 Bilder/s   Grafikkarte 26,49 ms   Prozessor 26,76 ms   Budget 33,0 ms
+  Himmel 3,48 · Gelände 7,90 · Boden 0,00 · Meer 1,42 · Wolken 3,99 · Nachbearbeitung 0,22 · HUD 9,49
+  Compute 4.3: in Ordnung (64×64, 0,005 ms, bis 1024 Fäden, 64 KiB geteilt)
+  20.7.2026 20:30 MESZ · Sonne 8,9° / 293° · Belichtung 3,92 (Auge, im Bild gemessen)
+  Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren · Sonne 9,0° · Mond 43 % · Sicht 40 km · Grafikkarte = Prozessor: Himmel ± 0,0 %, Durchlässigkeit ± 0,12 %, Mehrfachstreuung ± 0,0 %
+  Wolken Cumulus 3/8 · Basis 900 m · Gipfel bis 2500 m · Zug 10 m/s aus 290° · hoher Schleier 35 % · Sonne am Auge 0 % · Grafikkarte = Prozessor: Wolkenschatten Median ± 0,000, 0 von 64 Randpunkten über 0,05 (mittleres Licht 0,05)
+  Wetter (Lage Sommerabend): 3/8 Cumulus, hoher Schleier 35 %, Sicht 40 km, Wind 6 m/s aus 270° (Bft 4, Böe 6 m/s), 18 °C
+  See (ocean) FFT 4 × 256², Ringgitter 51.201 Ecken · Wind 6,0 m/s aus 270° · Dünung 1,0 m, 8 s aus 285° · Pegel +0,68 m · Grafikkarte = Prozessor: größte Abweichung 0,3 mm (Höhen bis 0,54 m)
+  Boden (ground, Biom Sylt · Düne und Heide): Bodendecke: aus
+  Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19
+  Kliff (cliff, Lockergestein): Kante 3,1 km, Wand bis 35 m · Grasnarbe 0,2 km · 74 Findlinge in Sicht · Grafikkarte = Prozessor: Farbe ± 0,78 %, Relief ± 3,5 mm
+  Brandung: See H_s 1,0 m, T_p 8 s aus 285° · Pegel +0,68 m NHN (Tide) · an Land
+  Tide: Westerland [G] Ebbe, Hochwasser 6:09 +0,80 m · Niedrigwasser 0:34 -0,97 m · Windstau +0,10 m
+  Brandung: Textur 835² (Version 1) · nah: Netz 56 Reihen auf 160 m, Wasserlinie 60 m vom Rand zur See · 1 Wellen · R_2% 0,10 m (Stockdon 0,50 m) · Rechnen 0,7 ms, Netz 0,5 ms
+  Flugsand: Wind hier 6 m/s aus 267° (Feld aus wind, 1,2 s) · u* 0,17 m/s, Schwelle 99,00 m/s · liegt (unter der Schwelle) · 0 Körner (0,2 ms)
+  Sturmflut: aus · Kliff: Kehle bis 0,0 m · 0 Abbrüche · Kegel 0 m³, Abtrag 0 m³ · Bilanz 0 = 0 steht + 0 Blöcke + 0 zerfallen + 0 ausgespült
+  Regen (rain): trocken
+  Seenebel (fog): keiner
+  Gewitter (lightning): keins
+  20 Möwen: 18 fliegen, 2 stehen im Aufwind, 0 sitzen, 0 schwimmen, 0 weg · 0 Rufe · Am Spülsaum 46 Vögel: 26 Sanderlinge, 9 Austernfischer, 11 Silbermöwen · 11 Hüpfer vor dem Schwall, 2 Fluchten, 753 Tritte
+  Spuren im nassen Sand: 15 (0 gelöscht vom Schwall) · ein Seehund vor dem Strand: Seehunde 1: 0 liegen, 1 im Wasser (0 tauchen) · Bank 0 % trocken · Tiere: Möwen 12 Netze (7 Arten), 9526 Dreiecke, je Vogel eine Instanz · Spülsaum 32 Netze, 17.600 Dreiecke · 46 Vögel gezeichnet · Seehund 1 Netz, 1568 Dreiecke · 1 Tiere, 0 Schatten · Grafikkarte = Prozessor: Flügelspitze ± 0,00 mm (Median), größte 0,00 mm, 20 Möwen
+  Licht: Meeresleuchten Blüte 0,56, im stürzenden Kamm 0,0e+00 cd/m² · grünes Leuchten nur die Brechung (heute keine Spiegelung)
+  Klang aus · am Ohr 0 dB · Ohr +0 dB · Wellen: 0 Schwallbrecher, 0 Sturzbrecher, 2 Schwälle · Rufe: 1 Möwen, 0 Sanderlinge, 4 Austernfischer, 0 Seehund, 0 Kuh
+  Regie: kein Regiebuch
+  Serie: ruhig · 0 Serien aus 2 Wellen, größte 0
+  Vorspülung: keine · Spur der Eiszeit: noch kein Abbruch
+  Bauten: 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 95 ms
+  Leuchtfeuer (beacon): Kampen Iso WR 7s aus · Quermarkenfeuer dunkel (seit 1975) · Licht am Turm 6.684 lx
+  132 von 132 Strandkörben (Saison), Öffnung nach 090° · 14 Galloways, 12 grasen, Mitte 158 m vom Turm
+  Physik 1/120 s · 1 Aufgaben · 0,00 ms je Schritt · Faden 0 % belegt
+  Gelände: DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+  Gelände 141 Knoten, 398.157 Punkte · fein bis 4 m, im Kern 1 m · Grund hier 1,2 m über NHN · See
+  Frei · Auge 2,9 m über NHN, 1,7 m über Grund · Blick 018° · Kern · 222 m bis Strand am Kliff
+  UTM 32 N  E 456548  N 6089300 · 54°56′56″ N · 8°19′18″ E · Kimm 5,8 km
+  Renderer.jar: 40 Packages in Renderer.jar, alle 23 gebrauchten da, dazu surf, dune, beacon
+  Neu für Sylt: surf ✓ · dune ✓ · beacon ✓
+  Hoch · 1920×1080 · umgekehrte Tiefe
+  AMD Radeon(TM) Graphics · OpenGL 4.6
+Bild: docs\status\Stufe_Hoch_Sommerabend.png
+Sylt: ATI Technologies Inc. · AMD Radeon(TM) Graphics · 4.6.0 Core Profile Context 26.10.1.261008
+Sylt: Compute 4.3: in Ordnung (64×64, 0,047 ms, bis 1024 Fäden, 64 KiB geteilt)
+Sylt: Gelände DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+Sylt: Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren
+Sylt: Wolken Rauschen 128³ + 32³, Karte 512², Schatten 256² über 24 km
+Sylt: Meer 
+Sylt: Bauten 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 175 ms · 495.558 Dreiecke, 30 MB
+Sylt: Unwetter · Regen bereit · Nebel bereit · Blitze bereit
+Sylt: Kliff Kante 3074 m (N 6.087.775 bis 6.091.723) · Wand bis 35,4 m · Wandkarte 2048² zu 2 m · Wand 0,2 %, Geröll 0,5 %, Absatz 0,3 % · 0 Fälle · Schichtkarte 1773 × 4029 zu 1,0 m · Oberkante bis 50,8 m · untere Grenze -3,0 bis 7,0 m · Decke im Mittel 1,9 m · Hohlkehle bis 0,0 m · Grasnarbe 17 Stücke, 0,2 km · 0 Findlinge in Sicht · 1276 ms
+Sylt: Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19 · Arten im Kern zu 1 m
+AMD Radeon(TM) Graphics · OpenGL 4.6
+Compute 4.3: in Ordnung (64×64, 0,047 ms, bis 1024 Fäden, 64 KiB geteilt)
+1920×1080 Hoch, 20.7.2026 20:30 MESZ: bestes Bild 41,32 ms, Mittel 51,49 ms (19 Bilder/s)
+Durchgänge (ms): Himmel 4,50 · Gelände 7,69 · Boden 0,00 · Meer 1,82 · Wolken 12,15 · Nachbearbeitung 0,18 · HUD 16,43
+  19 Bilder/s   Grafikkarte 42,76 ms   Prozessor 44,08 ms   Budget 33,0 ms
+  Himmel 4,50 · Gelände 7,69 · Boden 0,00 · Meer 1,82 · Wolken 12,15 · Nachbearbeitung 0,18 · HUD 16,43
+  Compute 4.3: in Ordnung (64×64, 0,047 ms, bis 1024 Fäden, 64 KiB geteilt)
+  20.7.2026 20:30 MESZ · Sonne 8,9° / 293° · Belichtung 7,49 (Auge, im Bild gemessen)
+  Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren · Sonne 9,0° · Mond 43 % · Sicht 8 km · Grafikkarte = Prozessor: Himmel ± 0,1 %, Durchlässigkeit ± 0,15 %, Mehrfachstreuung ± 0,0 %
+  Wolken Stratocumulus 8/8 · Basis 700 m · Gipfel bis 1500 m · Zug 35 m/s aus 275° · Niederschlag 55 % · Sonne am Auge 0 % · Grafikkarte = Prozessor: Wolkenschatten Median ± 0,000, 0 von 64 Randpunkten über 0,05 (mittleres Licht 0,02)
+  Wetter (Lage Sturm): 8/8 Stratocumulus, hoher Schleier 0 %, Sicht 8 km, Wind 22 m/s aus 255° (Bft 9, Böe 20 m/s), Regen 5,0 mm/h, 10 °C
+  See (ocean) FFT 4 × 256², Ringgitter 51.201 Ecken · Wind 22,0 m/s aus 255° · Dünung 3,4 m, 10 s aus 265° · Pegel +2,60 m · Grafikkarte = Prozessor: größte Abweichung 1,8 mm (Höhen bis 2,96 m)
+  Boden (ground, Biom Sylt · Düne und Heide): Bodendecke: aus
+  Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19
+  Kliff (cliff, Lockergestein): Kante 3,1 km, Wand bis 35 m · Grasnarbe 0,2 km · 74 Findlinge in Sicht · Grafikkarte = Prozessor: Farbe ± 0,78 %, Relief ± 3,5 mm
+  Brandung: See H_s 3,4 m, T_p 10 s aus 265° · Pegel +2,60 m NHN (von Hand) · bricht hier (76 % der Wellen): H_s 1,27 m in 1,2 m Wasser, Schwallbrecher, Set-up +0,17 m
+  Tide: Westerland [G] Ebbe, Hochwasser 6:09 +0,80 m · Niedrigwasser 0:34 -0,97 m · Windstau +0,10 m
+  Brandung: Textur 835² (Version 1) · nah: Netz 56 Reihen auf 160 m, Wasserlinie 470 m vom Rand zur See · 4 Wellen · R_2% noch keine Spitze (Stockdon 0,99 m) · Rechnen 1,9 ms, Netz 2,0 ms
+  Flugsand: Wind hier 21 m/s aus 252° (Feld aus wind, 1,1 s) · u* 0,67 m/s, Schwelle 99,00 m/s · nass, liegt · 0 Körner (0,3 ms)
+  Sturmflut: aus · Kliff: Kehle bis 0,0 m · 0 Abbrüche · Kegel 0 m³, Abtrag 0 m³ · Bilanz 0 = 0 steht + 0 Blöcke + 0 zerfallen + 0 ausgespült
+  Regen (rain): 5,0 mm/h unter den Vorhängen, hier 4,2 mm/h · Sicht im Regen 6,4 km · 32.000 Streifen (32 % leben hier), Vorhang 32 Schritte, Ringkarte 256² · Grafikkarte = Prozessor: Regentropfen ± 0,0 mm (Median), größte 0,1 mm, 1222 Proben, 0 am Rand
+  Seenebel (fog): keiner
+  Gewitter (lightning): keins
+  20 Möwen: 20 fliegen, 0 stehen im Aufwind, 0 sitzen, 0 schwimmen, 0 weg · 0 Rufe · Am Spülsaum: alle fort (kein Strand oder Sturm)
+  Spuren im nassen Sand: 0 (0 gelöscht vom Schwall) · ein Seehund vor dem Strand: Seehunde 1: 0 liegen, 1 im Wasser (0 tauchen) · Bank 0 % trocken · Tiere: Möwen 12 Netze (7 Arten), 9526 Dreiecke, je Vogel eine Instanz · Spülsaum 32 Netze, 17.600 Dreiecke · 0 Vögel gezeichnet · Seehund 1 Netz, 1568 Dreiecke · 1 Tiere, 0 Schatten · Grafikkarte = Prozessor: Flügelspitze ± 0,00 mm (Median), größte 0,00 mm, 20 Möwen
+  Licht: Meeresleuchten Blüte 0,56, im stürzenden Kamm 0,0e+00 cd/m² · grünes Leuchten nur die Brechung (heute keine Spiegelung)
+  Klang aus · am Ohr 0 dB · Ohr +0 dB · Wellen: 0 Schwallbrecher, 0 Sturzbrecher, 0 Schwälle · Rufe: 0 Möwen, 0 Sanderlinge, 0 Austernfischer, 0 Seehund, 0 Kuh
+  Regie: kein Regiebuch
+  Serie: ruhig · 0 Serien aus 4 Wellen, größte 0
+  Vorspülung: keine · Spur der Eiszeit: noch kein Abbruch
+  Bauten: 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 175 ms
+  Leuchtfeuer (beacon): Kampen Iso WR 7s aus · Quermarkenfeuer dunkel (seit 1975) · Licht am Turm 3.737 lx
+  0 von 132 Strandkörben (Sturmwarnung, weggeräumt), Öffnung nach 075° · 14 Galloways, 12 grasen, Mitte 158 m vom Turm
+  Physik 1/120 s · 1 Aufgaben · 0,00 ms je Schritt · Faden 0 % belegt
+  Gelände: DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+  Gelände 141 Knoten, 398.157 Punkte · fein bis 4 m, im Kern 1 m · Grund hier 1,2 m über NHN · See
+  Frei · Auge 4,3 m über NHN, 1,7 m über Grund · Blick 018° · Kern · 222 m bis Strand am Kliff
+  UTM 32 N  E 456548  N 6089300 · 54°56′56″ N · 8°19′18″ E · Kimm 5,0 km
+  Renderer.jar: 40 Packages in Renderer.jar, alle 23 gebrauchten da, dazu surf, dune, beacon
+  Neu für Sylt: surf ✓ · dune ✓ · beacon ✓
+  Hoch · 1920×1080 · umgekehrte Tiefe
+  AMD Radeon(TM) Graphics · OpenGL 4.6
+Bild: docs\status\Stufe_Hoch_Sturmflut.png
+Sylt: ATI Technologies Inc. · AMD Radeon(TM) Graphics · 4.6.0 Core Profile Context 26.10.1.261008
+Sylt: Compute 4.3: in Ordnung (64×64, 0,038 ms, bis 1024 Fäden, 64 KiB geteilt)
+Sylt: Gelände DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+Sylt: Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren
+Sylt: Wolken Rauschen 128³ + 32³, Karte 512², Schatten 256² über 24 km
+Sylt: Meer 
+Sylt: Bauten 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 166 ms · 495.558 Dreiecke, 30 MB
+Sylt: Unwetter · Regen bereit · Nebel bereit · Blitze bereit
+Sylt: Kliff Kante 3074 m (N 6.087.775 bis 6.091.723) · Wand bis 35,4 m · Wandkarte 2048² zu 2 m · Wand 0,2 %, Geröll 0,5 %, Absatz 0,3 % · 0 Fälle · Schichtkarte 1773 × 4029 zu 1,0 m · Oberkante bis 50,8 m · untere Grenze -3,0 bis 7,0 m · Decke im Mittel 1,9 m · Hohlkehle bis 0,0 m · Grasnarbe 17 Stücke, 0,2 km · 0 Findlinge in Sicht · 1742 ms
+Sylt: Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19 · Arten im Kern zu 1 m
+AMD Radeon(TM) Graphics · OpenGL 4.6
+Compute 4.3: in Ordnung (64×64, 0,038 ms, bis 1024 Fäden, 64 KiB geteilt)
+1920×1080 Ultra, 20.7.2026 20:30 MESZ: bestes Bild 28,84 ms, Mittel 38,70 ms (26 Bilder/s)
+Durchgänge (ms): Himmel 3,48 · Gelände 7,48 · Boden 0,00 · Meer 5,15 · Wolken 4,81 · Nachbearbeitung 0,22 · HUD 7,31
+  31 Bilder/s   Grafikkarte 28,45 ms   Prozessor 28,89 ms   Budget 50,0 ms
+  Himmel 3,48 · Gelände 7,48 · Boden 0,00 · Meer 5,15 · Wolken 4,81 · Nachbearbeitung 0,22 · HUD 7,31
+  Compute 4.3: in Ordnung (64×64, 0,038 ms, bis 1024 Fäden, 64 KiB geteilt)
+  20.7.2026 20:30 MESZ · Sonne 8,9° / 293° · Belichtung 3,93 (Auge, im Bild gemessen)
+  Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren · Sonne 9,0° · Mond 43 % · Sicht 40 km · Grafikkarte = Prozessor: Himmel ± 0,0 %, Durchlässigkeit ± 0,12 %, Mehrfachstreuung ± 0,0 %
+  Wolken Cumulus 3/8 · Basis 900 m · Gipfel bis 2500 m · Zug 10 m/s aus 290° · hoher Schleier 35 % · Sonne am Auge 0 % · Grafikkarte = Prozessor: Wolkenschatten Median ± 0,000, 0 von 64 Randpunkten über 0,05 (mittleres Licht 0,05)
+  Wetter (Lage Sommerabend): 3/8 Cumulus, hoher Schleier 35 %, Sicht 40 km, Wind 6 m/s aus 270° (Bft 4, Böe 6 m/s), 18 °C
+  See (ocean) FFT 4 × 512², Ringgitter 51.201 Ecken · Wind 6,0 m/s aus 270° · Dünung 1,0 m, 8 s aus 285° · Pegel +0,68 m · Grafikkarte = Prozessor: größte Abweichung 0,2 mm (Höhen bis 0,45 m)
+  Boden (ground, Biom Sylt · Düne und Heide): Bodendecke: aus
+  Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19
+  Kliff (cliff, Lockergestein): Kante 3,1 km, Wand bis 35 m · Grasnarbe 0,2 km · 74 Findlinge in Sicht · Grafikkarte = Prozessor: Farbe ± 0,78 %, Relief ± 3,5 mm
+  Brandung: See H_s 1,0 m, T_p 8 s aus 285° · Pegel +0,68 m NHN (Tide) · an Land
+  Tide: Westerland [G] Ebbe, Hochwasser 6:09 +0,80 m · Niedrigwasser 0:34 -0,97 m · Windstau +0,10 m
+  Brandung: Textur 835² (Version 1) · nah: Netz 56 Reihen auf 160 m, Wasserlinie 60 m vom Rand zur See · 1 Wellen · R_2% 0,10 m (Stockdon 0,50 m) · Rechnen 0,6 ms, Netz 0,5 ms
+  Flugsand: Wind hier 6 m/s aus 267° (Feld aus wind, 1,3 s) · u* 0,17 m/s, Schwelle 99,00 m/s · liegt (unter der Schwelle) · 0 Körner (0,3 ms)
+  Sturmflut: aus · Kliff: Kehle bis 0,0 m · 0 Abbrüche · Kegel 0 m³, Abtrag 0 m³ · Bilanz 0 = 0 steht + 0 Blöcke + 0 zerfallen + 0 ausgespült
+  Regen (rain): trocken
+  Seenebel (fog): keiner
+  Gewitter (lightning): keins
+  28 Möwen: 23 fliegen, 5 stehen im Aufwind, 0 sitzen, 0 schwimmen, 0 weg · 0 Rufe · Am Spülsaum 75 Vögel: 43 Sanderlinge, 14 Austernfischer, 18 Silbermöwen · 14 Hüpfer vor dem Schwall, 1 Fluchten, 1.348 Tritte
+  Spuren im nassen Sand: 759 (472 gelöscht vom Schwall) · ein Seehund vor dem Strand: Seehunde 1: 0 liegen, 1 im Wasser (0 tauchen) · Bank 0 % trocken · Tiere: Möwen 12 Netze (7 Arten), 9526 Dreiecke, je Vogel eine Instanz · Spülsaum 32 Netze, 17.600 Dreiecke · 75 Vögel gezeichnet · Seehund 1 Netz, 1568 Dreiecke · 1 Tiere, 0 Schatten · Grafikkarte = Prozessor: Flügelspitze ± 0,00 mm (Median), größte 0,00 mm, 28 Möwen
+  Licht: Meeresleuchten Blüte 0,56, im stürzenden Kamm 0,0e+00 cd/m² · grünes Leuchten nur die Brechung (heute keine Spiegelung)
+  Klang aus · am Ohr 0 dB · Ohr +0 dB · Wellen: 0 Schwallbrecher, 0 Sturzbrecher, 2 Schwälle · Rufe: 3 Möwen, 1 Sanderlinge, 1 Austernfischer, 0 Seehund, 0 Kuh
+  Regie: kein Regiebuch
+  Serie: ruhig · 0 Serien aus 2 Wellen, größte 0
+  Vorspülung: keine · Spur der Eiszeit: noch kein Abbruch
+  Bauten: 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 166 ms
+  Leuchtfeuer (beacon): Kampen Iso WR 7s aus · Quermarkenfeuer dunkel (seit 1975) · Licht am Turm 6.684 lx
+  132 von 132 Strandkörben (Saison), Öffnung nach 090° · 14 Galloways, 12 grasen, Mitte 158 m vom Turm
+  Physik 1/120 s · 1 Aufgaben · 0,00 ms je Schritt · Faden 0 % belegt
+  Gelände: DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+  Gelände 156 Knoten, 499.164 Punkte · fein bis 4 m, im Kern 1 m · Grund hier 1,2 m über NHN · See
+  Frei · Auge 2,9 m über NHN, 1,7 m über Grund · Blick 018° · Kern · 222 m bis Strand am Kliff
+  UTM 32 N  E 456548  N 6089300 · 54°56′56″ N · 8°19′18″ E · Kimm 5,8 km
+  Renderer.jar: 40 Packages in Renderer.jar, alle 23 gebrauchten da, dazu surf, dune, beacon
+  Neu für Sylt: surf ✓ · dune ✓ · beacon ✓
+  Ultra · 1920×1080 · umgekehrte Tiefe
+  AMD Radeon(TM) Graphics · OpenGL 4.6
+Bild: docs\status\Stufe_Ultra_Sommerabend.png
+Sylt: ATI Technologies Inc. · AMD Radeon(TM) Graphics · 4.6.0 Core Profile Context 26.10.1.261008
+Sylt: Compute 4.3: in Ordnung (64×64, 0,029 ms, bis 1024 Fäden, 64 KiB geteilt)
+Sylt: Gelände DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+Sylt: Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren
+Sylt: Wolken Rauschen 128³ + 32³, Karte 512², Schatten 256² über 24 km
+Sylt: Meer 
+Sylt: Bauten 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 88 ms · 495.558 Dreiecke, 30 MB
+Sylt: Unwetter · Regen bereit · Nebel bereit · Blitze bereit
+Sylt: Kliff Kante 3074 m (N 6.087.775 bis 6.091.723) · Wand bis 35,4 m · Wandkarte 2048² zu 2 m · Wand 0,2 %, Geröll 0,5 %, Absatz 0,3 % · 0 Fälle · Schichtkarte 1773 × 4029 zu 1,0 m · Oberkante bis 50,8 m · untere Grenze -3,0 bis 7,0 m · Decke im Mittel 1,9 m · Hohlkehle bis 0,0 m · Grasnarbe 17 Stücke, 0,2 km · 0 Findlinge in Sicht · 1100 ms
+Sylt: Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19 · Arten im Kern zu 1 m
+AMD Radeon(TM) Graphics · OpenGL 4.6
+Compute 4.3: in Ordnung (64×64, 0,029 ms, bis 1024 Fäden, 64 KiB geteilt)
+1920×1080 Ultra, 20.7.2026 20:30 MESZ: bestes Bild 37,06 ms, Mittel 47,12 ms (21 Bilder/s)
+Durchgänge (ms): Himmel 7,35 · Gelände 7,96 · Boden 0,00 · Meer 5,50 · Wolken 17,57 · Nachbearbeitung 0,17 · HUD 3,06
+  21 Bilder/s   Grafikkarte 41,62 ms   Prozessor 36,48 ms   Budget 50,0 ms
+  Himmel 7,35 · Gelände 7,96 · Boden 0,00 · Meer 5,50 · Wolken 17,57 · Nachbearbeitung 0,17 · HUD 3,06
+  Compute 4.3: in Ordnung (64×64, 0,029 ms, bis 1024 Fäden, 64 KiB geteilt)
+  20.7.2026 20:30 MESZ · Sonne 8,9° / 293° · Belichtung 7,50 (Auge, im Bild gemessen)
+  Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren · Sonne 9,0° · Mond 43 % · Sicht 8 km · Grafikkarte = Prozessor: Himmel ± 0,1 %, Durchlässigkeit ± 0,15 %, Mehrfachstreuung ± 0,0 %
+  Wolken Stratocumulus 8/8 · Basis 700 m · Gipfel bis 1500 m · Zug 35 m/s aus 275° · Niederschlag 55 % · Sonne am Auge 0 % · Grafikkarte = Prozessor: Wolkenschatten Median ± 0,000, 0 von 64 Randpunkten über 0,05 (mittleres Licht 0,02)
+  Wetter (Lage Sturm): 8/8 Stratocumulus, hoher Schleier 0 %, Sicht 8 km, Wind 22 m/s aus 255° (Bft 9, Böe 20 m/s), Regen 5,0 mm/h, 10 °C
+  See (ocean) FFT 4 × 512², Ringgitter 51.201 Ecken · Wind 22,0 m/s aus 255° · Dünung 3,4 m, 10 s aus 265° · Pegel +2,60 m · Grafikkarte = Prozessor: größte Abweichung 1,9 mm (Höhen bis 3,26 m)
+  Boden (ground, Biom Sylt · Düne und Heide): Bodendecke: aus
+  Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19
+  Kliff (cliff, Lockergestein): Kante 3,1 km, Wand bis 35 m · Grasnarbe 0,2 km · 74 Findlinge in Sicht · Grafikkarte = Prozessor: Farbe ± 0,78 %, Relief ± 3,5 mm
+  Brandung: See H_s 3,4 m, T_p 10 s aus 265° · Pegel +2,60 m NHN (von Hand) · bricht hier (76 % der Wellen): H_s 1,27 m in 1,2 m Wasser, Schwallbrecher, Set-up +0,17 m
+  Tide: Westerland [G] Ebbe, Hochwasser 6:09 +0,80 m · Niedrigwasser 0:34 -0,97 m · Windstau +0,10 m
+  Brandung: Textur 835² (Version 1) · nah: Netz 56 Reihen auf 160 m, Wasserlinie 470 m vom Rand zur See · 4 Wellen · R_2% noch keine Spitze (Stockdon 0,99 m) · Rechnen 1,7 ms, Netz 2,1 ms
+  Flugsand: Wind hier 21 m/s aus 252° (Feld aus wind, 1,2 s) · u* 0,67 m/s, Schwelle 99,00 m/s · nass, liegt · 0 Körner (0,3 ms)
+  Sturmflut: aus · Kliff: Kehle bis 0,0 m · 0 Abbrüche · Kegel 0 m³, Abtrag 0 m³ · Bilanz 0 = 0 steht + 0 Blöcke + 0 zerfallen + 0 ausgespült
+  Regen (rain): 5,0 mm/h unter den Vorhängen, hier 4,2 mm/h · Sicht im Regen 6,4 km · 60.000 Streifen (32 % leben hier), Vorhang 48 Schritte, Ringkarte 512² · Grafikkarte = Prozessor: Regentropfen ± 0,0 mm (Median), größte 0,1 mm, 1224 Proben, 0 am Rand
+  Seenebel (fog): keiner
+  Gewitter (lightning): keins
+  28 Möwen: 28 fliegen, 0 stehen im Aufwind, 0 sitzen, 0 schwimmen, 0 weg · 0 Rufe · Am Spülsaum: alle fort (kein Strand oder Sturm)
+  Spuren im nassen Sand: 0 (0 gelöscht vom Schwall) · ein Seehund vor dem Strand: Seehunde 1: 0 liegen, 1 im Wasser (0 tauchen) · Bank 0 % trocken · Tiere: Möwen 12 Netze (7 Arten), 9526 Dreiecke, je Vogel eine Instanz · Spülsaum 32 Netze, 17.600 Dreiecke · 0 Vögel gezeichnet · Seehund 1 Netz, 1568 Dreiecke · 1 Tiere, 0 Schatten · Grafikkarte = Prozessor: Flügelspitze ± 0,00 mm (Median), größte 0,00 mm, 28 Möwen
+  Licht: Meeresleuchten Blüte 0,56, im stürzenden Kamm 0,0e+00 cd/m² · grünes Leuchten nur die Brechung (heute keine Spiegelung)
+  Klang aus · am Ohr 0 dB · Ohr +0 dB · Wellen: 0 Schwallbrecher, 0 Sturzbrecher, 0 Schwälle · Rufe: 0 Möwen, 0 Sanderlinge, 0 Austernfischer, 0 Seehund, 0 Kuh
+  Regie: kein Regiebuch
+  Serie: ruhig · 0 Serien aus 4 Wellen, größte 0
+  Vorspülung: keine · Spur der Eiszeit: noch kein Abbruch
+  Bauten: 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 88 ms
+  Leuchtfeuer (beacon): Kampen Iso WR 7s aus · Quermarkenfeuer dunkel (seit 1975) · Licht am Turm 3.737 lx
+  0 von 132 Strandkörben (Sturmwarnung, weggeräumt), Öffnung nach 075° · 14 Galloways, 12 grasen, Mitte 158 m vom Turm
+  Physik 1/120 s · 1 Aufgaben · 0,00 ms je Schritt · Faden 0 % belegt
+  Gelände: DGM1 2024 (138 Kacheln) + BAW 2015–2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+  Gelände 156 Knoten, 499.164 Punkte · fein bis 4 m, im Kern 1 m · Grund hier 1,2 m über NHN · See
+  Frei · Auge 4,3 m über NHN, 1,7 m über Grund · Blick 018° · Kern · 222 m bis Strand am Kliff
+  UTM 32 N  E 456548  N 6089300 · 54°56′56″ N · 8°19′18″ E · Kimm 5,0 km
+  Renderer.jar: 40 Packages in Renderer.jar, alle 23 gebrauchten da, dazu surf, dune, beacon
+  Neu für Sylt: surf ✓ · dune ✓ · beacon ✓
+  Ultra · 1920×1080 · umgekehrte Tiefe
+  AMD Radeon(TM) Graphics · OpenGL 4.6
+Bild: docs\status\Stufe_Ultra_Sturmflut.png

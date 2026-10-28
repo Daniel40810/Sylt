@@ -313,14 +313,14 @@ pruefung:
      [java]   ok    an der Küste des Kerns ist die Brandung weiß (Walzen über 30 % auf 16 von 17 Querprofilen alle 200 m; in den Rinnen schwächer)
      [java]   ok    Grund der Brandung: Gelände (über ±12 m geglättet) mit Riffen (hier +0,81 m, Grund +0,78 m über demGelände) und 10 Rinnen vor dem Kern (F10 A)
      [java]   ok    5 Buhnen (2 aus dem Luftbild DOP20 2024: Kliffende, Kampen; 3 bei Wenningstedt geschätzt), 1248 Pfähle, gemessene im Kern, geschätzte bei Wenningstedt; Köpfe zwischen -2,1 und +3,2 m NHN; Brandungsringe in ocean nahe amAuge
-     [java]   ok    Netz nahe am Auge vor der Kliffkante: 147 m Strand (24 Reihen auf 160 m), gebaut und eingeschwungenin 1,1 s, 48 Auflaufspitzen in 20 s, Netz 11520 Ecken
+     [java]   ok    Netz nahe am Auge vor der Kliffkante: 147 m Strand (24 Reihen auf 160 m), gebaut und eingeschwungenin 1,2 s, 48 Auflaufspitzen in 20 s, Netz 11520 Ecken
      [java]   ok    Nässe des Sands im Stück aus dem Schwall: 30 von 30 Stellen über dem Pegel folgen ihm
      [java]   ok    HUD: Zeilen für Tide und Brandung
      [java]
      [java] ? Flugsand in der Szene (Phase 9a)
      [java]   ok    Windfeld aus com.dan.wind über dem Kern (F21 A): am Strand 21,0 m/s aus 278° bei Bft 9 aus 280° · 46 × 72 × 30 Zellen zu 50 m bis 1546 m · 141 Schritte, Rest 9e-06 · Masse ± 0,000 % (höchstens 0,00 %) · 0,1 s
-     [java]   ok    Sandsturm am Strand: oben am Strand fliegen 63 g/(m·s), an der Wasserlinie nichts (Sand 22 % nass) · Flugsand 240 × 160 m zu 0,50 m aus 278°: u* bis 1,66 m/s, q bis 0,672 kg/(m·s), ? 1,4 m, 54 % fliegt (270,4 ms)
-     [java]   ok    Körner um das Auge: Saltation: 4105 Körner zu 6,0 g, Schweb 134 (bis 0,8 m), 1,6 ms; Windfeld, Feldund 3 s Körner in 789 ms
+     [java]   ok    Sandsturm am Strand: oben am Strand fliegen 63 g/(m·s), an der Wasserlinie nichts (Sand 22 % nass) · Flugsand 240 × 160 m zu 0,50 m aus 278°: u* bis 1,66 m/s, q bis 0,672 kg/(m·s), ? 1,4 m, 54 % fliegt (388,7 ms)
+     [java]   ok    Körner um das Auge: Saltation: 4105 Körner zu 6,0 g, Schweb 134 (bis 0,8 m), 1,5 ms; Windfeld, Feldund 3 s Körner in 917 ms
      [java]   ok    Heide und Kliff geben keinen Sand (Bewuchs)
      [java]   ok    nach starkem Regen (6 % Wasser im Sand, gebunden) fliegt bei Bft 9 nichts (Schwelle 99,00 m/s, u* 0,71 m/s)
      [java]   ok    HUD: Flugsand: Wind hier 21 m/s aus 278° (Feld aus wind, 0,1 s) · u* 0,71 m/s, Schwelle 99,00 m/s ·liegt (unter der Schwelle) · 10 Körner (0,0 ms)
@@ -363,7 +363,7 @@ pruefung:
      [java] ? Wetter, Licht, Leben (Phase 13)
      [java]   ok    Lage ?Sommerabend? (Vorgabe): dieselben Werte wie bis Phase 12 (Wind 6 m/s aus 270°, 3/8 Cumulus, Sicht 40 km, See 1,0 m, 8 s aus 285°)
      [java]   ok    Lage ?Sturm?: 22 m/s aus 255°, Regen 5 mm/h, See 3,4 m
-     [java]   ok    freie Regie über drei Tage: 8 Lagen ([ABKLINGEND, KLAR, STURM, FRONT, AUFKLAREND, NEBEL, AUFZIEHEND, GEWITTER]), Luftdruck 992 bis 1024 hPa
+     [java]   ok    freie Regie über drei Tage: 8 Lagen ([ABKLINGEND, STURM, AUFKLAREND, GEWITTER, NEBEL, AUFZIEHEND, KLAR, FRONT]), Luftdruck 992 bis 1024 hPa
      [java]   ok    ?Ein Sturmtag? um 16 Uhr: Ein Sturmtag, Schritt 4 von 9: Sturm, Bft 9 (Bft 9, 987 hPa)
      [java]   ok    von Hand: die Regie ruht, der Wert bleibt
      [java]   ok    Sturmflut: der Fahrplan nach Xaver führt (Wind 14 m/s, Schauer 1,0 mm/h), die Regie ruht
@@ -375,8 +375,8 @@ pruefung:
      [java]   ok    Wind Bft 6: der Nebel ist fort
      [java]   ok    Gewitter über der See: Stufe mäßig, Fangpunkte [Kampener Leuchtturm, Quermarkenfeuer], Blitz in denKampener Leuchtturm
      [java]   ok    Möwen bei Westwind 11 m/s: 31 Hangkanten aus kante.csv, im Mittel 8,3 Möwen im Hangaufwind vor der Kante
-     [java]   ok    Spülsaum im September: Am Spülsaum 48 Vögel: 36 Sanderlinge, 6 Austernfischer, 6 Silbermöwen · 238 Hüpfer vor dem Schwall, 4 Fluchten, 63.658 Tritte; Sanderlinge im Mittel 0,91 m vor der Kante
-     [java]   ok    Spuren im nassen Sand: 63.658 Tritte, 752 Abdrücke im Raster, 19.907 vom Schwall gelöscht
+     [java]   ok    Spülsaum im September: Am Spülsaum 48 Vögel: 36 Sanderlinge, 6 Austernfischer, 6 Silbermöwen · 242 Hüpfer vor dem Schwall, 4 Fluchten, 65.233 Tritte; Sanderlinge im Mittel 0,94 m vor der Kante
+     [java]   ok    Spuren im nassen Sand: 65.233 Tritte, 934 Abdrücke im Raster, 21.169 vom Schwall gelöscht
      [java]   ok    Seehund in 92 von 600 Stunden (selten, etwa eine von sechs)
      [java]   ok    Meeresleuchten: Augustnacht 5,4e-03 cd/m² im stürzenden Kamm, Januarnacht 0, am Tag nicht sichtbar
      [java]   ok    grünes Leuchten: an 29 von 120 klaren Sommerabenden mit Spiegelung, im Regen nur die Brechung
@@ -385,15 +385,15 @@ pruefung:
      [java]
      [java] ? Klang (Phase 14)
      [java]   ok    Spülsaum, Sommerabend: Brandung fern 62 dB aus 152 Stücken (5062 W/m vergehen gegenüber), am Ohr 62dB
-     [java]   ok    einzelne Wellen am Ohr in 40 s: 4 Brecher, 2 Schwälle, Ereignisse 51 dB
-     [java]   ok    Vögel rufen: 9 in 40 s (Möwen 26, Sanderlinge 10, Austernfischer 9)
+     [java]   ok    einzelne Wellen am Ohr in 40 s: 4 Brecher, 2 Schwälle, Ereignisse 53 dB
+     [java]   ok    Vögel rufen: 9 in 40 s (Möwen 29, Sanderlinge 11, Austernfischer 9)
      [java]   ok    Rechenzeit des Klangs am Strand (32 kHz): 13 ms je s Ton
      [java]   ok    Uwe-Düne: Brandung fern 54 dB (am Strand 60 dB), Rollen 12 dB über dem Zischen
      [java]   ok    40 m hinter der Kliffkante, 1 m über ihr: die Kante nimmt 8 dB (Beugung nach Maekawa); am Strand davor nichts
-     [java]   ok    Sandsturm: Flugsand am Ohr 0,024 kg/(m·s), Wind 72 dB · Äolstöne 47 dB · See 49 dB · Brandung fern 61 dB · Sand und Halme 54 dB · Ereignisse 32 dB · am Ohr 72 dB · 3 Stimmen · Begrenzer -7,1 dB
+     [java]   ok    Sandsturm: Flugsand am Ohr 0,021 kg/(m·s), Wind 72 dB · Äolstöne 47 dB · See 49 dB · Brandung fern 61 dB · Sand und Halme 54 dB · Ereignisse 39 dB · am Ohr 72 dB · 3 Stimmen · Begrenzer -7,8 dB
      [java]   ok    Abbruch klingt (4 Stimmen), Donner verdrahtet
      [java]   ok    HUD: Zeile für den Klang
-     [java]   (Klang gerechnet in 6,1 s)
+     [java]   (Klang gerechnet in 6,0 s)
      [java]
      [java] ? Regie und Kino (Phase 15)
      [java]   ok    4 Regiebücher als Text (scene/regie/*.txt): Ein Abend am Kliff, Die Sturmflut, Ein Jahr am Kliff, Mit der Welle; 39 Fotos
@@ -409,9 +409,9 @@ pruefung:
      [java]   ok    Kino: [AUS, VORSPANN, FILM, ABSPANN, AUSKLANG], Ton im Schwarz bis 15 %, danach wie vorher
      [java]   ok    ?Ein Abend am Kliff? läuft ohne Eingriff durch: 25 Stichworte, 9 Fotos, 92 s gewartet, 0 Mal ausgewichen (25 s Rechenzeit) · Ein Abend am Kliff ist zu Ende (25 Stichworte)
      [java]   ok    ?Die Sturmflut? läuft ohne Eingriff durch: 27 Stichworte, 10 Fotos, 106 s gewartet, 0 Mal ausgewichen (55 s Rechenzeit) · Die Sturmflut ist zu Ende (27 Stichworte)
-     [java]   ok    ?Ein Jahr am Kliff? läuft ohne Eingriff durch: 32 Stichworte, 13 Fotos, 143 s gewartet, 0 Mal ausgewichen (73 s Rechenzeit) · Ein Jahr am Kliff ist zu Ende (32 Stichworte)
+     [java]   ok    ?Ein Jahr am Kliff? läuft ohne Eingriff durch: 32 Stichworte, 13 Fotos, 143 s gewartet, 0 Mal ausgewichen (72 s Rechenzeit) · Ein Jahr am Kliff ist zu Ende (32 Stichworte)
      [java]   ok    ?Mit der Welle? läuft ohne Eingriff durch: 18 Stichworte, 7 Fotos, 144 s gewartet, 0 Mal ausgewichen (30 s Rechenzeit) · Mit der Welle ist zu Ende (18 Stichworte)
-     [java]   ok    Mit der Welle: Serie: ruhig · 33 Serien aus 476 Wellen, im Mittel alle 0,7 min, größte 20 · Abschnitte [KAMM, HOHLRAUM, UNTER, WALZE, SCHWALL, ENDE]
+     [java]   ok    Mit der Welle: Serie: ruhig · 31 Serien aus 479 Wellen, im Mittel alle 0,7 min, größte 20 · Abschnitte [KAMM, HOHLRAUM, UNTER, WALZE, SCHWALL, ENDE]
      [java]   ok    Die Spur der Eiszeit: 56 Abbrüche in den Regiebüchern, Spur der Eiszeit: alte Linie auf 1.708 m, Findlinge an 56 Stellen
      [java]
      [java] ? Oberfläche und Datenbank (Phase 16, ohne Datenbank)
@@ -430,7 +430,7 @@ pruefung:
      [java]   ok    Kante 2024 in 121 Stücken zu höchstens 37 m längs, zusammen 3068 m in Nord (F36 A)
      [java]   ok    WKT in UTM 32N (25832) auf 1 cm: Punkt, Linie, Fläche (außen gegen den Uhrzeigersinn in Ost/Nord) hin und zurück; POLYGON ((456300 6089170, 456370 6089170 ?
      [java]   ok    Chronik aus dem Abbruch bei N 6.090.335 (06.12.2013 11:00 MEZ): 350 m³ fest, Kegel 455 m³ locker, Kehle 6,0 m, L_c 1,5 m, Pegel +0,98 m, Auflauf 1,32 m, Kante 0,0 m zurück
-     [java]   ok    Dateien in daten/ (F33 A): Lauf angelegt und fortgeschrieben, 1 Stück Kante aus dem Abbruch (ohne kante.csv im Ordner), 3 Einträge für CHRONIK, Sitzung mit Zustand (303.781 Zeichen) und Vorschau
+     [java]   ok    Dateien in daten/ (F33 A): Lauf angelegt und fortgeschrieben, 1 Stück Kante aus dem Abbruch (ohne kante.csv im Ordner), 3 Einträge für CHRONIK, Sitzung mit Zustand (303.780 Zeichen) und Vorschau
      [java]   ok    abbrueche.csv mit WKT in 25832 für QGIS; zurückgelesen gleich (Volumen, Kante)
      [java]   ok    Kliffkarte 1600 × 900 (27 KB)
      [java]   ok    Chronik einer Sitzung geleert: 4 Zeilen
@@ -452,7 +452,7 @@ pruefung:
      [java]   ok    Sylt.bat
      [java]   ok    Sylt_Konsole.bat
      [java]   ok    Sylt_Verknuepfung.bat
-     [java]   FEHLER docs/QUELLEN.md passt zu den Listen (sonst ant quellen): 28 Quellen, 28 Befunde
+     [java]   ok    docs/QUELLEN.md passt zu den Listen (sonst ant quellen): 28 Quellen, 28 Befunde
      [java]   ok    41 Prüfklassen in lib/Renderer.jar für ant vorgaenger
      [java]
      [java] ? Renderer.jar und Shader
@@ -492,12 +492,10 @@ pruefung:
      [java]   ok    kein Laufzeitcode öffnet C:\Daten (nur Werkzeuge in com.dan.sylt.tools, ab Phase 2)
      [java]   ok    die App benutzt keine Werkzeuge (Rohdaten, Aufbereitung) zur Laufzeit
      [java]
-     [java] 265 Prüfungen in 328,9 s
-     [java] ERGEBNIS: 1 Fehler
+     [java] 265 Prüfungen in 328,5 s
+     [java] ERGEBNIS: alles in Ordnung
 
-BUILD FAILED
-C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build.xml:93: Java returned: 1
-
+BUILD SUCCESSFUL
 Total time: 5 minutes 33 seconds
 
 C:\Users\Dan40810\Documents\NetBeansProjects\Sylt>
