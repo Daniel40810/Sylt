@@ -120,7 +120,7 @@ public final class Kliffabbruch implements Physik.Aufgabe {
 
     private volatile Schnitt schnitt;
     private final List<Schnitt> fertig = new ArrayList<>();
-    private final java.util.Set<Integer> kegelZellen = new java.util.HashSet<>();
+    private final java.util.Set<Integer> kegelZellen = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     /** Ein Stück Kliff, das gerechnet wird. */
     public final class Schnitt {
@@ -132,6 +132,9 @@ public final class Kliffabbruch implements Physik.Aufgabe {
         final double[] fuss, kant;   // je Zeile r0..r1: x des Fußes und der Kante
         final boolean[] verarbeitet;
         final double[] kehleImKoerper, wandX;
+        /** Seit Phase 16: die Kante vor diesem Stück (Ost je Zeile r0..r1) und der Kegel beim Beginn (für die Chronik). */
+        final double[] kanteVor;
+        double kegel0;
         /** Flächen, die für den Bestand angehoben wurden ({@code Solid.stabilize}). */
         public int gestaerkt;
         double ruhig, alter;
@@ -148,6 +151,8 @@ public final class Kliffabbruch implements Physik.Aufgabe {
             int n = r1 - r0 + 1;
             fuss = new double[n];
             kant = new double[n];
+            kanteVor = new double[n];
+            for (int r = r0; r <= r1; r++) kanteVor[r - r0] = kante.kanteE[r];
             double xa = Double.MAX_VALUE, xb = -Double.MAX_VALUE, hb = Double.MAX_VALUE;
             for (int r = r0; r <= r1; r++) {
                 fuss[r - r0] = Math.min(kante.fussX(r), kante.kanteX(r));
@@ -498,6 +503,7 @@ public final class Kliffabbruch implements Physik.Aufgabe {
         if (r1 - r0 < 10) { kehle[r] = Math.min(kehle[r], 0.5 * lc(r)); return; }   // zu kurz: hier nicht rechnen
         Schnitt s = new Schnitt(r, r0, r1);
         vKliff0 += s.volumen0;
+        s.kegel0 = vKegel;
         schnitt = s;
         meldung = String.format(Locale.GERMAN, "Kliff bei N %,.0f wird gerechnet: %d Zellen, %.0f m³, Kehle %.1f m (L_c %.1f m)",
                 kante.nord[r], s.solid.cells(), s.volumen0, kehle[r], lc(r));
@@ -588,6 +594,8 @@ public final class Kliffabbruch implements Physik.Aufgabe {
         vAusgespuelt += s.welt.erodedVolume();
         // neue Kante je Zeile: von landwärts her die erste Stelle, an der das Gelände 1,5 m unter seine Höhe dahinter fällt,
         // vorher (gemessen) und nachher (mit der Änderung); liegt sie nachher weiter landwärts, ist die Kante zurückgegangen
+        double kehleMax = 0;
+        for (int r = s.r0; r <= s.r1; r++) kehleMax = Math.max(kehleMax, kehle[r]);
         if (s.gebrochen) {
             for (int r = s.r0; r <= s.r1; r++) {
                 double z = kante.z(r), xa = s.kant[r - s.r0] + LAND - 2, xb = s.fuss[r - s.r0] - 2;
@@ -605,13 +613,143 @@ public final class Kliffabbruch implements Physik.Aufgabe {
             if (strata != null) strata.clearNotch(s.x0 - 3, s.z0, s.x1, s.z1);
             // die Spur: alter Fuß, wo die Wand zurückwich; Findlinge vor dem Kegel (aus dem Lehm gefallen) [G]
             for (int r = s.r0; r <= s.r1; r++) if (!Double.isNaN(abriss[r])) spur.add(new double[]{s.fuss[r - s.r0], kante.z(r)});
-            findlingStellen.add(new double[]{s.fuss[s.mitte - s.r0] - 6, kante.z(s.mitte), Math.max(8, (s.r1 - s.r0) * 0.6)});
+            double[] fl = {s.fuss[s.mitte - s.r0] - 6, kante.z(s.mitte), Math.max(8, (s.r1 - s.r0) * 0.6)};
+            findlingStellen.add(fl);
             spurVersion++;
+            bereiche.add(new double[]{s.x0, s.z0, s.x1, s.z1});
+            ergebnisse.add(ergebnis(s, s.volumen0 - steht - s.welt.erodedVolume(), bloecke, kehleMax, fl));
         } else for (int r = s.r0; r <= s.r1; r++) geprueft[r] = kehle[r];
         synchronized (fertig) { fertig.add(s); }
         meldung = String.format(Locale.GERMAN, "Abbruch bei N %,.0f fertig: %s · Kante bis %.1f m zurück", kante.nord[s.mitte],
                 s.gebrochen ? String.format(Locale.GERMAN, "%.0f m³ gebrochen", s.volumen0 - steht - s.welt.erodedVolume()) : "hält", rueckgang(s.r0, s.r1));
         schnitt = null;
+    }
+
+    // ------------------------------------------------------------------ seit Phase 16: Chronik und „Weiter wie zuletzt“
+
+    /** Die Uhr der Szene (ms seit 1970), vom Bildlauf gesetzt; damit trägt ein Ergebnis seine Szenenzeit. */
+    public volatile double uhrMs = Double.NaN;
+
+    /**
+     * Ein gebrochenes Stück für die Chronik (F37 A): Ort, Bilanz, Kegel, Kehle und L_c, Pegel und Auflauf, Rückgang;
+     * die Kante davor und danach und die Abrisskante als Linien in Szenenmetern {x, z}, die Findlinge {x, z, Halbmesser}.
+     */
+    public record Ergebnis(double ms, double nord, double nordVon, double nordBis, double volumen, double bloecke, double zerfallen, double ausgespuelt,
+                           double kegel, double kehle, double lc, double pegel, double auflauf, double rueckgang, double wandMax, double kanteMaxH,
+                           double[][] kanteVor, double[][] kanteNach, double[][] abrisskante, double[] findling) {
+        public double laenge() { return Math.abs(nordVon - nordBis); }
+    }
+
+    /** Die gebrochenen Stücke in der Reihenfolge des Bruchs (die Chronik holt sie ab). */
+    public final List<Ergebnis> ergebnisse = new java.util.concurrent.CopyOnWriteArrayList<>();
+    /** Die Rechtecke {x0, z0, x1, z1} der gebrochenen Stücke (für Wandkarte und Grasnarbe nach „Weiter wie zuletzt“). */
+    public final List<double[]> bereiche = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+    private Ergebnis ergebnis(Schnitt s, double volumen, double bloecke, double kehleMax, double[] findling) {
+        int n = s.r1 - s.r0 + 1;
+        double[][] vor = new double[n][], nach = new double[n][], fuss = new double[n][];
+        double wand = 0, hk = 0;
+        for (int r = s.r0; r <= s.r1; r++) {
+            double z = kante.z(r);
+            vor[r - s.r0] = new double[]{s.kanteVor[r - s.r0] - Site.E0, z};
+            nach[r - s.r0] = new double[]{kante.kanteE[r] - Site.E0, z};
+            fuss[r - s.r0] = new double[]{(Double.isNaN(abriss[r]) ? kante.fussE[r] : abriss[r]) - Site.E0, z};
+            wand = Math.max(wand, kante.wand[r]);
+            hk = Math.max(hk, kante.hKante[r]);
+        }
+        double zerf = s.welt.disintegratedVolume(), aus = s.welt.erodedVolume();
+        return new Ergebnis(uhrMs, kante.nord[s.mitte], kante.nord[s.r0], kante.nord[s.r1], volumen, bloecke, zerf, aus, vKegel - s.kegel0, kehleMax, lc(s.mitte),
+                pegelJetzt, r2Jetzt, rueckgang(s.r0, s.r1), wand, hk, vor, nach, fuss, findling.clone());
+    }
+
+    private static final int STAND_MAGIC = 0x53594b31;   // „SYK1“
+
+    /**
+     * Der Stand des Kliffs als Text (Base64 über Deflate): Änderung und Abbruch des Geländes, Kehle, Kante, Abrisskante,
+     * Bilanz, Spur, Findlinge und Kegel. Ein Stück, das gerade gerechnet wird, kommt nicht mit (es fällt beim
+     * Herstellen weg, die Kehle bleibt). Im Faden der Daten gelesen: die Felder sind Zahlen, ein halber Schritt schadet nicht.
+     */
+    public String stand() {
+        try {
+            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+            try (java.io.DataOutputStream o = new java.io.DataOutputStream(new java.util.zip.DeflaterOutputStream(bo, new java.util.zip.Deflater(6)))) {
+                o.writeInt(STAND_MAGIC);
+                o.writeInt(kante.n);
+                o.writeInt(aenderung.nx);
+                o.writeInt(aenderung.nz);
+                for (float v : aenderung.d) o.writeFloat(v);
+                for (float v : weg.d) o.writeFloat(v);
+                for (double[] a : new double[][]{kehle, gemalt, geprueft, kanteNeu, abriss, kante.kanteE}) for (double v : a) o.writeDouble(v);
+                o.writeInt(abbrueche);
+                for (double v : new double[]{vKehle, vAbtrag, vKegel, vAbgesenkt, vKliff0, vSteht, vBloecke, vZerfallen, vAusgespuelt}) o.writeDouble(v);
+                for (List<double[]> l : List.of(spur, findlingStellen, bereiche)) {
+                    o.writeInt(l.size());
+                    for (double[] p : l) { o.writeInt(p.length); for (double v : p) o.writeDouble(v); }
+                }
+                List<Integer> kz;
+                kz = new ArrayList<>(kegelZellen);
+                o.writeInt(kz.size());
+                for (int k : kz) o.writeInt(k);
+            }
+            return java.util.Base64.getEncoder().encodeToString(bo.toByteArray());
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("Stand des Kliffs: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Den Stand herstellen (im Faden der Physik, über {@link #imFaden}): ein laufendes Stück fällt weg. Gibt false zurück,
+     * wenn der Text nicht zu dieser Kante oder Änderung passt (dann bleibt alles, wie es war).
+     */
+    public boolean standSetzen(String text) {
+        try (java.io.DataInputStream in = new java.io.DataInputStream(new java.util.zip.InflaterInputStream(
+                new java.io.ByteArrayInputStream(java.util.Base64.getDecoder().decode(text.strip()))))) {
+            if (in.readInt() != STAND_MAGIC || in.readInt() != kante.n || in.readInt() != aenderung.nx || in.readInt() != aenderung.nz) return false;
+            float[] a = new float[aenderung.d.length], w = new float[weg.d.length];
+            for (int i = 0; i < a.length; i++) a[i] = in.readFloat();
+            for (int i = 0; i < w.length; i++) w[i] = in.readFloat();
+            double[][] arr = new double[6][kante.n];
+            for (double[] x : arr) for (int i = 0; i < x.length; i++) x[i] = in.readDouble();
+            int ab = in.readInt();
+            double[] v = new double[9];
+            for (int i = 0; i < v.length; i++) v[i] = in.readDouble();
+            List<List<double[]>> listen = new ArrayList<>();
+            for (int l = 0; l < 3; l++) {
+                List<double[]> li = new ArrayList<>();
+                int n = in.readInt();
+                for (int k = 0; k < n; k++) { double[] p = new double[in.readInt()]; for (int q = 0; q < p.length; q++) p[q] = in.readDouble(); li.add(p); }
+                listen.add(li);
+            }
+            int nk = in.readInt();
+            List<Integer> kz = new ArrayList<>();
+            for (int k = 0; k < nk; k++) kz.add(in.readInt());
+            // gelesen: jetzt erst setzen
+            schnitt = null;
+            aenderung.setzen(a);
+            weg.setzen(w);
+            System.arraycopy(arr[0], 0, kehle, 0, kante.n);
+            System.arraycopy(arr[1], 0, gemalt, 0, kante.n);
+            System.arraycopy(arr[2], 0, geprueft, 0, kante.n);
+            System.arraycopy(arr[3], 0, kanteNeu, 0, kante.n);
+            System.arraycopy(arr[4], 0, abriss, 0, kante.n);
+            System.arraycopy(arr[5], 0, kante.kanteE, 0, kante.n);
+            abbrueche = ab;
+            vKehle = v[0]; vAbtrag = v[1]; vKegel = v[2]; vAbgesenkt = v[3]; vKliff0 = v[4]; vSteht = v[5]; vBloecke = v[6]; vZerfallen = v[7]; vAusgespuelt = v[8];
+            spur.clear(); spur.addAll(listen.get(0));
+            findlingStellen.clear(); findlingStellen.addAll(listen.get(1));
+            bereiche.clear(); bereiche.addAll(listen.get(2));
+            kegelZellen.clear();
+            kegelZellen.addAll(kz);
+            if (strata != null) {
+                for (int r = 0; r < kante.n; r++) if (kehle[r] > 0.05) strata.paintNotch(kante.fussX(r), kante.z(r), 2.2, kehle[r]);
+            }
+            spurVersion++;
+            meldung = String.format(Locale.GERMAN, "Stand hergestellt: %d Abbrüche, Kehle bis %.1f m", abbrueche, tiefsteKehle());
+            return true;
+        } catch (java.io.IOException | RuntimeException e) {
+            meldung = "Stand des Kliffs nicht lesbar: " + e.getMessage();
+            return false;
+        }
     }
 
     /** Kante auf der Zeile z: von xa seewärts bis xb die erste Stelle 1,5 m unter der höchsten Stelle dahinter (NaN: keine). */

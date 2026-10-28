@@ -68,7 +68,7 @@ import java.util.function.Consumer;
  */
 public final class Renderer implements GLEventListener {
     public static final int MIN_MAJOR = 4, MIN_MINOR = 3;
-    public static final String VERSION = "Phase 3";
+    public static final String VERSION = "Phase 16";
     /** Phase des Stands (für Ansichten und Bedienfeld). */
     public static final int PHASE = 3;
     public static final String[] PASSES = {"Himmel", "Gelände", "Boden", "Meer", "Wolken", "Nachbearbeitung", "HUD"};
@@ -437,12 +437,37 @@ public final class Renderer implements GLEventListener {
         double ms = clock.epochMillis(), dh = Double.isNaN(abbruchMs) ? 0 : (ms - abbruchMs) / 3_600_000.0;
         abbruchMs = ms;
         if (dh < 0 || dh > 24) dh = 0;   // die Uhr wurde gestellt
+        abbruch.uhrMs = ms;
         abbruch.flut(dh, wiring.pegel, brandung.auflaufR2());
+        if (kliffstandNeu) {
+            // seit Phase 16: nach „Weiter wie zuletzt“ Wandkarte und Grasnarbe an den Kanten der früheren Abbrüche
+            kliffstandNeu = false;
+            for (double[] b : abbruch.bereiche) kliff.erneuern(b[0], b[1], b[2], b[3], terrain::height);
+            fertigGesehen = abbruch.fertige().size();
+        }
         java.util.List<com.dan.sylt.scene.Kliffabbruch.Schnitt> f = abbruch.fertige();
         for (; fertigGesehen < f.size(); fertigGesehen++) {
             com.dan.sylt.scene.Kliffabbruch.Schnitt s = f.get(fertigGesehen);
             if (s.gebrochen()) kliff.erneuern(s.x0, s.z0, s.x1, s.z1, terrain::height);
         }
+    }
+
+    private volatile boolean kliffstandNeu;
+
+    /**
+     * Seit Phase 16 („Weiter wie zuletzt“, F42 A): den Stand des Kliffs (Abbrüche, Kegel, Kehle, Kante) und der Vorspülung
+     * herstellen. Gearbeitet wird im Faden der Physik; danach legt der Bildlauf Wandkarte und Grasnarbe neu. {@code fertig}
+     * bekommt, ob es ging (im Faden der Physik).
+     */
+    public void kliffstandSetzen(String kliffText, String vorspuelungText, java.util.function.Consumer<Boolean> fertig) {
+        if (abbruch == null || kliffText == null) { if (fertig != null) fertig.accept(false); return; }
+        abbruch.imFaden(() -> {
+            boolean ok = abbruch.standSetzen(kliffText);
+            if (ok && vorspuelung != null) ok = vorspuelung.setzen(vorspuelungText);
+            abbruchMs = Double.NaN;
+            kliffstandNeu = true;
+            if (fertig != null) fertig.accept(ok);
+        });
     }
 
     /**
@@ -1976,6 +2001,18 @@ public final class Renderer implements GLEventListener {
     public static int zeile(com.dan.sylt.scene.Kante kn, double nord) {
         int r = kn.rowNear(Site.N0 - nord, 150);
         return Math.max(0, r);
+    }
+
+    /**
+     * Seit Phase 16 (Block CHRONIK): die Kamera auf eine Stelle am Kliff richten, 110 m seewärts und 16 m über Grund
+     * oder Wasser, Blick auf die Wand dort.
+     */
+    public void zurStelle(double x, double z, String text) {
+        double ex = x - com.dan.sylt.scene.Kueste.SX * 110, ez = z - com.dan.sylt.scene.Kueste.SZ * 110;
+        camera.mode = com.dan.sylt.camera.Camera.Mode.FREI;
+        blick(ex, ez, 16, x, groundHeight(x, z) + 6, z, com.dan.sylt.camera.Camera.FOVY);
+        camera.snap();
+        if (text != null) hudMeldung(text);
     }
 
     /** Frei stehen bei (ex, ez), hoch über Grund oder Wasser, Blick auf (tx, ty, tz), Öffnung fovy. */

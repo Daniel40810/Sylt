@@ -89,6 +89,55 @@ public final class Vorspuelung {
         ist = null;
     }
 
+    /** Seit Phase 16: Beginn der laufenden Vorspülung (ms seit 1970) oder NaN, Anteil, der noch da ist. */
+    public double beginnMs() { return startMs; }
+    public double amplitude() { return amplitude; }
+    /** Ob ein Körper liegt (auch wenn er schon abgetragen wird). */
+    public boolean liegt() { return ist != null; }
+
+    /**
+     * Seit Phase 16 („Weiter wie zuletzt“): der Stand als Text (Base64 über Deflate) oder null ohne Körper. Den Körper
+     * selbst trägt die {@link Aenderung} (sie kommt mit dem Stand des Kliffs); hier nur, was er weiß, um weiter zu wachsen
+     * oder abgetragen zu werden.
+     */
+    public String stand() {
+        float[] f = ist;
+        if (f == null) return null;
+        try {
+            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+            try (java.io.DataOutputStream o = new java.io.DataOutputStream(new java.util.zip.DeflaterOutputStream(bo))) {
+                o.writeInt(f.length);
+                for (double v : new double[]{startMs, letzteMs, amplitude, aufbau, volumen}) o.writeDouble(v);
+                o.writeBoolean(aktiv);
+                for (float v : f) o.writeFloat(v);
+            }
+            return java.util.Base64.getEncoder().encodeToString(bo.toByteArray());
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** Den Stand herstellen (im Faden der Physik, mit dem Stand des Kliffs); null: keine Vorspülung. */
+    public boolean setzen(String text) {
+        if (text == null || text.isBlank()) { ist = null; aktiv = false; volumen = 0; aufbau = 0; return true; }
+        try (java.io.DataInputStream in = new java.io.DataInputStream(new java.util.zip.InflaterInputStream(
+                new java.io.ByteArrayInputStream(java.util.Base64.getDecoder().decode(text.strip()))))) {
+            int n = in.readInt();
+            if (n != a.nx * a.nz) return false;
+            double[] v = new double[5];
+            for (int i = 0; i < 5; i++) v[i] = in.readDouble();
+            boolean ak = in.readBoolean();
+            float[] f = new float[n];
+            for (int i = 0; i < n; i++) f[i] = in.readFloat();
+            ist = f;
+            startMs = v[0]; letzteMs = v[1]; amplitude = v[2]; aufbau = v[3]; volumen = v[4];
+            aktiv = ak;
+            return true;
+        } catch (java.io.IOException | RuntimeException e) {
+            return false;
+        }
+    }
+
     /** „Vorspülung: 2,3 m am Fuß, 52 000 m³, aufgespült“ */
     public String describe() {
         if (ist == null) return "Vorspülung: keine";

@@ -97,6 +97,27 @@
             <classpath><pathelement path="${run.test.classpath}"/></classpath>
         </java>
     </target>
+    <!-- Phase 16: db/sql/04_startdaten.sql aus com.dan.sylt.data.Startdaten neu schreiben (Quellen, Befunde, Sturmfluten,
+         Vorspülungen, Gelände und Kante 2024 aus daten/, Lagen, Leuchtfeuer, Regiebücher, Ansichten, Fahrten, Presets). -->
+    <target name="startdaten" depends="jar" description="Phase 16: db/sql/04_startdaten.sql neu erzeugen (nicht von Hand ändern).">
+        <property name="platform.java" value="java"/>
+        <java classname="com.dan.sylt.data.StartdatenSql" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="-Djava.awt.headless=true"/>
+            <arg value="daten"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+    </target>
+    <!-- Phase 16: Prüfung mit der Datenbank (richtet ein, schreibt eine Chronik am 31.12.2099, räumt sie wieder weg). -->
+    <target name="dbpruefung" depends="compile-test" description="Phase 16: Prüfung mit dem Schema SYLT (DbPruefung).">
+        <property name="platform.java" value="java"/>
+        <java classname="com.dan.sylt.test.DbPruefung" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="-Djava.awt.headless=true"/>
+            <jvmarg value="-Xmx4g"/>
+            <classpath><pathelement path="${run.test.classpath}"/></classpath>
+        </java>
+    </target>
     <!-- Das Statusbild auf der Grafikkarte: docs/status/Status_Phase${phase}.png (Grundansicht von See auf die Küste,
          20.7.2026 20:30 MESZ, Stufe Mittel, Full HD, volles HUD mit den Zeiten jedes Durchgangs). Auf der Radeon laufen
          lassen; die Zeiten stehen auch in der Ausgabe. -Dansicht=Name wählt eine der neun Ansichten, -Dbild=… den Namen des Bilds; seit Phase 3 -Dwolken=aus, -Dboden=aus, -Dbedeckung=Achtel; seit Phase 4a -Dkamera=x,z,Richtung,Neigung,Höhe; seit Phase 7a -Dsee=H_s,T_p,Richtung (etwa 2,9,290), -Dpegel=m (von Hand, sonst die Tide), -Duhr=Stunde und -Ddatum=JJJJ-MM-TT; seit Phase 9a -Dsandsturm=an und -Dwind=m/s,Richtung; seit Phase 10 -Dvorlage=Leuchturm1 … Kampen4 (Ansicht, Tag und Stunde der Vorlage) und -Dquermarke=frueher. Werte mit Komma in Anführungszeichen: "-Dsee=2.5,9,290" (sonst trennt Windows sie). -->

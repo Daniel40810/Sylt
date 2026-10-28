@@ -34,10 +34,10 @@ import java.util.prefs.Preferences;
 
 /**
  * Das Bedienfeld rechts als Klappblöcke (aus Brocken, entschlackt). Die Blöcke stehen nach dem Werkbuch (Abschnitt 9)
- * schon alle da: KAMERA, ZEIT, WETTER, SEE, BRANDUNG, SAND, KLIFF, TÜRME, KLANG, REGIEBÜCHER, DATEN, TECHNIK. In Phase 1
+ * schon alle da: KAMERA, ZEIT, WETTER, SEE, BRANDUNG, SAND, KLIFF, TÜRME, KLANG, REGIEBÜCHER, CHRONIK, DATEN, TECHNIK. In Phase 1
  * arbeiten KAMERA (neun Ansichten, frei fliegen, kreisen), ZEIT (Datum, Uhrzeit, Zeitraffer, Sonne), SEE (Pegel von
  * Hand, die See als Platzhalter an/aus), BRANDUNG und SAND (die Hüllen von {@code surf} und {@code dune} mit ihren
- * offenen Werten), DATEN (Verbindung) und TECHNIK (Qualität, Auflösung, Belichtung, HUD, Marken, Foto, Shader,
+ * offenen Werten), DATEN (seit Phase 16 mit Einrichter, Übernahme, Presets, gemerkten Ansichten, dazu CHRONIK) und TECHNIK (Qualität, Auflösung, Belichtung, HUD, Marken, Foto, Shader,
  * Compute-Test, Physik, Packages); die übrigen sagen, in welcher Phase sie kommen. Offen bleibt, was zuletzt offen war
  * (je Rechner gemerkt). Jeder Regler schreibt direkt in die öffentlichen Felder von Uhr, Kamera, Verdrahtung und
  * Renderer; es gibt keinen zweiten Zustand.
@@ -94,7 +94,7 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
     private static final double[] LAPSE = {0, 1, 10, 60, 180, 720, 3600};
 
     /** Die Reihenfolge der Blöcke (Werkbuch, Abschnitt 9). */
-    public static final String[] REIHENFOLGE = {"KAMERA", "ZEIT", "WETTER", "SEE", "BRANDUNG", "SAND", "KLIFF", "TÜRME", "KLANG", "REGIEBÜCHER", "DATEN", "TECHNIK"};
+    public static final String[] REIHENFOLGE = {"KAMERA", "ZEIT", "WETTER", "SEE", "BRANDUNG", "SAND", "KLIFF", "TÜRME", "KLANG", "REGIEBÜCHER", "CHRONIK", "DATEN", "TECHNIK"};
 
     private static Preferences prefs() {
         try { return Preferences.userRoot().node("com/dan/sylt/bedienfeld"); } catch (RuntimeException | Error e) { return null; }
@@ -570,11 +570,9 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
                 + "(Treppe, Möwe, Drohne, Welle), wartet auf die Uhr, den Abbruch, die Serie oder die Welle („warte“) und fotografiert; "
                 + "am Ende liegt ein Blatt mit allen Fotos in docs/status (Regiebuch_….png). Ohne Fenster: ant regiebuecher.</body></html>"));
 
-        // ============================================================== DATEN
-        block("DATEN", false);
-        put(dbLbl);
-        put(small("<html><body style='width:215px'>Schema SYLT auf PDBORCL (db/User.sql, Präfix SY_). Tabellen, Einrichter, Chronik und "
-                + "„Weiter wie zuletzt“ kommen mit Phase 16.</body></html>"));
+        // ============================================================== CHRONIK und DATEN (Phase 16)
+        chronikBlock();
+        datenBlock();
 
         // ============================================================== TECHNIK
         block("TECHNIK", false);
@@ -644,9 +642,483 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
             // Befund aus Glacier: solange eine Auswahlliste offen ist, nichts auffrischen
             if (popupOpen(this) || menuOpen()) return;
             syncFromScene();
-            if (ticks++ % 2 == 0) technik();
+            if (ticks++ % 2 == 0) { technik(); datenZeilen(); }
             nachmessen();
         }).start();
+    }
+
+    // ============================================================== Phase 16: CHRONIK und DATEN
+
+    private com.dan.sylt.data.Chronik chronik;
+    private final JLabel chronikLbl = small(""), eintragLbl = small(""), datenLbl = small(""), presetLbl = small(""), protLbl = small(""), gemerktLbl = small(""),
+            flutLbl = small(""), karteLbl = small("");
+    private FComboBox eintragBox, paketBox, presetBox, sitzungBox, gemerktBox, flutBox;
+    private java.util.List<com.dan.sylt.data.Daten.PaketPreset> presetListe = java.util.List.of();
+    private java.util.List<com.dan.sylt.data.Daten.Ansicht> gemerktListe = java.util.List.of();
+    private volatile String datenNote = "";
+    private long naechsteListe;
+
+    /** Phase 16: die Chronik der laufenden Szene (aus der App, sobald sie steht). */
+    public void chronik(com.dan.sylt.data.Chronik c) {
+        chronik = c;
+        neuLesen();
+    }
+
+    private static com.dan.sylt.data.Speicher sp() { return com.dan.sylt.data.Datenseite.speicher(); }
+
+    /** Eine Combo neu füllen, ohne dass ihr Hörer feuert; die Auswahl bleibt, wenn es den Eintrag noch gibt. */
+    private void fuellen(FComboBox box, java.util.List<?> l, String wahl) {
+        fromScene = true;
+        try {
+            box.removeAllItems();
+            int k = -1;
+            for (int i = 0; i < l.size(); i++) { box.addItem(l.get(i)); if (l.get(i).toString().equals(wahl)) k = i; }
+            if (k >= 0) box.setSelectedIndex(k); else if (!l.isEmpty()) box.setSelectedIndex(0);
+        } finally { fromScene = false; }
+    }
+
+    private static String gewaehlt(FComboBox box) { Object o = box.getSelectedItem(); return o == null ? null : o.toString(); }
+
+    /** Im Faden der Daten arbeiten, danach auf dem Swing-Faden weiter; Fehler landen im Protokoll und in einer Meldung. */
+    private <T> void hinten(String was, java.util.concurrent.Callable<T> arbeit, java.util.function.Consumer<T> danach) {
+        com.dan.store.Dienst.spaeter(() -> {
+            try {
+                T t = arbeit.call();
+                javax.swing.SwingUtilities.invokeLater(() -> danach.accept(t));
+            } catch (Exception ex) {
+                com.dan.store.Protokoll.fehler("Bedienfeld", was + ": " + ex.getMessage(), ex instanceof RuntimeException ? ex : null);
+                javax.swing.SwingUtilities.invokeLater(() -> com.dan.foptionpane.FOptionPane.showMessageDialog(this, was + " ging nicht:\n" + ex.getMessage(),
+                        "Sylt · " + was, com.dan.foptionpane.FOptionPane.ERROR_MESSAGE));
+            }
+        });
+    }
+
+    /** Eine Sitzung mit Chronik in der Auswahl. */
+    private record Sitzungszeile(long id) {
+        @Override public String toString() { return "Sitzung " + id + (id == com.dan.store.Dienst.sitzung() ? " (diese)" : ""); }
+    }
+
+    /**
+     * Block CHRONIK (F45 A): Zähler, die Liste der Abbrüche, Sturmfluten und Vorspülungen (Auswahl springt mit der Kamera
+     * an die Stelle und mit der Uhr an den Zeitpunkt), die Kliffkarte aller Kanten, Chronik an/aus und leeren.
+     */
+    private void chronikBlock() {
+        block("CHRONIK", false);
+        put(chronikLbl);
+        sub("Abbrüche, Sturmfluten, Vorspülungen");
+        eintragBox = new FComboBox();
+        eintragBox.setToolTipText("Neueste zuerst; die Auswahl führt die Kamera an die Stelle");
+        eintragBox.addActionListener(e -> {
+            if (fromScene) return;
+            if (eintragBox.getSelectedItem() instanceof com.dan.sylt.data.Daten.Eintrag en) hinZu(en, false);
+        });
+        put(eintragBox);
+        JPanel g1 = grid(2);
+        FButton hin = new FButton("Hin"), uhr = new FButton("Uhr dorthin");
+        hin.setToolTipText("Die Kamera vor die Stelle (110 m seewärts, 16 m hoch)");
+        hin.addActionListener(e -> { if (eintragBox.getSelectedItem() instanceof com.dan.sylt.data.Daten.Eintrag en) hinZu(en, false); });
+        uhr.setToolTipText("Die Uhr auf den Zeitpunkt des Eintrags (das Gelände bleibt, wie es jetzt ist)");
+        uhr.addActionListener(e -> { if (eintragBox.getSelectedItem() instanceof com.dan.sylt.data.Daten.Eintrag en) hinZu(en, true); });
+        g1.add(hin);
+        g1.add(uhr);
+        put(g1);
+        put(eintragLbl);
+        JPanel g2 = grid(2);
+        FButton karte = new FButton("Kliffkarte"), schreib = new FButton("Chronik aus");
+        karte.setToolTipText("Alle Kanten in einem Bild als PNG nach docs/status: die Kante 2024 und jedes Stück nach einem Abbruch, farbig nach der Zeit, "
+                + "darunter der Rückgang gegenüber 2024");
+        karte.addActionListener(e -> {
+            if (chronik != null) chronik.warten();
+            java.io.File ordner = r.photoDir != null ? r.photoDir : new java.io.File("docs/status");
+            hinten("Kliffkarte", () -> com.dan.sylt.data.Kliffkarte.schreiben(sp(), ordner), f -> {
+                r.hudMeldung("Kliffkarte: " + f.getPath());
+                txt(karteLbl, "<html><body style='width:215px'>Kliffkarte: " + esc(f.getName()) + "</body></html>");
+            });
+        });
+        schreib.setToolTipText("Die Chronik anhalten oder wieder schreiben lassen (die Szene läuft weiter)");
+        schreib.addActionListener(e -> {
+            if (chronik == null) return;
+            chronik.schreiben(!chronik.schreibt());
+            schreib.setText(chronik.schreibt() ? "Chronik aus" : "Chronik an");
+        });
+        g2.add(karte);
+        g2.add(schreib);
+        put(g2);
+        put(karteLbl);
+        sub("Chronik leeren (eigene Zeilen einer Sitzung)");
+        sitzungBox = new FComboBox();
+        put(sitzungBox);
+        JPanel g3 = grid(1);
+        FButton leeren = new FButton("Leeren …");
+        leeren.addActionListener(e -> {
+            if (!(sitzungBox.getSelectedItem() instanceof Sitzungszeile s)) return;
+            if (com.dan.foptionpane.FOptionPane.showConfirmDialog(this, "Alle Abbrüche (mit Kanten und Findlingen), Sturmfluten, Vorspülungen, Serien und Läufe der "
+                    + "Regiebücher der Sitzung " + s.id + " löschen?\nDie Kante 2024 und alles Mitgelieferte bleiben.", "Sylt · Chronik leeren",
+                    com.dan.foptionpane.FOptionPane.YES_NO_OPTION) != com.dan.foptionpane.FOptionPane.YES_OPTION) return;
+            hinten("Chronik leeren", () -> sp().chronikLeeren(s.id), n -> { r.hudMeldung("Chronik der Sitzung " + s.id + ": " + n + " Zeilen gelöscht"); neuLesen(); });
+        });
+        g3.add(leeren);
+        put(g3);
+        put(small("<html><body style='width:215px'>Die Chronik schreibt jeden Abbruch mit Ort, Bilanz, Kegel, Kehle, Pegel und Auflauf, dazu das neue Stück "
+                + "Kante, die abgebrochene Fläche und die Findlinge; jede Sturmflut mit Scheitel, Windstau und Stunden am Fuß; jede Vorspülung; alle "
+                + "zehn Minuten die Serien der Brandung; jeden Lauf eines Regiebuchs mit Blatt. In QGIS: SY_KANTE_V (Kante zu jedem Zeitpunkt, Filter "
+                + "auf GUELTIG_AB_MS/GUELTIG_BIS_MS), SY_RUECKGANG_V, SY_KUESTE_V; ohne Datenbank daten/chronik/*.csv mit Spalte WKT (EPSG:25832).</body></html>"));
+    }
+
+    /** Auf einen Eintrag der Chronik: Kamera an die Stelle, mit {@code uhr} auch die Uhr. */
+    private void hinZu(com.dan.sylt.data.Daten.Eintrag en, boolean uhr) {
+        if (uhr && en.ms() > 0) clock.setEpochMillis(en.ms());
+        if (!Double.isNaN(en.x())) r.zurStelle(en.x(), en.z(), en.text());
+        else r.hudMeldung(en.text());
+        view.setMode(r.camera.mode);
+        syncFromScene();
+        view.requestFocusInWindow();
+    }
+
+    /** Block DATEN (F45 A): Verbindung, Einrichten, Prüfen, Übernehmen, Weiter wie zuletzt, Sturmfluten, Presets, gemerkte Ansichten, Protokoll. */
+    private void datenBlock() {
+        block("DATEN", false);
+        put(datenLbl);
+        put(dbLbl);
+        JPanel g = new JPanel(new java.awt.GridLayout(0, 2, 6, 4));
+        g.setOpaque(false);
+        FButton verb = new FButton("Verbinden …"), einr = new FButton("Einrichten"), pruef = new FButton("Prüfen"), ohne = new FButton("Ohne Datenbank"),
+                weiter = new FButton("Weiter wie zuletzt"), ueber = new FButton("Übernehmen");
+        verb.setToolTipText("Mit dem Schema aus db/db.properties verbinden (fragt nach dem Passwort, wenn keins hinterlegt ist)");
+        verb.addActionListener(e -> verbinden());
+        einr.setToolTipText("Die Skripte aus db/sql ausführen und alles prüfen; löscht nie etwas");
+        einr.addActionListener(e -> einrichter(false));
+        pruef.setToolTipText("Nur prüfen: Tabellen, Spalten, Sequenzen, Trigger, Sichten, Metadaten, räumliche Indizes, Zahl der Startdaten");
+        pruef.addActionListener(e -> einrichter(true));
+        ohne.setToolTipText("Mit Dateien in daten/ weiterarbeiten");
+        ohne.addActionListener(e -> {
+            com.dan.sylt.data.Datenseite.setzen(new com.dan.sylt.data.DateiSpeicher(com.dan.sylt.data.DateiSpeicher.ordner()));
+            neuLesen();
+        });
+        weiter.setToolTipText("Die letzte gesicherte Sitzung herstellen: Uhr, Wetter, Sturmflut, Kamera, Regler und das Kliff mit allen Abbrüchen, Kegeln und der Vorspülung");
+        weiter.addActionListener(e -> weiterWieZuletzt());
+        ueber.setToolTipText("Chronik, eigene Regiebücher, Ansichten und Presets aus daten/ in die Datenbank (die CSV heißen danach *.uebernommen)");
+        ueber.addActionListener(e -> uebernehmen());
+        g.add(verb); g.add(ohne); g.add(einr); g.add(pruef); g.add(weiter); g.add(ueber);
+        put(g);
+        sub("Sturmfluten an Sylt seit 1962 (belegt)");
+        flutBox = new FComboBox();
+        flutBox.addActionListener(e -> {
+            if (fromScene) return;
+            if (flutBox.getSelectedItem() instanceof com.dan.sylt.data.Daten.Sturmflut s) {
+                String sch = s.list() == null ? "Scheitel List nicht gefunden" : "PN List".equals(s.bezug())
+                        ? String.format(Locale.GERMAN, "Scheitel List %d cm über Pegelnull", s.list())
+                        : String.format(Locale.GERMAN, "Scheitel List NHN %+.2f m", s.list() / 100.0);
+                if (s.hoernum() != null) sch += String.format(Locale.GERMAN, ", Hörnum NHN %+.2f m", s.hoernum() / 100.0);
+                txt(flutLbl, "<html><body style='width:215px'>" + esc(s.name()) + " · " + sch + (s.kliffverlustText() == null ? "" : "<br>Kliff: " + esc(s.kliffverlustText()))
+                        + (s.folgen() == null ? "" : "<br>" + esc(s.folgen())) + (s.quelle() == null ? "" : " [" + s.quelle() + "]") + "</body></html>");
+            }
+        });
+        put(flutBox);
+        put(flutLbl);
+        sub("Presets der Packages");
+        java.util.List<String> pk = new java.util.ArrayList<>();
+        for (String k : com.dan.sylt.data.Startdaten.PAKETE) pk.add(k.substring(k.lastIndexOf('.') + 1) + " · " + k.substring(0, k.lastIndexOf('.')));
+        paketBox = new FComboBox(pk.toArray());
+        presetBox = new FComboBox();
+        paketBox.addActionListener(e -> { if (!fromScene) listePresets(null); });
+        put(paketBox);
+        put(presetBox);
+        FButton an = new FButton("Anwenden"), unter = new FButton("Speichern unter …");
+        an.setToolTipText("Alle Felder des Presets in das laufende Objekt der Szene schreiben (Surf und Dune: die Wetterregie geht auf „von Hand“)");
+        an.addActionListener(e -> presetAnwenden());
+        unter.setToolTipText("Die Felder, wie sie jetzt in der Szene stehen, als eigenes Preset");
+        unter.addActionListener(e -> presetSpeichern());
+        JPanel pg = grid(2);
+        pg.add(an);
+        pg.add(unter);
+        put(pg);
+        put(presetLbl);
+        sub("Gemerkte Ansichten (Taste V merkt)");
+        gemerktBox = new FComboBox();
+        put(gemerktBox);
+        FButton gh = new FButton("Hin"), gl = new FButton("Löschen");
+        gh.addActionListener(e -> gemerkteAnsicht());
+        gl.addActionListener(e -> {
+            int i = gemerktBox.getSelectedIndex();
+            if (i < 0 || i >= gemerktListe.size()) return;
+            long id = gemerktListe.get(i).id();
+            hinten("Ansicht löschen", () -> { sp().loeschenAnsicht(id); return null; }, x -> listeGemerkt());
+        });
+        JPanel gg = grid(2);
+        gg.add(gh);
+        gg.add(gl);
+        put(gg);
+        put(gemerktLbl);
+        view.setKeyAction(java.awt.event.KeyEvent.VK_V, () -> javax.swing.SwingUtilities.invokeLater(this::ansichtMerken));
+        sub("Protokoll");
+        put(protLbl);
+        put(small("<html><body style='width:215px'>Das Protokoll geht alle 5 s in SY_LOG (90 Tage) oder daten/protokoll.txt, der Zustand mit dem Kliff alle "
+                + "2 min und beim Ende in SY_SITZUNG oder daten/sitzungen, dazu ein Vorschaubild. Schema SYLT auf PDBORCL, Geometrien in UTM 32N (25832), "
+                + "die Sichten _V in WGS 84 (8307) für QGIS.</body></html>"));
+    }
+
+    private String paket() { String s = gewaehlt(paketBox); return s == null ? null : s.substring(s.indexOf(" · ") + 3); }
+    private String klasse() { String s = gewaehlt(paketBox); return s == null ? null : s.substring(0, s.indexOf(" · ")); }
+
+    private void listePresets(String wahl) {
+        String p = paket(), k = klasse();
+        if (p == null) return;
+        hinten("Presets lesen", () -> sp().presets(p, k), l -> {
+            presetListe = l;
+            fuellen(presetBox, l, wahl);
+            Object o = com.dan.sylt.data.Zustand.objekt(r, k);
+            txt(presetLbl, "<html><body style='width:215px'>" + l.size() + " Presets · " + (o == null ? "nicht in der Szene" : "in der Szene: " + o.getClass().getSimpleName()) + "</body></html>");
+        });
+    }
+
+    private void presetAnwenden() {
+        int i = presetBox.getSelectedIndex();
+        if (i < 0 || i >= presetListe.size()) return;
+        var pr = presetListe.get(i);
+        Object o = com.dan.sylt.data.Zustand.objekt(r, pr.klasse());
+        if (o == null) { txt(presetLbl, pr.klasse() + " läuft nicht in der Szene."); return; }
+        if (o == r.wiring.surf || o == r.wiring.dune) hand();
+        java.util.List<String> f = com.dan.store.Felder.schreiben(o, pr.felder());
+        txt(presetLbl, "<html><body style='width:215px'>„" + esc(pr.name()) + "“ angewandt: " + (pr.felder().size() - f.size()) + " Felder"
+                + (f.isEmpty() ? "" : ", nicht: " + esc(String.join(", ", f))) + "</body></html>");
+        com.dan.store.Protokoll.info("Preset", pr.klasse() + " ← „" + pr.name() + "“");
+        syncFromScene();
+        view.requestFocusInWindow();
+    }
+
+    private void presetSpeichern() {
+        String p = paket(), k = klasse();
+        Object o = com.dan.sylt.data.Zustand.objekt(r, k);
+        if (o == null) { txt(presetLbl, k + " läuft nicht in der Szene."); return; }
+        String n = com.dan.foptionpane.FOptionPane.showInputDialog(this, "Name des Presets für " + k, "Sylt · Preset speichern", com.dan.foptionpane.FOptionPane.QUESTION_MESSAGE);
+        if (n == null || n.isBlank()) return;
+        var pr = new com.dan.sylt.data.Daten.PaketPreset(p, k, n.strip(), "Aus der Szene am " + LocalDate.now(), com.dan.sylt.data.Daten.EIGEN, com.dan.store.Felder.lesen(o));
+        hinten("Preset speichern", () -> { sp().speichern(pr); return null; }, x -> listePresets(pr.name()));
+    }
+
+    private void listeGemerkt() {
+        hinten("Ansichten lesen", () -> sp().ansichten(), l -> {
+            java.util.List<com.dan.sylt.data.Daten.Ansicht> g = new java.util.ArrayList<>();
+            for (var a : l) if ("GEMERKT".equals(a.art())) g.add(a);
+            gemerktListe = g;
+            fuellen(gemerktBox, g, null);
+            txt(gemerktLbl, g.size() + " gemerkte Ansichten in " + sp().wo());
+        });
+    }
+
+    /** Ein Bild der Szene auf 320 px Breite als PNG (für gemerkte Ansichten und die Vorschau der Sitzung). */
+    public static byte[] vorschau(java.awt.image.BufferedImage img) {
+        try {
+            java.awt.image.BufferedImage s = new java.awt.image.BufferedImage(320, (int) Math.round(320.0 * img.getHeight() / img.getWidth()), java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D g2 = s.createGraphics();
+            g2.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2.drawImage(img, 0, 0, s.getWidth(), s.getHeight(), null);
+            g2.dispose();
+            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream();
+            javax.imageio.ImageIO.write(s, "png", bo);
+            return bo.toByteArray();
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    /** Taste V (F41 A): die Ansicht mit Zustand und Vorschau merken. */
+    private void ansichtMerken() {
+        double[] k = com.dan.sylt.data.Zustand.kamera(r);
+        long ms = (long) clock.epochMillis();
+        String name = com.dan.sylt.data.Daten.text(ms) + " · " + r.wiring.regie.lage().label;
+        String z = com.dan.store.Felder.alsText(com.dan.sylt.data.Zustand.erfassen(r, false), "Sylt · gemerkte Ansicht");
+        double oe = r.camera.fovy;
+        r.grabRequest = img -> {
+            var a = new com.dan.sylt.data.Daten.Ansicht(0, name, null, "GEMERKT", k, oe, null, ms, z, vorschau(img), com.dan.sylt.data.Daten.EIGEN);
+            long s = com.dan.store.Dienst.sitzung();
+            hinten("Ansicht merken", () -> sp().speichern(a, s > 0 ? s : null), id -> { r.hudMeldung("Ansicht gemerkt: " + name); listeGemerkt(); });
+        };
+    }
+
+    private void gemerkteAnsicht() {
+        int i = gemerktBox.getSelectedIndex();
+        if (i < 0 || i >= gemerktListe.size()) return;
+        long id = gemerktListe.get(i).id();
+        hinten("Ansicht lesen", () -> sp().ansicht(id), a -> {
+            if (a.zustand() != null) {
+                java.util.List<String> f = com.dan.sylt.data.Zustand.anwenden(r, com.dan.store.Felder.ausText(a.zustand()));
+                if (!f.isEmpty()) com.dan.store.Protokoll.warnung("Ansicht", "nicht hergestellt: " + String.join(", ", f));
+            } else {
+                double[] k = a.kamera();
+                r.camera.stopFahrt();
+                r.camera.stopMitfahrt();
+                r.camera.mode = Camera.Mode.FREI;
+                r.camera.place(k[0], k[1], k[2], k[3], k[4]);
+                r.camera.snap();
+                if (a.szeneMs() != null) clock.setEpochMillis(a.szeneMs());
+            }
+            r.hudMeldung("Ansicht: " + a.name());
+            view.setMode(r.camera.mode);
+            syncFromScene();
+            view.requestFocusInWindow();
+        });
+    }
+
+    /** Nach einem Wechsel des Speichers alle Listen neu lesen. */
+    private void neuLesen() {
+        if (paketBox == null) return;
+        listePresets(null);
+        listeGemerkt();
+        hinten("Sturmfluten lesen", () -> sp().sturmfluten(), l -> fuellen(flutBox, l, gewaehlt(flutBox)));
+        naechsteListe = 0;
+        datenZeilen();
+    }
+
+    private void verbinden() {
+        datenNote = "verbinde …";
+        hinten("Verbinden", Verbindung::konfig, k -> {
+            com.dan.store.Db.Konfig kk = k;
+            char[] neu = null;
+            if (!k.hatPasswort()) {
+                com.dan.ftextfield.FPasswordfield pw = new com.dan.ftextfield.FPasswordfield();
+                JPanel p = new JPanel(new BorderLayout(0, 6));
+                p.add(new JLabel("Passwort für " + k.kurz() + ":"), BorderLayout.NORTH);
+                p.add(pw, BorderLayout.CENTER);
+                if (com.dan.foptionpane.FOptionPane.showConfirmDialog(this, p, "Sylt · Datenbank", com.dan.foptionpane.FOptionPane.OK_CANCEL_OPTION)
+                        != com.dan.foptionpane.FOptionPane.OK_OPTION || pw.getPassword().length == 0) { datenNote = ""; return; }
+                neu = pw.getPassword();
+                kk = k.mitPasswort(neu);
+            }
+            char[] eingabe = neu;
+            com.dan.store.Db.Konfig kf = kk;
+            hinten("Verbinden", () -> {
+                String[] grund = {""};
+                com.dan.sylt.data.DbSpeicher d = com.dan.sylt.data.Datenseite.verbinden(kf, grund);
+                if (d == null) throw new com.dan.store.Ablage.Fehler(grund[0]);
+                if (eingabe != null) try { com.dan.store.Db.passwortSpeichern(kf, eingabe); } catch (Exception ex) { com.dan.store.Protokoll.warnung("Daten", "Passwort nicht eingetragen: " + ex.getMessage()); }
+                int st = Verbindung.einrichter().stufe(d.verbindung());
+                return new Object[]{d, st};
+            }, o -> {
+                var d = (com.dan.sylt.data.DbSpeicher) o[0];
+                int st = (Integer) o[1];
+                if (st < Verbindung.VERSION) {
+                    if (com.dan.foptionpane.FOptionPane.showConfirmDialog(this, d.wo() + " ist noch nicht eingerichtet (Stufe " + st + ").\nJetzt einrichten? (löscht nie etwas)",
+                            "Sylt · Datenbank", com.dan.foptionpane.FOptionPane.YES_NO_OPTION) != com.dan.foptionpane.FOptionPane.YES_OPTION) { d.schliessen(); datenNote = "nicht eingerichtet"; return; }
+                    com.dan.sylt.data.Datenseite.setzen(d);
+                    einrichter(false);
+                    return;
+                }
+                com.dan.sylt.data.Datenseite.setzen(d);
+                datenNote = "verbunden";
+                neuLesen();
+            });
+        });
+    }
+
+    private void einrichter(boolean nurPruefen) {
+        if (!(sp() instanceof com.dan.sylt.data.DbSpeicher d)) {
+            com.dan.foptionpane.FOptionPane.showMessageDialog(this, "Erst mit der Datenbank verbinden („Verbinden …“).", "Sylt · Einrichter", com.dan.foptionpane.FOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        datenNote = nurPruefen ? "prüfe …" : "richte ein …";
+        hinten(nurPruefen ? "Prüfen" : "Einrichten", () -> {
+            var e = Verbindung.einrichter();
+            return nurPruefen ? e.pruefen(d.verbindung(), Verbindung.skripte())
+                    : e.einrichten(d.verbindung(), Verbindung.skripte(), (t, a) -> datenNote = String.format(Locale.GERMAN, "%.0f %% · %s", a * 100, t));
+        }, er -> {
+            Startbild.merkeEinrichter(er.kurz());
+            datenNote = "";
+            if (er.ok()) com.dan.store.Dienst.spaeter(com.dan.store.Dienst::neuBeginnen);
+            com.dan.store.Protokoll.info("Einrichter", (nurPruefen ? "Prüfen: " : "Einrichten: ") + er.kurz());
+            for (String z : er.zeilen()) if (!z.startsWith("ok") && !z.contains("alles in Ordnung")) com.dan.store.Protokoll.warnung("Einrichter", z);
+            JLabel t = small("<html><body style='width:560px'>" + String.join("<br>", er.zeilen()) + "</body></html>");
+            javax.swing.JScrollPane spn = new javax.swing.JScrollPane(t);
+            spn.setPreferredSize(new Dimension(640, 420));
+            com.dan.foptionpane.FOptionPane.showMessageDialog(this, spn, "Sylt · " + (nurPruefen ? "Prüfen: " : "Einrichten: ") + er.kurz(),
+                    er.ok() ? com.dan.foptionpane.FOptionPane.INFORMATION_MESSAGE : com.dan.foptionpane.FOptionPane.WARNING_MESSAGE);
+            neuLesen();
+        });
+    }
+
+    private void uebernehmen() {
+        if (!sp().datenbank()) {
+            com.dan.foptionpane.FOptionPane.showMessageDialog(this, "Erst mit der Datenbank verbinden („Verbinden …“).", "Sylt · Übernehmen", com.dan.foptionpane.FOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        var von = new com.dan.sylt.data.DateiSpeicher(com.dan.sylt.data.DateiSpeicher.ordner());
+        datenNote = "übernehme …";
+        hinten("Übernehmen", () -> com.dan.sylt.data.Uebernahme.uebernehmen(von, sp()), z -> {
+            datenNote = "übernommen";
+            com.dan.foptionpane.FOptionPane.showMessageDialog(this, "Aus " + von.wo() + " nach " + sp().wo() + ":\n" + z, "Sylt · Übernahme",
+                    com.dan.foptionpane.FOptionPane.INFORMATION_MESSAGE);
+            neuLesen();
+        });
+    }
+
+    private void weiterWieZuletzt() {
+        hinten("Weiter wie zuletzt", () -> {
+            var s = sp().letzteSitzung(com.dan.store.Dienst.sitzung());
+            if (s == null || s.zustand() == null) throw new com.dan.store.Ablage.Fehler("Keine gesicherte Sitzung in " + sp().wo());
+            return s;
+        }, s -> { Weiter.jetzt(r, s, chronik); view.setMode(r.camera.mode); syncFromScene(); });
+    }
+
+    /** Die Einträge der Chronik für die Liste (neueste zuerst). */
+    public static java.util.List<com.dan.sylt.data.Daten.Eintrag> eintraege(com.dan.sylt.data.Speicher sp, int n) throws com.dan.store.Ablage.Fehler {
+        java.util.List<com.dan.sylt.data.Daten.Eintrag> l = new java.util.ArrayList<>();
+        for (var a : sp.abbrueche(n))
+            l.add(new com.dan.sylt.data.Daten.Eintrag("ABBRUCH", a.ms(), a.text(), a.bruchstelle() == null ? Double.NaN : a.bruchstelle()[0],
+                    a.bruchstelle() == null ? 0 : a.bruchstelle()[1], a.id()));
+        for (var s : sp.sturmflutLaeufe(n)) {
+            double[] xz = com.dan.sylt.scene.Site.fromUtm(com.dan.sylt.scene.Site.wasserlinieE(6_089_500) + 60, 6_089_500);
+            l.add(new com.dan.sylt.data.Daten.Eintrag("STURMFLUT", s.beginnMs(), s.text(), xz[0], xz[1], s.id()));
+        }
+        for (var v : sp.vorspuelungen()) {
+            if (!"APP".equals(v.art()) || v.beginnMs() == null) continue;
+            double[] m = v.flaeche() == null ? null : v.flaeche().xz()[0];
+            l.add(new com.dan.sylt.data.Daten.Eintrag("VORSPUELUNG", v.beginnMs(), v.text(), m == null ? Double.NaN : m[0], m == null ? 0 : m[1], v.id()));
+        }
+        l.sort((a, b) -> Long.compare(b.ms(), a.ms()));
+        return l.size() > n ? new java.util.ArrayList<>(l.subList(0, n)) : l;
+    }
+
+    /** Jede Sekunde: Zeilen von CHRONIK und DATEN; alle 10 s die Listen aus dem Speicher. */
+    private void datenZeilen() {
+        if (eintragBox == null) return;
+        var c = chronik;
+        txt(chronikLbl, "<html><body style='width:215px'>" + esc(c == null ? "Chronik: startet mit der Szene" : c.describe()) + " · " + esc(sp().wo()) + "</body></html>");
+        long gs = com.dan.store.Dienst.gesichert();
+        txt(datenLbl, "<html><body style='width:215px'>" + esc(sp().wo()) + (datenNote.isEmpty() ? "" : " · " + esc(datenNote))
+                + "<br>Sitzung " + com.dan.store.Dienst.sitzung() + (gs > 0 ? ", gesichert " + String.format("%tR", gs) + " Uhr (Rechner)" : ", noch nicht gesichert")
+                + (com.dan.sylt.data.Datenseite.einrichterStand.isEmpty() ? "" : "<br>Einrichter: " + esc(com.dan.sylt.data.Datenseite.einrichterStand))
+                + (com.dan.store.Dienst.letzterFehler().isEmpty() ? "" : "<br>Zuletzt: " + esc(com.dan.store.Dienst.letzterFehler())) + "</body></html>");
+        long now = System.currentTimeMillis();
+        if (now < naechsteListe) return;
+        naechsteListe = now + 10_000;
+        com.dan.store.Dienst.spaeter(() -> {
+            try {
+                var sp = sp();
+                var ein = eintraege(sp, 40);
+                var stand = sp.stand();
+                var prot = sp.letzteZeilen(6);
+                java.util.List<Sitzungszeile> sl = new java.util.ArrayList<>();
+                long dies = com.dan.store.Dienst.sitzung();
+                if (dies > 0) sl.add(new Sitzungszeile(dies));
+                if (stand.letzte() != null && stand.letzte().id() != dies) sl.add(new Sitzungszeile(stand.letzte().id()));
+                String st = String.format(Locale.GERMAN, "<html><body style='width:215px'>%d Abbrüche (%d Findlinge), %d Sturmfluten, %d Vorspülungen, %d Serien · "
+                                + "Kante 2024 in %d Stücken · %d Sitzungen</body></html>", stand.abbrueche(), stand.findlinge(), stand.sturmflutLaeufe(), stand.vorspuelungenApp(),
+                        stand.serien(), stand.kantenstuecke(), stand.sitzungen());
+                StringBuilder pb = new StringBuilder("<html><body style='width:215px'>");
+                for (String z : prot) pb.append(esc(z.length() > 140 ? z.substring(0, 140) + " …" : z)).append("<br>");
+                String ps = pb.append("</body></html>").toString();
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    if (popupOpen(this) || menuOpen()) return;
+                    fuellen(eintragBox, ein, gewaehlt(eintragBox));
+                    fuellen(sitzungBox, sl, gewaehlt(sitzungBox));
+                    txt(eintragLbl, st);
+                    txt(protLbl, ps);
+                });
+            } catch (Exception ex) {
+                javax.swing.SwingUtilities.invokeLater(() -> txt(eintragLbl, "Chronik nicht lesbar: " + esc(String.valueOf(ex.getMessage()))));
+            }
+        });
     }
 
     /** Seit Phase 13: ein Regler von Hand stellt die Wetterregie ab (die Lage hielte sonst ihre Werte). */

@@ -349,6 +349,9 @@ public final class Pruefung {
         teil("Regie und Kino (Phase 15)");
         regie(r3, clock);
 
+        teil("Oberfläche und Datenbank (Phase 16, ohne Datenbank)");
+        datenbank(r3, clock);
+
         teil("Renderer.jar und Shader");
         List<String> pk = Bibliothek.pakete();
         check(Bibliothek.fehlend().isEmpty(), "Renderer.jar: " + Bibliothek.kurz());
@@ -1110,6 +1113,244 @@ public final class Pruefung {
         clock.set(SceneClock.START_DATE, SceneClock.START_HOUR);
         r.sturmflut.aktiv = false;
         r.wiring.regie.lage(com.dan.sylt.wiring.Wetterregie.Lage.SOMMERABEND);
+    }
+
+    /**
+     * Phase 16 ohne Datenbank: die Skripte (Tabellen mit Sequenz und Trigger, nie IDENTITY, Geometrien mit Metadaten in
+     * 25832, Sichten mit 8307), die Startdaten (Zahlen der Zeile ZAHLEN, Spalten gegen 01_tabellen.sql, Quellen), die
+     * Geometrien in UTM hin und zurück, der Speicher in Dateien (Chronik, Ansicht, Preset, Sitzung mit Vorschau), die
+     * Chronik aus einem echten Abbruch, der Zustand mit dem Stand des Kliffs hin und zurück, die Kliffkarte.
+     */
+    static void datenbank(Renderer r, SceneClock clock) throws Exception {
+        File dir = com.dan.sylt.data.Verbindung.skripte();
+        java.util.Map<String, List<com.dan.store.Skript.Anweisung>> sk = new java.util.LinkedHashMap<>();
+        for (String n : new String[]{"01_tabellen.sql", "02_spatial.sql", "03_sichten.sql", "04_startdaten.sql", "99_entfernen.sql"})
+            sk.put(n, com.dan.store.Skript.zerlegen(Files.readString(new File(dir, n).toPath(), StandardCharsets.UTF_8)));
+        List<com.dan.store.Skript.Anweisung> t1 = sk.get("01_tabellen.sql");
+        java.util.Set<String> tab = new java.util.TreeSet<>(), seq = new java.util.TreeSet<>(), trg = new java.util.TreeSet<>();
+        boolean identity = false;
+        for (var a : t1) {
+            String o = com.dan.store.Skript.objekt(a.sql());
+            if (o == null) continue;
+            if (o.startsWith("TABLE ")) tab.add(o.substring(6));
+            if (o.startsWith("SEQUENCE ")) seq.add(o.substring(9).replace("_SEQ", ""));
+            if (o.startsWith("TRIGGER ")) trg.add(o.substring(8).replace("_BIU", ""));
+            if (a.sql().toUpperCase(Locale.ROOT).contains("IDENTITY")) identity = true;
+        }
+        java.util.Set<String> ohneSeq = new java.util.TreeSet<>(tab);
+        ohneSeq.removeAll(seq);
+        java.util.Set<String> ohneTrg = new java.util.TreeSet<>(seq);
+        ohneTrg.removeAll(trg);
+        check(tab.size() == 25 && ohneSeq.equals(java.util.Set.of("SY_SCHEMA")) && ohneTrg.equals(java.util.Set.of("SY_LOG")) && !identity,
+                f("01_tabellen.sql: %d Tabellen SY_, je mit Sequenz und Trigger (ohne: SY_SCHEMA, SY_LOG holt die Nummern selbst), nie IDENTITY", tab.size()));
+        List<com.dan.store.Skript.Spalte> sp = com.dan.store.Skript.spalten(t1);
+        java.util.Map<String, java.util.Set<String>> spalten = new java.util.HashMap<>();
+        java.util.Set<String> geo = new java.util.TreeSet<>();
+        for (var s : sp) {
+            spalten.computeIfAbsent(s.tabelle(), x -> new java.util.HashSet<>()).add(s.name());
+            if (s.typ().contains("SDO_GEOMETRY")) geo.add(s.tabelle() + "." + s.name());
+        }
+        check(geo.equals(new java.util.TreeSet<>(List.of(com.dan.sylt.data.Verbindung.METADATEN))),
+                f("%d Geometriespalten in 01 = Verbindung.METADATEN (Metadaten und räumlicher Index je Spalte)", geo.size()));
+        String s2 = Files.readString(new File(dir, "02_spatial.sql").toPath(), StandardCharsets.UTF_8), s3 = Files.readString(new File(dir, "03_sichten.sql").toPath(), StandardCharsets.UTF_8);
+        boolean meta = true;
+        for (String m : com.dan.sylt.data.Verbindung.METADATEN) {
+            String[] tc = m.split("\\.");
+            meta &= s2.contains("VALUES ('" + tc[0] + "', '" + tc[1] + "',") && s2.contains("CREATE INDEX " + m.replace('.', '_') + "_SX ON " + tc[0] + " (" + tc[1] + ") INDEXTYPE IS MDSYS.SPATIAL_INDEX_V2");
+        }
+        for (String m : com.dan.sylt.data.Verbindung.SICHT_METADATEN) {
+            String[] tc = m.split("\\.");
+            meta &= s2.contains("VALUES ('" + tc[0] + "', '" + tc[1] + "',");
+        }
+        long n25832 = s2.lines().filter(l -> l.strip().equals("25832);")).count(), n8307 = s2.lines().filter(l -> l.strip().equals("8307);")).count();
+        boolean sichten = true;
+        for (String v : com.dan.sylt.data.Verbindung.SICHTEN) sichten &= s3.contains("CREATE OR REPLACE VIEW " + v + " AS");
+        check(meta && n25832 == com.dan.sylt.data.Verbindung.METADATEN.length && n8307 == com.dan.sylt.data.Verbindung.SICHT_METADATEN.length && sichten
+                        && com.dan.sylt.data.Verbindung.einrichter().srid == 25832 && com.dan.sylt.data.Verbindung.raeumlich().length == geo.size(),
+                f("02_spatial.sql: %d Spalten in 25832 mit Index, %d Sichten in 8307 für QGIS; 03_sichten.sql: alle %d Sichten (F35 A)", n25832, n8307,
+                        com.dan.sylt.data.Verbindung.SICHTEN.length));
+        String fehltSp = "";
+        for (var e : com.dan.sylt.data.StartdatenSql.SPALTEN.entrySet())
+            for (String c : e.getValue()) if (!spalten.getOrDefault(e.getKey(), java.util.Set.of()).contains(c)) fehltSp += " " + e.getKey() + "." + c;
+        check(fehltSp.isEmpty(), "Spalten der Startdaten stehen in 01_tabellen.sql" + (fehltSp.isEmpty() ? "" : ": fehlt" + fehltSp));
+        // jede Spalte, die DbSpeicher schreibt, steht in 01 (aus dem Quelltext gelesen)
+        File dbs = new File("src/com/dan/sylt/data/DbSpeicher.java");
+        if (dbs.isFile()) {
+            String q = Files.readString(dbs.toPath(), StandardCharsets.UTF_8).replace("\" +\n", "").replaceAll("\"\\s*\\+\\s*\"", "");
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("INSERT INTO (SY_\\w+) \\(([A-Z0-9_, ]+)\\)").matcher(q);
+            String fehltDb = "";
+            int ins = 0;
+            while (m.find()) {
+                ins++;
+                for (String c : m.group(2).split(",")) if (!spalten.getOrDefault(m.group(1), java.util.Set.of()).contains(c.strip())) fehltDb += " " + m.group(1) + "." + c.strip();
+            }
+            check(ins == 14 && fehltDb.isEmpty(), f("DbSpeicher: %d INSERT, alle Spalten in 01_tabellen.sql", ins) + (fehltDb.isEmpty() ? "" : ": fehlt" + fehltDb));
+        }
+        var alles = com.dan.sylt.data.StartdatenSql.Alles.aus(new File("daten"));
+        var soll = com.dan.sylt.data.StartdatenSql.zahlen(alles);
+        var steht = com.dan.sylt.data.Verbindung.zahlen(dir);
+        check(soll.equals(steht), "04_startdaten.sql ist aktuell (ZAHLEN wie aus Startdaten; sonst ant startdaten): " + steht);
+        int anw = sk.get("04_startdaten.sql").size(), lang = 0;
+        for (var a : sk.get("04_startdaten.sql")) for (String z : a.sql().split("\\R")) lang = Math.max(lang, z.getBytes(StandardCharsets.UTF_8).length);
+        check(anw > 500 && lang < 4000, f("04_startdaten.sql: %d Anweisungen, längste Zeile %d Byte (Literale unter 4000)", anw, lang));
+        check(sk.get("99_entfernen.sql").size() == 1 && sk.get("99_entfernen.sql").get(0).plsql(), "99_entfernen.sql: ein Block, nur von Hand (die App führt es nie aus)");
+
+        var qs = com.dan.sylt.data.Startdaten.quellen();
+        java.util.Set<String> kurz = new java.util.HashSet<>();
+        for (var x : qs) kurz.add(x.kurz());
+        String ohneQ = "";
+        for (var b : com.dan.sylt.data.Startdaten.befunde()) for (String x : b.quellen()) if (!kurz.contains(x)) ohneQ += " " + x;
+        for (var x : com.dan.sylt.data.Startdaten.sturmfluten()) if (x.quelle() == null || !kurz.contains(x.quelle())) ohneQ += " " + x.name();
+        for (var x : com.dan.sylt.data.Startdaten.vorspuelungen()) if (x.quelle() == null || !kurz.contains(x.quelle())) ohneQ += " " + x.name();
+        check(ohneQ.isEmpty() && qs.size() == kurz.size(), f("%d Quellen; jeder Befund, jede Sturmflut, jede Vorspülung hat eine (F38, F39 A)", qs.size()) + (ohneQ.isEmpty() ? "" : ": fehlt" + ohneQ));
+        var sf = com.dan.sylt.data.Startdaten.sturmfluten();
+        long nhn = sf.stream().filter(x -> "NHN".equals(x.bezug())).count();
+        int max = sf.stream().filter(x -> "NHN".equals(x.bezug()) && x.list() != null).mapToInt(com.dan.sylt.data.Daten.Sturmflut::list).max().orElse(0);
+        check(sf.size() >= 15 && sf.get(0).datum().getYear() == 1962 && max == 405 && com.dan.sylt.data.Startdaten.belegteSturmflut(com.dan.sylt.scene.Sturmflut.DATUM) != null,
+                f("%d belegte Sturmfluten seit 1962 (%d in NHN, höchste List NHN +%.2f m am 24.11.1981); Xaver gehört zur Sturmflut der App", sf.size(), nhn, max / 100.0));
+        var lf = com.dan.sylt.data.Startdaten.leuchtfeuer();
+        check(lf.size() == 2 && lf.get(0).sektoren().size() == 2 && lf.get(1).sektoren().size() == 3 && "R".equals(lf.get(0).sektoren().get(1).farbe()),
+                "Leuchtfeuer mit Sektoren wie com.dan.beacon (F40 A): " + lf.get(0).name() + " " + lf.get(0).kennung() + ", " + lf.get(1).name() + " " + lf.get(1).kennung());
+        long lagenP = com.dan.sylt.data.Startdaten.presets().stream().filter(x -> List.of(com.dan.sylt.data.Startdaten.LAGEN_PRESETS).contains(x.name())).count();
+        check(lagenP == 6 && com.dan.sylt.data.Startdaten.lagen().size() == 10 && com.dan.sylt.data.Startdaten.ansichten().size() == 18 && com.dan.sylt.data.Startdaten.fahrten().size() == 4,
+                "Presets „Sommerabend“, „Westwind“, „Xaver“ für Surf und Dune (F43 A), 10 Lagen, 18 Ansichten, 4 Fahrten · " + com.dan.sylt.data.Startdaten.zusammenfassung());
+        double l24 = 0;
+        for (var k : alles.kante()) l24 += Math.abs(k.nordVon() - k.nordBis());
+        check(alles.kante().size() > 60 && l24 > 2800 && l24 < 3600, f("Kante 2024 in %d Stücken zu höchstens %d m längs, zusammen %.0f m in Nord (F36 A)", alles.kante().size(),
+                com.dan.sylt.data.Startdaten.STUECK + com.dan.sylt.data.Startdaten.STUECK / 2, l24));
+
+        // Geometrien in UTM hin und zurück
+        double[][] ring = {{-1300, 1400}, {-1230, 1400}, {-1230, 2000}, {-1300, 2000}};
+        var fl = com.dan.sylt.data.Daten.Geom.flaeche(ring);
+        var fl2 = com.dan.sylt.data.Daten.Geom.ausWkt(fl.wkt());
+        var li = com.dan.sylt.data.Daten.Geom.linie(new double[][]{{-10.123, 5.5}, {20.004, -30.25}, {40, 0}});
+        var li2 = com.dan.sylt.data.Daten.Geom.ausWkt(li.wkt());
+        var pu2 = com.dan.sylt.data.Daten.Geom.ausWkt(com.dan.sylt.data.Daten.Geom.punkt(-3.21, 7.89).wkt());
+        double[] u = com.dan.sylt.data.Daten.utm(0, 0);
+        double gauss = 0;
+        double[][] en = new double[4][];
+        for (int i = 0; i < 4; i++) en[i] = com.dan.sylt.data.Daten.utm(fl2.xz()[i][0], fl2.xz()[i][1]);
+        for (int i = 0; i < 4; i++) gauss += en[i][0] * en[(i + 1) % 4][1] - en[(i + 1) % 4][0] * en[i][1];
+        check(u[0] == Site.E0 && u[1] == Site.N0 && Math.abs(fl2.flaecheM2() - 42_000) < 0.5 && gauss > 0 && Math.abs(li2.laenge() - li.laenge()) < 0.02
+                        && Math.abs(pu2.xz()[0][0] + 3.21) < 0.006 && fl.wkt().startsWith("POLYGON ((456300 6089170, 456370 6089170, 456370 6089770"),
+                "WKT in UTM 32N (25832) auf 1 cm: Punkt, Linie, Fläche (außen gegen den Uhrzeigersinn in Ost/Nord) hin und zurück; " + fl.wkt().substring(0, 40) + " …");
+
+        // Chronik aus einem echten Abbruch der Sturmflut weiter oben
+        var ab = r.abbruch;
+        com.dan.sylt.data.Daten.Abbruch echt = null;
+        if (ab != null && !ab.ergebnisse.isEmpty()) {
+            var e = ab.ergebnisse.get(0);
+            echt = com.dan.sylt.data.Chronik.abbruch(e, clock.epochMillis(), "Prüfung");
+            check(echt.volumen() > 50 && echt.kegel() > 0 && echt.kante() != null && echt.kante().oberkante().punkte() > 10 && echt.findlinge().size() == 1
+                            && (echt.rueckgang() <= 0.05 || echt.rueckgangFlaeche() != null) && !Double.isNaN(e.ms()),
+                    f("Chronik aus dem Abbruch bei N %,.0f (%s): %.0f m³ fest, Kegel %.0f m³ locker, Kehle %.1f m, L_c %.1f m, Pegel %+.2f m, Auflauf %.2f m, Kante %.1f m zurück%s",
+                            echt.nord(), com.dan.sylt.data.Daten.text(echt.ms()), echt.volumen(), echt.kegel(), echt.kehle(), echt.lc(), echt.pegel(), echt.auflauf(), echt.rueckgang(),
+                            echt.rueckgangFlaeche() == null ? "" : f(", Fläche %.0f m²", echt.rueckgangFlaeche().flaecheM2())));
+        } else check(false, "kein Abbruch aus der Sturmflut für die Chronik");
+
+        // der Speicher in Dateien
+        File tmp = Files.createTempDirectory("sylt-pruefung-daten").toFile();
+        var d = new com.dan.sylt.data.DateiSpeicher(tmp);
+        long sid = d.sitzungBeginnen("Prüfung", "keine", "MITTEL");
+        if (echt != null) d.abbruch(echt, sid);
+        long t = (long) clock.epochMillis();
+        long lid = d.sturmflutLauf(new com.dan.sylt.data.Daten.SturmflutLauf(0, "Xaver 06.12.2013", "Sturmflut nach Xaver", t, null, 2.0, null, 1, 1, 0, 0, 0), sid);
+        d.sturmflutLauf(new com.dan.sylt.data.Daten.SturmflutLauf(lid, "Xaver 06.12.2013", "Sturmflut nach Xaver", t, t + 3_600_000, 3.4, t + 1_800_000, 2.9, 2.1, 6.5, 3.2, 1), sid);
+        d.vorspuelung(new com.dan.sylt.data.Daten.Vorspuelung(0, "Vorspülung Prüfung", "APP", 2026, 61_000L, 6_089_250.0, 6_089_850.0, "vor dem Kliff", fl, t, 2.5, 70.0, 60.0, "", null), sid);
+        d.serie(new com.dan.sylt.data.Daten.Serie(t, 600, 70, 5, 4, 1.4, 9, -1250, 1500), sid);
+        var la = d.sturmflutLaeufe(5);
+        var ka = d.kanten();
+        var ein = com.dan.sylt.ui.ControlPanel.eintraege(d, 40);
+        byte[] png = {(byte) 0x89, 'P', 'N', 'G', 1, 2, 3};
+        d.vorschau(sid, png);
+        java.util.LinkedHashMap<String, String> z = com.dan.sylt.data.Zustand.erfassen(r, true);
+        d.sitzungSichern(sid, new com.dan.store.Ablage.Sicherung(com.dan.store.Felder.alsText(z, "Prüfung"), com.dan.sylt.data.Zustand.spalten(z)));
+        var ls = d.letzteSitzung(-1);
+        check(la.size() == 1 && la.get(0).endeMs() != null && la.get(0).scheitel() == 3.4 && ka.size() == (echt == null ? 0 : 1)
+                        && ein.size() == (echt == null ? 2 : 3) && ls != null && java.util.Arrays.equals(ls.vorschau(), png) && ls.zustand().contains("kliff.stand=")
+                        && new File(tmp, "chronik/abbrueche.csv").isFile() == (echt != null),
+                f("Dateien in daten/ (F33 A): Lauf angelegt und fortgeschrieben, %d Stück Kante aus dem Abbruch (ohne kante.csv im Ordner), %d Einträge für CHRONIK, Sitzung mit Zustand (%,d Zeichen) und Vorschau",
+                        ka.size(), ein.size(), ls == null ? 0 : ls.zustand().length()));
+        if (echt != null) {
+            String csv = Files.readString(new File(tmp, "chronik/abbrueche.csv").toPath(), StandardCharsets.UTF_8);
+            var zur = d.abbrueche(1).get(0);
+            check(csv.startsWith("ID;SITZUNG;SZENE_MS") && csv.contains("POINT (") && csv.contains("LINESTRING (") && Math.abs(zur.volumen() - echt.volumen()) < 0.01
+                            && zur.kante().oberkante().punkte() == echt.kante().oberkante().punkte(),
+                    "abbrueche.csv mit WKT in 25832 für QGIS; zurückgelesen gleich (Volumen, Kante)");
+        }
+        var bild = com.dan.sylt.data.Kliffkarte.bild(ka, d.abbrueche(100), "Prüfung");
+        int farbig = 0;
+        for (int y = 0; y < bild.getHeight(); y += 3) for (int x = 0; x < bild.getWidth(); x += 3) { int c = bild.getRGB(x, y); if (((c >> 16) & 255) > 150 && (c & 255) < 120) farbig++; }
+        File kk = new File(tmp, "kliffkarte.png");
+        javax.imageio.ImageIO.write(bild, "png", kk);
+        check(bild.getWidth() == 1600 && farbig > 0 == (echt != null) && kk.length() > 10_000, f("Kliffkarte %d × %d (%d KB)", bild.getWidth(), bild.getHeight(), kk.length() / 1024));
+        int weg = d.chronikLeeren(sid);
+        check(weg == 3 + (echt == null ? 0 : 1) && d.sturmflutLaeufe(5).isEmpty(), "Chronik einer Sitzung geleert: " + weg + " Zeilen");
+        var an = d.speichern(new com.dan.sylt.data.Daten.Ansicht(0, "Prüfung", null, "GEMERKT", new double[]{1, 2, 3, 4, 5}, 50.0, null, t, "a=1\n", png, "EIGEN"), sid);
+        var an2 = d.ansicht(an);
+        boolean geschuetzt = false;
+        try { d.speichern(new com.dan.sylt.data.Daten.PaketPreset("com.dan.surf", "Surf", "Xaver", "", "EIGEN", java.util.Map.of())); } catch (com.dan.store.Ablage.Fehler e) { geschuetzt = true; }
+        check(an2.kamera()[4] == 5 && an2.oeffnung() == 50 && java.util.Arrays.equals(an2.vorschau(), png) && geschuetzt,
+                "gemerkte Ansicht mit Vorschau und Öffnung zurückgelesen; das mitgelieferte Preset „Xaver“ wird nicht überschrieben");
+
+        // Zustand: das Kliff hin und zurück
+        if (ab != null) {
+            ab.manuell = true;
+            float[] a0 = ab.aenderung.d.clone(), w0 = ab.weg.d.clone();
+            double[] k0 = ab.kante.kanteE.clone(), kehle0 = ab.kehle.clone();
+            int n0 = ab.abbrueche, sp0 = ab.spur.size();
+            double kegel0 = ab.vKegel;
+            String stand = ab.stand();
+            ab.aenderung.setzen(new float[a0.length]);
+            ab.weg.setzen(new float[w0.length]);
+            java.util.Arrays.fill(ab.kehle, 0);
+            ab.kante.kanteE[100] += 7;
+            ab.abbrueche = 0;
+            ab.spur.clear();
+            ab.vKegel = 0;
+            boolean okSt = ab.standSetzen(stand);
+            int nz = 0;
+            for (float x : a0) if (x != 0) nz++;
+            check(okSt && java.util.Arrays.equals(ab.aenderung.d, a0) && java.util.Arrays.equals(ab.weg.d, w0) && java.util.Arrays.equals(ab.kante.kanteE, k0)
+                            && java.util.Arrays.equals(ab.kehle, kehle0) && ab.abbrueche == n0 && ab.spur.size() == sp0 && ab.vKegel == kegel0,
+                    f("Stand des Kliffs hin und zurück (F42 A): %d geänderte Zellen, Kante, Kehle, %d Abbrüche, Spur, Kegel; gepackt %,d Zeichen", nz, n0, stand.length()));
+            check(!ab.standSetzen("AAAA") && java.util.Arrays.equals(ab.aenderung.d, a0), "Ein falscher Stand ändert nichts");
+            var v = r.vorspuelung;
+            if (v != null) {
+                v.starten(clock.epochMillis());
+                v.schritt(0.5, clock.epochMillis() + 80 * 3_600_000.0, 1.0);
+                double vol = v.volumen;
+                String vs = v.stand();
+                float[] mitKoerper = ab.aenderung.d.clone();
+                String ks = ab.stand();
+                v.entfernen();
+                boolean okV = ab.standSetzen(ks) && v.setzen(vs);
+                check(okV && v.liegt() && Math.abs(v.volumen - vol) < 1e-6 && java.util.Arrays.equals(ab.aenderung.d, mitKoerper) && vol > 30_000,
+                        f("Vorspülung hin und zurück: %,.0f m³, der Körper steckt in der Änderung des Geländes", vol));
+                v.entfernen();
+                ab.standSetzen(stand);
+            }
+            ab.manuell = false;
+        }
+        // Zustand der Szene hin und zurück
+        double ms0 = clock.epochMillis(), lapse0 = clock.lapse;
+        var lage0 = r.wiring.regie.lage();
+        r.wiring.regie.lage(com.dan.sylt.wiring.Wetterregie.Lage.STURM);
+        r.camera.mode = Camera.Mode.FREI;
+        r.camera.place(-1200, 40, 1500, 80, -5);
+        r.camera.snap();
+        r.wiring.surf.tp = 11.5;
+        var z2 = com.dan.store.Felder.ausText(com.dan.store.Felder.alsText(com.dan.sylt.data.Zustand.erfassen(r, false), "Prüfung"));
+        clock.set(LocalDate.of(2026, 1, 1), 3);
+        clock.lapse = 3600;
+        r.wiring.regie.lage(com.dan.sylt.wiring.Wetterregie.Lage.SEENEBEL);
+        r.camera.place(0, 100, 0, 0, 0);
+        r.wiring.surf.tp = 5;
+        var fehler = com.dan.sylt.data.Zustand.anwenden(r, z2);
+        check(fehler.isEmpty() && clock.epochMillis() == Math.floor(ms0) && r.wiring.regie.lage() == com.dan.sylt.wiring.Wetterregie.Lage.STURM && Math.abs(r.camera.eye[0] + 1200) < 0.01
+                        && r.wiring.surf.tp == 11.5 && clock.lapse == lapse0,
+                f("Zustand der Szene hin und zurück: %d Werte (Uhr, Lage, Kamera, Regler)", z2.size()) + (fehler.isEmpty() ? "" : "; nicht: " + fehler));
+        r.wiring.regie.lage(lage0);
     }
 
     static void teil(String t) { System.out.println("\n— " + t); }

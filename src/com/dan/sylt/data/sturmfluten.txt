@@ -1,0 +1,25 @@
+# Sylt · belegte Sturmfluten seit 1962 (F38 A), recherchiert am 28.10.2026.
+# Je Zeile: NAME | DATUM (dd.mm.yyyy) | SCHEITEL_LIST_CM | SCHEITEL_HOERNUM_CM | SCHEITEL_WESTERLAND_CM | BEZUG | KLIFFVERLUST_M | KLIFFVERLUST_TEXT | FOLGEN | QUELLE
+# Scheitel in cm über NHN, wo die LKN-Seite NHN nennt; sonst in cm über Pegelnull List (PN ≈ NN −5,00 m nach dem Fachplan 1997,
+# nicht umgerechnet, weil es nicht ganz aufgeht). Westerland: keine Werte gefunden. Kliffverlust in Metern: für kein Ereignis belegt.
+# Namen in [eckigen Klammern] sind nicht quellengeprüft.
+Sturmflut 16.02.1962 | 16.02.1962 | 365 | | | NHN | | | Hörnum zeitweise vom Rest der Insel getrennt; am Pegel List 865 cm PN, 645 min über 700 cm PN | LKN_FACHPLAN
+Sturmflut 03.01.1976 [Capella] | 03.01.1976 | 394 | | | NHN | | | Zweithöchster Wert am Pegel List seit 1900 (894 cm PN) | LKN_FACHPLAN
+Sturmflut 21.01.1976 | 21.01.1976 | 847 | | | PN List | | | Rang 7 der 20 höchsten am Pegel List seit 1900 | LKN_BERICHT_2009
+Sturmflut 24.11.1981 | 24.11.1981 | 405 | | | NHN | | | Höchster Wasserstand am Pegel List seit 1900 (905 cm PN) | LKN_FACHPLAN
+Sturmflut 26.01.1990 | 26.01.1990 | 858 | | | PN List | | | Rang 5 am Pegel List; im Winter 1990 Sandzuwachs von 1,6 Mio. m³ an der Westküste | FACHPLAN_1997
+Sturmflut 26.02.1990 [Vivian] | 26.02.1990 | 824 | | | PN List | | | Serie Februar 1990, Rang 13 am Pegel List | LKN_BERICHT_2009
+Sturmflut 27.02.1990 [Vivian/Wiebke] | 27.02.1990 | 849 | | | PN List | | | Serie Februar 1990, Rang 6 am Pegel List | LKN_BERICHT_2009
+Sturmflut 28.02.1990 [Wiebke] | 28.02.1990 | 827 | | | PN List | | | Serie Februar 1990, Rang 10 am Pegel List | LKN_BERICHT_2009
+Anatol 03.12.1999 | 03.12.1999 | 361 | | | NHN | | Starke Abbrüche am Roten Kliff (ohne Meterangabe) | Am Pegel List 863 cm PN, Rang 4 seit 1900 | WIKI_ROTES_KLIFF
+Sturmflut 28.01.2002 | 28.01.2002 | 820 | | | PN List | | | Rang 15 am Pegel List seit 1900 | LKN_BERICHT_2009
+Sturmflut 08.01.2005 | 08.01.2005 | 815 | | | PN List | | | Rang 16 am Pegel List seit 1900 | LKN_BERICHT_2009
+Sturmflut 01.03.2008 | 01.03.2008 | 811 | | | PN List | | | Einzige des Winters 2007/08 unter den 20 höchsten; rund 725 000 m³ Sand verlagert | LKN_BERICHT_2009
+Xaver 06.12.2013 | 06.12.2013 | | | | | | | Dünen auf 23 km beschädigt, Hörnum-Odde rund 20 m verloren, Deichbruch in Keitum, Böe 174 km/h; Pegelwerte für Sylt nicht gefunden; Vorbild der Sturmflut in der App | WIKI_XAVER
+Sturmflut 14.11.2015 | 14.11.2015 | 300 | | | NHN | | Randdünen- und Kliffabbrüche 0,8 km; das Depot an der Sturmhaube danach fast aufgebraucht | List 2,12 m über MThw; Vordünenabbrüche 5,1 km | LKN_FACHPLAN
+Sturmflut 27.12.2016 | 27.12.2016 | 299 | | | NHN | | Keine Kliffabbrüche: an der Sturmhaube hat das Depot die Erosion des Kliffs verhindert | List 2,11 m über MThw; Vordünenabbrüche 14,1 km | LKN_FACHPLAN
+Sturmflut 13.09.2017 | 13.09.2017 | 261 | 285 | | NHN | | Keine Kliffabbrüche; am Kliffende in Kampen Abbrüche an Aufspülkörpern | List 1,73 m, Hörnum 1,82 m über MThw | LKN_FACHPLAN
+Sabine 10.02.2020 | 10.02.2020 | 299 | | | NHN | | Kliff an der Sturmhaube Kampen auf rund 350 m bloßgelegt (Pressemeldung: auf annähernd 300 m angegriffen) | Serie 10. bis 12.02.2020 mit fünf Scheiteln (NHN +2,39 bis +2,99 m); Randdünen- und Kliffabbrüche 1,80 km | LKN_PM_2020
+Sturmflut 19.02.2022 [Ylenia/Zeynep/Antonia] | 19.02.2022 | 318 | | | NHN | | Randdünen- und Kliffabbrüche 0,71 km | List 2,28 m über MThw, höchster Wert 2015–2024; Vordünenabbrüche 8,13 km | LKN_FACHPLAN
+Sturmflut 15.10.2023 | 15.10.2023 | 245 | | | NHN | | | List 1,56 m über MThw | LKN_FACHPLAN
+Sturmflut 22.12.2023 | 22.12.2023 | 274 | | | NHN | | Winter 2023/24: Randdünen- und Kliffabbrüche 0,25 km | Doppelscheitel 21.12. (NHN +2,69 m) und 22.12.2023 (NHN +2,74 m) | LKN_FACHPLAN

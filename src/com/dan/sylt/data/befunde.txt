@@ -1,0 +1,29 @@
+# Sylt · Befunde (Werkbuch Abschnitt 2). Je Zeile: THEMA | GEGENSTAND | BEFUND (BELEGT, GEMESSEN, GESTALTET) | TEXT | QUELLEN (Kurzzeichen, Komma)
+GELAENDE | Gelände des Kerns | GEMESSEN | DGM1 2024 mit 1 m und bDOM 2024 mit 20 cm um das Kliff (Kern 2,3 × 3,6 km); Höhen NHN, UTM 32N. | GEOBASIS_SH
+GELAENDE | Grund und Fernfeld | GEMESSEN | BAW-Küstenhöhen 2015–2021 mit 10 m, außen 100 m; 8 km draußen −13 bis −14 m, sanft ansteigend. | BAW, EASYGSH
+GELAENDE | Feinform unter dem Raster | GESTALTET | Riffe und Rinnen auf 2 m, Rippel, Runsen am Kliff prozedural. | APP
+KLIFF | Lage und Länge | BELEGT | Westküste von Sylt vom Parkplatz Risgap in Wenningstedt bis Haus Kliffende in Kampen; die gemessene Kante ist rund 3 km lang. | WIKI_ROTES_KLIFF, GEOBASIS_SH
+KLIFF | Höhe | GEMESSEN | Rund 30 m; die Wand nach der Kante 2024 bis rund 35 m. | WIKI_ROTES_KLIFF, GEOBASIS_SH
+KLIFF | Aufbau | BELEGT | Oben Dünen- und Flugsand, darunter rot oxidierter Geschiebelehm der Saale-Eiszeit mit Findlingen, unten heller Kaolinsand. | WIKI_ROTES_KLIFF
+KLIFF | Mächtigkeit der Schichten | GESTALTET | Die Schichten je Ort sind gesetzt [G]. | APP
+KLIFF | Abbrüche bei Sturmflut | BELEGT | Sturmfluten 1862, 1881 und 1928 kosteten je mehrere Meter, Anatol 1999 brachte starke Abbrüche; Meter je Ereignis sind nicht belegt. | WIKI_ROTES_KLIFF
+KLIFF | Abbruch in der App | GESTALTET | Hohlkehle nach Auflauf (Stockdon), Bruch nach Mohr-Coulomb mit fracture; Zeitpunkt, Form und Menge kommen aus der Rechnung. | STOCKDON06, APP
+KLIFF | Rückgang | BELEGT | Düne und Kliff der Westküste wichen 1950–1984 um rund 1,5 m im Jahr zurück. | FACHPLAN_1997, WIKI_SYLT
+KUESTE | Sandvorspülungen | BELEGT | Seit 1972 auf Sylt, seit 1984 an der ganzen Westküste; bis Ende 2024 rund 61,3 Mio. m³ für rund 289 Mio. €. | OURCOAST_SCHUTZ, PM_2025
+KUESTE | Vorspülungen vor dem Kliff | BELEGT | Belegt sind Wenningstedt 2004 und 2008, Kampen 2008 und 2024; eine lückenlose Liste für den Abschnitt fehlt. | LKN_BERICHT_2009, PM_2024
+KUESTE | Vorspülung in der App | GESTALTET | 600 m vor dem Kliff, 70 m breit, am Fuß 2,5 m hoch, Abtrag nach der See [G]. | APP
+KUESTE | Sandverlust | BELEGT | Rund 1 bis 1,2 Mio. m³ im Jahr an der Westküste. | LKN_PM_2026, WIKI_SYLT
+KUESTE | Sturmfluten am Pegel List | GEMESSEN | Höchster Wert seit 1900 am 24.11.1981 mit NHN +4,05 m; 2015–2024 höchster am 19.02.2022 mit NHN +3,18 m. | LKN_FACHPLAN, FACHPLAN_1997
+KUESTE | Kliff an der Sturmhaube 2020 | BELEGT | Die Sturmserie im Februar 2020 legte das Kliff an der Sturmhaube Kampen auf rund 350 m frei. | LKN_PM_2020
+BRANDUNG | Physik der Wellen | BELEGT | Shoaling, Brechen nach McCowan, Brechertyp nach Iribarren und Battjes, Dissipation nach Battjes und Janssen. | BATTJES
+BRANDUNG | Seegang vor Westerland | GESTALTET | Die Seegangsstatistik ist gesetzt, bis ein Beleg da ist [G]. | APP
+BRANDUNG | Tide | BELEGT | Pegel Kampen (West) aus dem Gezeitenkalender; Tidenhub rund 1,8 m. | TIDESCHART
+SAND | Flugsand | BELEGT | Transport nach Bagnold mit Feuchte und Strandhafer; Korngröße am Ort gesetzt [G]. | BAGNOLD41, APP
+TUERME | Quermarkenfeuer | BELEGT | 1912/13, achteckiger Backsteinturm 13 m, Feuerhöhe 23 m, F WRG, 21 sm; 1975 außer Betrieb, heute Tagesmarke. | WIKI_QUERMARKE
+TUERME | Kampener Leuchtturm | BELEGT | 1855/56, 40 m, Feuerhöhe 62 m, Iso WR 7 s, weiß 20 sm, rot 16 sm; seit 1975 mit rotem Sektor anstelle des Quermarkenfeuers. | WIKI_KAMPEN
+TUERME | Einzelheiten der Laterne | GESTALTET | Maße der Laterne und Einzelheiten nach den Vorlagen [G]. | VORLAGEN, APP
+WETTER | Sturmflut Xaver | BELEGT | 5. bis 7.12.2013: Orkan aus Nordwest, Bft 9–10, Böen um 140 km/h; der Verlauf je Stunde ist geschätzt [G]. | WIKI_XAVER_EN, WIKI_XAVER
+WETTER | Klima | BELEGT | Monatsmittel der Temperatur von List 1991–2020, gerundet. | DWD_LIST
+LEBEN | Strandleben | GESTALTET | Strandkörbe im Sommer, Möwen, Austernfischer, Sanderlinge: Verteilung und Verhalten gesetzt [G]. | APP
+KLANG | Klang | GESTALTET | Gestalt der Klänge nach Gehör und Beschreibung, Ausbreitung nach Maekawa und ISO 9613-1 [G]. | APP
+REGIE | Lagen der Wetterregie | GESTALTET | Neun benannte Lagen vom Sommerabend bis zum Gewitter über der See [G]. | APP

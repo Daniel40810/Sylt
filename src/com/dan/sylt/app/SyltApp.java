@@ -162,7 +162,21 @@ public final class SyltApp {
         f.setVisible(true);
         startMaximized(f);
         view.start();
-        Runtime.getRuntime().addShutdownHook(new Thread(view::stop, "Sylt-Ende"));
+        // Phase 16 (F42 A): Sitzung, Protokoll alle 5 s, Zustand mit dem Kliff und Vorschaubild alle 2 min und beim Ende; die Chronik
+        com.dan.store.Protokoll.kontext(() -> com.dan.sylt.data.Daten.text(clock.epochMillis()),
+                () -> String.format(java.util.Locale.ROOT, "%.0f %.0f %.0f", rd.camera.eye[0], rd.camera.eye[1], rd.camera.eye[2]));
+        com.dan.store.Dienst.starten(Renderer.VERSION, "", rd.quality().name(), () -> sicherung(rd));
+        com.dan.store.Protokoll.info("App", "Sylt " + Renderer.VERSION + " gestartet · " + com.dan.sylt.data.Datenseite.wo());
+        com.dan.sylt.data.Chronik ch = new com.dan.sylt.data.Chronik(rd);
+        chronik = ch;
+        controls.chronik(ch);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try { ch.beenden(); } catch (RuntimeException e) { System.err.println("Sylt: Chronik nicht beendet: " + e); }
+            try { com.dan.store.Dienst.beenden(); } catch (RuntimeException e) { System.err.println("Sylt: Sitzung nicht beendet: " + e); }
+            view.stop();
+        }, "Sylt-Ende"));
+        if (wahl.weiter() != null) com.dan.sylt.ui.Weiter.anwenden(rd, wahl.weiter(), ch);
+        if (wahl.kino() != null) com.dan.sylt.ui.Weiter.kino(rd, wahl.kino());
         // F11: nur die Szene (Bedienfeld und Statuszeile weg und wieder da)
         view.setKeyAction(java.awt.event.KeyEvent.VK_F11, () -> SwingUtilities.invokeLater(() -> {
             boolean an = !side.isVisible();
@@ -176,8 +190,25 @@ public final class SyltApp {
         frame = f;
         scene = view;
         SyltApp.controls = controls;
-        System.out.println("Sylt " + Renderer.VERSION + " gestartet · " + clock.label() + " · " + (wahl.datenbank() ? "Datenbank " : "") + Startbild.statuszeile()
+        System.out.println("Sylt " + Renderer.VERSION + " gestartet · " + clock.label() + " · " + Startbild.statuszeile()
                 + " · Renderer.jar: " + Bibliothek.kurz());
+    }
+
+    /** Phase 16: die Chronik der laufenden Szene (Abbrüche, Sturmfluten, Vorspülungen, Serien, Regiebücher). */
+    public static volatile com.dan.sylt.data.Chronik chronik;
+
+    /** Der Zustand für die Sitzung (alle 2 min und beim Ende) mit dem Stand des Kliffs; dazu ein Vorschaubild für das Startbild. */
+    private static com.dan.store.Ablage.Sicherung sicherung(Renderer r) {
+        java.util.LinkedHashMap<String, String> z = com.dan.sylt.data.Zustand.erfassen(r, true);
+        long s = com.dan.store.Dienst.sitzung();
+        if (s > 0 && r.grabRequest == null && !r.kino.laeuft())
+            r.grabRequest = img -> {
+                byte[] png = ControlPanel.vorschau(img);
+                if (png != null) com.dan.store.Dienst.spaeter(() -> {
+                    try { com.dan.sylt.data.Datenseite.speicher().vorschau(s, png); } catch (com.dan.store.Ablage.Fehler e) { com.dan.store.Protokoll.warnung("Sitzung", "Vorschau: " + e.getMessage()); }
+                });
+            };
+        return new com.dan.store.Ablage.Sicherung(com.dan.store.Felder.alsText(z, "Sylt · Sitzung · " + Renderer.VERSION), com.dan.sylt.data.Zustand.spalten(z));
     }
 
     /**

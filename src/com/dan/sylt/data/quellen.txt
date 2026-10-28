@@ -1,0 +1,30 @@
+# Sylt · Quellen (F37–F39 A, Werkbuch Abschnitte 2 und 16, Recherche vom 28.10.2026).
+# Je Zeile: KURZ | ART (WEB, BUCH, ARTIKEL, DATEN, MESSUNG) | ABGERUFEN (yyyy-mm-dd oder leer) | TITEL | URL | BEMERKUNG
+WIKI_ROTES_KLIFF | WEB | 2026-10-28 | Rotes Kliff – Wikipedia | https://de.wikipedia.org/wiki/Rotes_Kliff | Höhe rund 30 m, Risgap bis Haus Kliffende, Saale-Eiszeit, Farbe, Findlinge, Vorspülungen seit Ende der 1970er-Jahre, Anatol 1999, Sturmfluten 1862, 1881, 1928
+WIKI_QUERMARKE | WEB | 2026-10-25 | Rotes Kliff Lighthouse – Wikipedia | https://en.wikipedia.org/wiki/Rotes_Kliff_Lighthouse | Quermarkenfeuer 1912/13, 13 m, Feuerhöhe 23 m, F WRG, 21 sm, 1936 elektrisch, 1975 außer Betrieb, 1993 restauriert
+WIKI_KAMPEN | WEB | 2026-10-25 | Kampen Lighthouse – Wikipedia | https://en.wikipedia.org/wiki/Kampen_Lighthouse | 1855/56, 40 m, Feuerhöhe 62 m, Bornholmer Ziegel, Kennung, Reichweiten 20 und 16 sm, Lage
+WIKI_SYLT | WEB | 2026-10-28 | Sylt – Wikipedia | https://de.wikipedia.org/wiki/Sylt | Sturmflut 1962, Küstenrückgang, Sandverlust rund 1,1 Mio. m³ im Jahr; Kostenangabe überholt
+WIKI_XAVER | WEB | 2026-10-28 | Orkan Xaver – Wikipedia | https://de.wikipedia.org/wiki/Orkan_Xaver | Dünen auf 23 km beschädigt, Hörnum-Odde rund 20 m, Böe 174 km/h
+WIKI_XAVER_EN | WEB | 2026-10-25 | Cyclone Xaver – Wikipedia | https://en.wikipedia.org/wiki/Cyclone_Xaver | Orkan aus Nordwest, Bft 9–10, Böen um 140 km/h (Phase 12)
+LKN_FACHPLAN | DATEN | 2026-10-28 | Fachplan Küstenschutz Sylt – Grundlagen (LKN.SH) | https://www.schleswig-holstein.de/DE/fachinhalte/K/kuestenschutz_fachplaene/2_Sylt/2_Grundlagen/2_Grundlagen.html | Sturmflutwerte Pegel List (NHN), Abbruchbilanzen 2015–2024, Küstenabschnitte
+LKN_PM_2020 | ARTIKEL | 2026-10-28 | LKN.SH Pressemeldung Sturmschäden Westküste, 13.02.2020 | https://www.schleswig-holstein.de/DE/Landesregierung/LKN/Presse/Pressemeldungen/2020/200213_Sturmschaeden_Westkueste.html | Sturmserie Februar 2020 (Sabine), Kliff an der Sturmhaube auf rund 300 bis 350 m angegriffen
+FACHPLAN_1997 | DATEN | 2026-10-28 | Fortschreibung Fachplan Küstenschutz Sylt, ALW Husum, 11.08.1997 (OURCOAST Doc4) | https://discomap.eea.europa.eu/map/Data/Milieu/OURCOAST_195_DE/OURCOAST_195_DE_Doc4_FachplanSylt.pdf | Pegelbezug List: 905 cm PN = NN +4,05 m; Rückgang 1950–1984 rund 1,5 m im Jahr
+LKN_BERICHT_2009 | DATEN | 2026-10-28 | Westküste Sylt – Morphologie, Bericht 02/2009, Husum 27.02.2009 (OURCOAST Doc3) | https://discomap.eea.europa.eu/map/Data/Milieu/OURCOAST_195_DE/OURCOAST_195_DE_Doc3_WestCoastMorphologySylt.pdf | Die 20 höchsten Sturmfluten am Pegel List seit 1900 (cm PN), Vorspülungen Wenningstedt und Kampen 2004 und 2008
+OURCOAST_SCHUTZ | DATEN | 2026-10-28 | West Coast Protection Sylt (OURCOAST Doc2) | https://discomap.eea.europa.eu/map/Data/Milieu/OURCOAST_195_DE/OURCOAST_195_DE_Doc2_WestCoastProtectionSylt.pdf | Sandaufspülungen seit 1972, seit 1984 an der ganzen Westküste
+PM_2017 | ARTIKEL | 2026-10-28 | MELUR-Pressemitteilung Sandvorspülungen Sylt, 27.03.2017 | https://www.schleswig-holstein.de/DE/Landesregierung/V/Presse/PI/2017/0317/MELUR_170327_Sandvorspuelungen_Sylt.html |
+PM_2019 | ARTIKEL | 2026-10-28 | Pressemitteilung Strandbereisung Sylt, 08.04.2019 | https://www.schleswig-holstein.de/DE/Landesregierung/V/Presse/PI/2019/0419/190408_Strandbereisung_Sylt.html | Kampen Hauptstrand 140 000 m³ geplant
+PM_2024 | ARTIKEL | 2026-10-28 | Pressemitteilung Küstenschutz Sylt, 18.03.2024 | https://www.schleswig-holstein.de/DE/landesregierung/ministerien-behoerden/V/Presse/PI/2024/03/240318_Sylt | Saison 2024: Kampen Nord und Süd je 100 000 m³
+PM_2025 | ARTIKEL | 2026-10-28 | Pressemitteilung Sandvorspülungen 2025–2028, 18.02.2025 | https://www.schleswig-holstein.de/DE/landesregierung/ministerien-behoerden/V/Presse/PI/2025/02/250218_Sandvorsp%C3%BClungen | Seit 1972 rund 61,3 Mio. m³ und 289 Mio. €
+LKN_PM_2026 | ARTIKEL | 2026-10-28 | LKN.SH: Sandaufspülung startet in Hörnum, 15.04.2026 | https://www.schleswig-holstein.de/DE/landesregierung/ministerien-behoerden/LKN/Presse/Pressemeldungen/2026/MeldungSandaufspuelungSylt_04-2026 | Saison 2026: 1,3 Mio. m³ auf 8,15 km
+TAZ_2025 | ARTIKEL | 2026-10-28 | taz, Sandaufspülungen Sylt 2025–2028, 19.02.2025 | https://taz.de/nachrichten/!6067064/ | Ohne Vorspülung 1 bis 4 m Rückgang im Jahr
+SPEKTRUM_2007 | ARTIKEL | 2026-10-28 | Spektrum.de: Bröckelnde Bastion, 31.01.2007 | https://www.spektrum.de/news/broeckelnde-bastion/863961 | Winter 2006/07: bis zu 6 m Strand abgetragen
+EASYGSH | ARTIKEL | | Sievers et al. 2021: Integrated marine data collection for the German Bight – Part 1 (EasyGSH-DB), ESSD 13 | | Grund vor dem Kliff
+BAW | DATEN | 2026-10-27 | BAW Küstenhöhen topography_max_z 2015–2021 und Wattflächen 2021 (10 m, ETRS89/UTM 32, NHN) | | Grund und Fernfeld (Phase 2)
+GEOBASIS_SH | DATEN | 2026-10-27 | DGM1, bDOM, DOP20, LOD2 Schleswig-Holstein, © GeoBasis-DE/LVermGeo SH, Datenlizenz Deutschland | | Kern 1 m, Kante des Kliffs 2024 (Phase 2)
+VORLAGEN | WEB | | Vorlagen in templates/: RotesKliff1–5, Leuchturm1–4, Kampen1–4 | | Bilder, nach denen Türme und Ansichten gestellt sind
+TIDESCHART | WEB | 2026-10-27 | tideschart: Gezeiten Kampen (West) | | Tide.westerland() (Phase 7a)
+STOCKDON06 | ARTIKEL | | Stockdon et al. 2006: Empirical parameterization of setup, swash, and runup | | Auflauf R2 % (Phase 12)
+BATTJES | ARTIKEL | | Battjes 1974; Battjes und Janssen 1978; Longuet-Higgins und Stewart 1964 | | Brechertyp, Dissipation, Strahlungsspannung (Phasen 5–7)
+BAGNOLD41 | BUCH | | Bagnold 1941: The Physics of Blown Sand and Desert Dunes | | Flugsand (Phase 8)
+DWD_LIST | DATEN | | DWD-Klimamittel List auf Sylt 1991–2020 | | Monatsmittel der Temperatur (Phase 13)
+APP | DATEN | | Sylt · Rotes Kliff, eigene Rechnung und Gestaltung | | Was die App rechnet oder setzt [G]

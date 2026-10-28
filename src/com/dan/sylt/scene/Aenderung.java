@@ -76,6 +76,19 @@ public final class Aenderung implements Terrain.Korrektur {
     /** Alles neu hochladen lassen. */
     public synchronized void alles() { di0 = 0; dj0 = 0; di1 = nx - 1; dj1 = nz - 1; }
 
+    /**
+     * Seit Phase 16 („Weiter wie zuletzt“): alle Zellen auf einmal setzen (Länge nx · nz) und alles neu hochladen lassen.
+     * Nur im Faden, der die Änderung besitzt.
+     */
+    public void setzen(float[] neu) {
+        if (neu.length != d.length) throw new IllegalArgumentException("Änderung: " + neu.length + " statt " + d.length + " Zellen");
+        System.arraycopy(neu, 0, d, 0, d.length);
+        lo = 0;
+        hi = 0;
+        for (float v : d) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+        alles();
+    }
+
     /** Summe der Änderung (m³), positiv und negativ getrennt. */
     public double[] volumen() {
         double p = 0, n = 0, a = cell * cell;
