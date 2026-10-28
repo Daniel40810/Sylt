@@ -350,14 +350,14 @@ public final class DbSpeicher implements Speicher {
     @Override public List<Daten.Abbruch> abbrueche(int n) throws Fehler {
         return mit("Abbrüche", c -> {
             List<Daten.Abbruch> l = new ArrayList<>();
-            try (PreparedStatement st = c.prepareStatement("SELECT a.*, a.BRUCHSTELLE.SDO_POINT.X AS BX, a.BRUCHSTELLE.SDO_POINT.Y AS BY, "
+            try (PreparedStatement st = c.prepareStatement("SELECT a.*, a.BRUCHSTELLE.SDO_POINT.X AS BRX, a.BRUCHSTELLE.SDO_POINT.Y AS BRY, "
                     + "MDSYS.SDO_UTIL.TO_WKTGEOMETRY(a.RUECKGANG) AS RWKT, k.ID AS KID, k.NORD_VON AS KV, k.NORD_BIS AS KB, MDSYS.SDO_UTIL.TO_WKTGEOMETRY(k.OBERKANTE) AS OWKT, "
                     + "MDSYS.SDO_UTIL.TO_WKTGEOMETRY(k.FUSS) AS FWKT, k.WAND_MAX_M AS KW, k.OBERKANTE_MAX_M AS KO FROM SY_ABBRUCH a "
                     + "LEFT JOIN SY_KLIFFKANTE k ON k.ABBRUCH_ID = a.ID ORDER BY a.SZENE_MS DESC, a.ID DESC FETCH FIRST ? ROWS ONLY")) {
                 st.setInt(1, n);
                 try (ResultSet r = st.executeQuery()) {
                     while (r.next()) {
-                        Double bx = dbl(r, "BX"), by = dbl(r, "BY");
+                        Double bx = dbl(r, "BRX"), by = dbl(r, "BRY");
                         long ms = r.getLong("SZENE_MS");
                         Long kid = ms(r, "KID");
                         Daten.Kantenstueck k = kid == null ? null : new Daten.Kantenstueck(kid, "ABBRUCH", r.getLong("ID"), r.getDouble("KV"), r.getDouble("KB"),

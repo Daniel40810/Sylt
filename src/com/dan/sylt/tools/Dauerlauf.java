@@ -212,7 +212,7 @@ public final class Dauerlauf {
                         case 7 -> { r.setQuality(qs[rnd.nextInt(qs.length)]); stufen++; switchUntil = System.nanoTime() + 2_000_000_000L; }
                         case 8 -> { Wetterregie.Lage l = lagen[rnd.nextInt(lagen.length)]; r.wiring.regie.lage(l); lastEvent = "Lage " + l.label; }
                         case 10 -> {
-                            if (r.sturmflut.aktiv) {
+                            if (r.sturmflut.aktiv && (abbr + vorsp) % 2 == 0) {   // abwechselnd, sonst käme die Vorspülung nie dran
                                 r.placeNamed("AmKliff");
                                 r.abbruchHier();
                                 r.vorspulen(r.sturmflut.stunden(clock) + 1, 5, true);
