@@ -12,6 +12,7 @@ bei der Sturmflut der Pegel.
 
 Aufruf (aus dem Projektverzeichnis):
     python3 tools/vorschau/vorschau.py [ausgabe.mp4] [--bilder]
+    python3 tools/vorschau/vorschau.py [ausgabe.mp4] --teil k n   (k = 0 … n−1), danach --zusammen n
 Braucht Python 3 mit Pillow und NumPy sowie ffmpeg im PATH. Mit --bilder nur zehn Probebilder neben der Ausgabe.
 Schriften: Caladea (Titel) und Inter (Beschriftung); fehlen sie, nimmt es DejaVu.
 Fehlt eine Bildfolge, nimmt es das Standbild docs/bilder/<Name>.png mit einer langsamen Fahrt (Ken Burns).
@@ -32,7 +33,7 @@ WURZEL = os.environ.get("SYLT_WURZEL") or os.path.abspath(os.path.join(os.path.d
 BILDER = os.path.join(WURZEL, "docs", "bilder")
 STATUS = os.path.join(WURZEL, "docs", "status")
 HOER = os.path.join(WURZEL, "docs", "hoerproben")
-ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--") and not a.isdigit()]
 AUSGABE = ARGS[0] if ARGS else os.path.join(WURZEL, "docs", "video", "Sylt_Vorschau.mp4")
 
 # ---------------------------------------------------------------- Schriften
@@ -431,6 +432,22 @@ def klang(pfad, sr=48000):
 
 # ---------------------------------------------------------------- Ausgabe
 
+def kodieren(ziel, von, bis, ton=None):
+    """Bilder von..bis-1 als H.264 nach ziel (mit Ton, wenn angegeben)."""
+    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
+           "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-"]
+    if ton:
+        cmd += ["-i", ton]
+    cmd += ["-c:v", "libx264", "-preset", "slow", "-crf", "21", "-pix_fmt", "yuv420p"]
+    cmd += (["-movflags", "+faststart", "-c:a", "aac", "-b:a", "160k", "-shortest"] if ton else ["-an"]) + [ziel]
+    ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
+    for i in range(von, bis):
+        ff.stdin.write(frame(i).tobytes())
+        if i % 60 == 0:
+            print(f"{i / FPS:5.1f} s", flush=True)
+    ff.stdin.close()
+    ff.wait()
+
 def main():
     os.makedirs(os.path.dirname(os.path.abspath(AUSGABE)), exist_ok=True)
     if "--bilder" in sys.argv:
@@ -438,19 +455,33 @@ def main():
             frame(int(s * FPS)).save(AUSGABE + f".{s:04.1f}s.jpg", quality=88)
         print("Probebilder neben", AUSGABE)
         return
+    # in Teilen (für Umgebungen, die lange Läufe abbrechen): --teil k n rechnet das k-te von n Stücken,
+    # --zusammen n fügt die Stücke ohne neues Kodieren zusammen und legt den Ton darunter
+    if "--teil" in sys.argv:
+        k, n = (int(x) for x in sys.argv[sys.argv.index("--teil") + 1:sys.argv.index("--teil") + 3])
+        von, bis = N * k // n, N * (k + 1) // n
+        kodieren(f"{AUSGABE}.teil{k}.mp4", von, bis)
+        print(f"Teil {k + 1} von {n}: Bilder {von} bis {bis - 1}")
+        return
+    if "--zusammen" in sys.argv:
+        n = int(sys.argv[sys.argv.index("--zusammen") + 1])
+        liste = AUSGABE + ".teile.txt"
+        with open(liste, "w") as f:
+            for k in range(n):
+                f.write(f"file '{os.path.basename(AUSGABE)}.teil{k}.mp4'\n")
+        ton = AUSGABE + ".klang.wav"
+        klang(ton)
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", liste, "-i", ton,
+                        "-c:v", "copy", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "-shortest", AUSGABE], check=True)
+        for k in range(n):
+            os.remove(f"{AUSGABE}.teil{k}.mp4")
+        os.remove(liste)
+        os.remove(ton)
+        print("fertig:", AUSGABE)
+        return
     ton = AUSGABE + ".klang.wav"
     klang(ton)
-    cmd = ["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
-           "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-", "-i", ton,
-           "-c:v", "libx264", "-preset", "slow", "-crf", "21", "-pix_fmt", "yuv420p",
-           "-movflags", "+faststart", "-c:a", "aac", "-b:a", "160k", "-shortest", AUSGABE]
-    ff = subprocess.Popen(cmd, stdin=subprocess.PIPE)
-    for i in range(N):
-        ff.stdin.write(frame(i).tobytes())
-        if i % 60 == 0:
-            print(f"{i / FPS:5.1f} s", flush=True)
-    ff.stdin.close()
-    ff.wait()
+    kodieren(AUSGABE, 0, N, ton)
     os.remove(ton)
     print("fertig:", AUSGABE)
 

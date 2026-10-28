@@ -49,6 +49,10 @@ public final class Chronik {
     /** Zähler für Block CHRONIK und Prüfung. */
     public volatile int abbrueche, sturmfluten, vorspuelungen, serien, regielaeufe, fehler;
     public volatile String letzte = "";
+    /** Seit Phase 19b: die verschiedenen Fehlertexte (höchstens 20), für Dauerlauf und Prüfung. */
+    public final java.util.Set<String> fehlerTexte = java.util.Collections.synchronizedSet(new java.util.LinkedHashSet<>());
+
+    private void merke(String t) { if (fehlerTexte.size() < 20) fehlerTexte.add(t); }
 
     private int ergebnisGesehen;
     // Sturmflut
@@ -133,6 +137,7 @@ public final class Chronik {
                 letzte = was;
             } catch (Ablage.Fehler | RuntimeException e) {
                 fehler++;
+                merke(was.replaceAll("\\d", "#") + ": " + e.getMessage());
                 Protokoll.warnung("Chronik", was + ": " + e.getMessage());
             }
         });
@@ -150,6 +155,7 @@ public final class Chronik {
             regie();
         } catch (RuntimeException e) {
             fehler++;
+            merke("Beobachten: " + e);
             Protokoll.fehler("Chronik", "Beobachten: " + e, e);
         }
     }

@@ -266,6 +266,7 @@ public final class Dauerlauf {
             int ab = sp.abbrueche(1000).size(), sf = sp.sturmflutLaeufe(1000).size();
             say.accept(String.format(Locale.GERMAN, "Chronik: %d Abbrüche, %d Sturmfluten, %d Vorspülungen, %d Serien, %d Regieläufe geschrieben, %d Fehler · lesbar: %d Abbrüche, %d Läufe in %s",
                     ch.abbrueche, ch.sturmfluten, ch.vorspuelungen, ch.serien, ch.regielaeufe, ch.fehler, ab, sf, sp.wo()));
+            synchronized (ch.fehlerTexte) { for (String t : ch.fehlerTexte) say.accept("  Chronik-Fehler: " + t); }
             chronikOk = ch.fehler == 0 && ch.serien + ch.sturmfluten + ch.abbrueche + ch.regielaeufe > 0;
             if (sid > 0 && !"ja".equals(System.getProperty("behalten"))) say.accept("Chronik der Sitzung " + sid + " geleert: " + sp.chronikLeeren(sid) + " Zeilen");
         } catch (Exception e) {
