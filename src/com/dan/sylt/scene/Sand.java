@@ -88,6 +88,13 @@ public final class Sand {
 
     private volatile double geloestMit;
 
+    /** Seit Phase 14 (Klang): Wind am Ort {Ost, oben, Süd} in der Höhe y (m NHN), aus dem Feld auf die Lage skaliert. */
+    public double[] windBei(double x, double y, double z) {
+        double[] v = wind.windAt(x, y, z, 0);
+        double k = wind.solution != null && geloestMit > 0.1 ? wind.speed / geloestMit : 1;
+        return new double[]{v[0] * k, v[1] * k, v[2] * k};
+    }
+
     /** Nässe des Sands als Massenanteil: aus der Szene (0,22 Rest = trocken, 1 = gesättigt), unter dem Pegel nass, nach Regen mindestens {@link #regen}. */
     double feuchte(double x, double z) {
         double w = nass.applyAsDouble(x, z), m;

@@ -229,6 +229,19 @@
         <wetterbild name="Spuelsaum" uhr="10" datum="2026-09-20" d1="-Dansicht=Spuelsaum" d2="-Dblick=200,5,12"/>
         <wetterbild name="Gruen" uhr="21.85" datum="2026-07-20" d1="-Dfernrohr=sonne" d2="-Dgruen=3"/>
     </target>
+    <!-- Phase 14: die Hörproben (WAV mit Spektrogramm) nach docs/hoerproben, ohne Grafikkarte; nur eine: -Dnur=saum|kliffuss|kante|heide|sand|gewitter|abbruch -->
+    <property name="nur" value=""/>
+    <target name="hoerproben" depends="jar" description="Phase 14: Hörproben als WAV mit Spektrogramm nach docs/hoerproben (ohne Grafikkarte).">
+        <property name="platform.java" value="java"/>
+        <java classname="com.dan.sylt.tools.Hoerproben" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+            <jvmarg value="-Xmx6g"/>
+            <arg value="docs/hoerproben"/>
+            <arg value="${nur}"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+    </target>
     <!-- Phase 12: der Abbruch als Bildfolge auf der Grafikkarte (docs/status/Abbruch_1..6.png): Xaver bis Stunde 15, dann
          das Stück bei N 6 090 335 (oder -Dnord=…, -Dstunde=…), Physik fest 1/120 s, das letzte Bild einen Tag später (zwei Fluten). Seit Phase 13 Stunde 23 (6.12.2013 11 Uhr, hell). -->
     <property name="nord" value=""/>

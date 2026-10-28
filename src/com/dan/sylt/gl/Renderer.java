@@ -135,6 +135,8 @@ public final class Renderer implements GLEventListener {
      */
     public final Unwetter unwetter = new Unwetter();
     public final com.dan.sylt.scene.Strandleben leben;
+    /** Seit Phase 14: der Klang (com.dan.soundscape); Ton an im Bedienfeld, KLANG. */
+    public final Klang klang;
     final LebenGl lebenGl = new LebenGl();
     public volatile boolean showLeben = true, meeresleuchten = true, gruenesLeuchten = true;
     /** Verstärkung des Meeresleuchtens (1 = wie gemessen) und ob eine Blüte erzwungen wird (für Vorführungen, NaN: nach Jahr). */
@@ -257,6 +259,7 @@ public final class Renderer implements GLEventListener {
         herde = new com.dan.sylt.scene.Herde(14, Site.LEUCHTTURM.x(), Site.LEUCHTTURM.z(), terrain::height, haeuserNahe(Site.LEUCHTTURM.x(), Site.LEUCHTTURM.z(), 500));
         feuer = new com.dan.sylt.scene.Leuchtfeuer(bauwerke.fokusKampen, bauwerke.fokusQuermarke, com.dan.beacon.Beacon.Quality.MEDIUM);
         leben = new com.dan.sylt.scene.Strandleben(terrain::height, kliff.kante, brandung.buhnen.pfaehle);
+        klang = new Klang(this);
         // seit Phase 13: ein Blitz lässt den Himmel um seine Richtung aufleuchten (com.dan.sky), Licht je Schlag
         unwetter.blitz.onStroke = (b, k, x, y, z, cd) -> wetter.sky.flash(x - camera.eye[0], y - camera.eye[1], z - camera.eye[2],
                 Math.min(1, cd / 2e8), wetter.sky.time(), 0.5);
@@ -700,6 +703,8 @@ public final class Renderer implements GLEventListener {
         if (showLeben) leben.schritt(dt, camera.eye, camera.tx, camera.tz, wiring.windSpeed, wiring.windFromDeg, umgebungLux, sp7[0], clock.date(), clock.hour(),
                 wiring.pegel, nah.sichtbar ? nah.stueck() : null, wiring.surf.hs);
         wetter.sky.greenFlash = gruenesLeuchten ? (Double.isNaN(gruenFest) ? gruenesLeuchtenHeute() : gruenFest) : 0;
+        // seit Phase 14: der Klang hört an der Kamera zu
+        klang.feed(dt);
         if (wetter.skyOk) {
             Sky.State st = wetter.sky.step(dt);
             wetter.clouds.step(dt);
@@ -1495,6 +1500,7 @@ public final class Renderer implements GLEventListener {
                 leben.describe()[0],
                 leben.describe()[1] + " · " + lebenGl.describe(),
                 lichtZeile(),
+                klang.describe(),
                 "Bauten: " + bauwerke.describe(),
                 "Leuchtfeuer (beacon): " + feuer.describe(),
                 koerbe.describe() + " · " + herde.describe(),

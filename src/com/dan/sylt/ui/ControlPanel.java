@@ -74,6 +74,7 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
     private FComboBox regieBox, gewitterBox;
     private final FSlider regenMmSl = new FSlider(0, 300, 0), nebelSl = new FSlider(0, 100, 0);
     private final JLabel regenMmLbl = label(""), nebelLbl = label(""), unwetterLbl = small(""), lebenLbl = small(""), lichtLbl = small("");
+    private final JLabel klangLbl = small(""), lautLbl = label("");
     private final FCheckBox regenBox = new FCheckBox("Regen zeigen (com.dan.rain)"), nebelBox = new FCheckBox("Seenebel zeigen (com.dan.fog)"),
             gewitterZeigen = new FCheckBox("Gewitter zeigen (com.dan.lightning)"), leuchtenBox = new FCheckBox("Meeresleuchten in Sommernächten"),
             leuchtenFest = new FCheckBox("Blüte erzwingen (jede Nacht, volle Stärke)"), gruenBox = new FCheckBox("Grünes Leuchten beim Sonnenuntergang"),
@@ -468,8 +469,56 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
                 + "mit Dämmerungsschalter; das Quermarkenfeuer ist seit 1975 dunkel, „wie früher“ brennt es F WRG. Strandkörbe von "
                 + "Mai bis September, mit dem Rücken zum Wind, bei Sturmwarnung (ab Bft 8) weggeräumt. Die Vorlagen stellen "
                 + "Ansicht, Öffnung (Fernrohr für Kampen1–3), Tag und Stunde.</body></html>"));
-        block("KLANG", false);
-        put(small("<html><body style='width:215px'>Kommt mit Phase 14: Brandung je Brechertyp und Entfernung, Sand am Ohr, Wind an der Kante, Abbruch, Vögel.</body></html>"));
+        // ============================================================== KLANG (seit Phase 14)
+        block("KLANG", true);
+        var kl = r.klang;
+        FCheckBox tonBox = new FCheckBox("Ton an (Lautsprecher)");
+        boolean tonPref = PREFS == null || PREFS.getBoolean("ton", true);
+        tonBox.setSelected(tonPref);
+        if (tonPref) kl.setOn(true);
+        tonBox.addActionListener(e -> {
+            kl.setOn(tonBox.isSelected());
+            if (tonBox.isSelected() && !kl.on) tonBox.setSelected(false);
+            if (PREFS != null) PREFS.putBoolean("ton", tonBox.isSelected());
+            view.requestFocusInWindow();
+        });
+        put(tonBox);
+        FSlider lautSl = new FSlider(0, 200, (int) Math.round(kl.s.volume * 100));
+        lautSl.addChangeListener(e -> { kl.s.volume = lautSl.getValue() / 100.0; txt(lautLbl, "Lautstärke " + lautSl.getValue() + " %"); });
+        txt(lautLbl, "Lautstärke " + lautSl.getValue() + " %");
+        put(lautLbl);
+        put(lautSl);
+        FCheckBox ohrBox = new FCheckBox("Das Ohr passt sich an (leise Nacht hörbar, Sturm erträglich)");
+        ohrBox.setSelected(kl.s.autoGain);
+        ohrBox.addActionListener(e -> { kl.s.autoGain = ohrBox.isSelected(); view.requestFocusInWindow(); });
+        put(ohrBox);
+        sub("Was klingt");
+        FCheckBox[] teile = {new FCheckBox("Brandung (fern und die einzelnen Wellen)"), new FCheckBox("Wind, Kliffkante"), new FCheckBox("Flugsand und Strandhafer"),
+                new FCheckBox("Möwen, Sanderlinge, Austernfischer, Seehund, Kühe"), new FCheckBox("Regen und Donner"), new FCheckBox("Abbruch des Kliffs")};
+        boolean[] an = {kl.brandungAn, kl.windAn, kl.sandAn, kl.tiereAn, kl.wetterAn, kl.kliffAn};
+        for (int i = 0; i < teile.length; i++) {
+            final int k = i;
+            teile[i].setSelected(an[i]);
+            teile[i].addActionListener(e -> {
+                boolean b = teile[k].isSelected();
+                switch (k) {
+                    case 0 -> kl.brandungAn = b;
+                    case 1 -> kl.windAn = b;
+                    case 2 -> kl.sandAn = b;
+                    case 3 -> kl.tiereAn = b;
+                    case 4 -> kl.wetterAn = b;
+                    default -> kl.kliffAn = b;
+                }
+                view.requestFocusInWindow();
+            });
+            put(teile[i]);
+        }
+        put(klangLbl);
+        put(small("<html><body style='width:215px'>Seit Phase 14: erzeugt mit com.dan.soundscape, ohne Audiodateien. Das Ohr ist die "
+                + "Kamera. Die ferne Brandung ist eine Linie aus dem Wellenfeld (Leistung und Art der Brecher, je 25 m), nah klingt "
+                + "jede Welle: der Schwallbrecher zischt, der Sturzbrecher schlägt, der Schwall läuft hinauf und zischt über den Sand "
+                + "zurück. Fern bleibt das Rollen, die Luft nimmt die Höhen. Oben hinter der Kliffkante dämpft die Kante. Wind aus dem "
+                + "Windfeld, die Kante heult im Sturm, Strandhafer raschelt, Flugsand prasselt. Hörproben: ant hoerproben.</body></html>"));
         block("REGIEBÜCHER", false);
         put(small("<html><body style='width:215px'>Kommt mit Phase 15: „Ein Abend am Kliff“, „Die Sturmflut“, „Ein Jahr am Kliff“, als Kür "
                 + "„Mit der Welle“; im Kinomodus aus com.dan.kino.</body></html>"));
@@ -742,6 +791,7 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         String[] lb = r.leben.describe();
         txt(lebenLbl, "<html><body style='width:215px'>" + esc(lb[0]) + "<br>" + esc(lb[1]) + "</body></html>");
         txt(lichtLbl, "<html><body style='width:215px'>" + esc(r.lichtZeile()) + "</body></html>");
+        txt(klangLbl, "<html><body style='width:215px'>" + esc(r.klang.describe()) + "</body></html>");
     }
 
     private void technik() {

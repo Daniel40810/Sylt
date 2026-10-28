@@ -100,6 +100,13 @@ public final class Kliffabbruch implements Physik.Aufgabe {
     public volatile boolean manuell;
     /** Ruft die App beim Zerfall (Staub, F15 A): Ort und Volumen. */
     public volatile java.util.function.Consumer<double[]> onStaub;
+    /**
+     * Seit Phase 14: für den Klang. Art 0 = der erste Bruch eines Abschnitts (Ort an der Kante über der Kehle, Volumen
+     * des Stücks), 1 = ein Brocken schlägt auf (Ort, Volumen, Tempo), 2 = ein Stück zerfällt zu Sand (Ort, Volumen).
+     * Gerufen aus dem Faden der Physik.
+     */
+    @FunctionalInterface public interface Klang { void klang(int art, double x, double y, double z, double volumen, double tempo); }
+    public volatile Klang onKlang;
     public volatile Fracture.Quality qualitaet = Fracture.Quality.MEDIUM;
     public volatile boolean asyncSolve = true;
     /** Ob ein kritisch gewordenes Stück von selbst gerechnet wird (aus: nur die Kehle wächst, etwa für Prüfungen). */
@@ -191,17 +198,23 @@ public final class Kliffabbruch implements Physik.Aufgabe {
                 vKegel += kegel(x, z, locker);
                 java.util.function.Consumer<double[]> st = onStaub;
                 if (st != null) st.accept(new double[]{x, y, z, vol});
+                Klang kl = onKlang;
+                if (kl != null) kl.klang(2, x, y, z, vol, 0);
             };
             // Staub (F15 A) auch beim Aufschlag: Lehm, der auf den Strand schlägt, staubt, ohne ganz zu zerfallen
             welt.onImpact = (x, y, z, vol, speed, wasser) -> {
                 java.util.function.Consumer<double[]> st = onStaub;
                 if (st != null && !wasser && speed > 1.5 && vol > 0.02) st.accept(new double[]{x, y, z, vol * 0.3});
+                Klang kl = onKlang;
+                if (kl != null && speed > 1.0 && vol > 0.01) kl.klang(1, x, y, z, vol, speed);
             };
             welt.onBreak = (id, vol, m) -> {
                 if (vol > 1 && !gebrochen) {
                     gebrochen = true;
                     abbrueche++;
                     meldung = String.format(Locale.GERMAN, "Abbruch bei N %,.0f: %.0f m³ brechen", kante.nord[mitte], vol);
+                    Klang kl = onKlang;
+                    if (kl != null) kl.klang(0, kante.kanteX(mitte) - 3, (kante.hKante[mitte] + kante.hFuss[mitte]) / 2, kante.z(mitte), vol, 0);
                 }
             };
             kehleAuf();

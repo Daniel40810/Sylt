@@ -342,6 +342,9 @@ public final class Pruefung {
         teil("Wetter, Licht, Leben (Phase 13)");
         wetter(r3, clock);
 
+        teil("Klang (Phase 14)");
+        klang(r3, clock);
+
         teil("Renderer.jar und Shader");
         List<String> pk = Bibliothek.pakete();
         check(Bibliothek.fehlend().isEmpty(), "Renderer.jar: " + Bibliothek.kurz());
@@ -353,7 +356,7 @@ public final class Pruefung {
         for (String c : new String[]{"com.dan.surf.demo.SurfCheck", "com.dan.dune.demo.DuneCheck", "com.dan.tide.demo.TideCheck", "com.dan.beacon.demo.BeaconCheck", "com.dan.fracture.demo.FractureCheck",
                 "com.dan.flock.demo.FlockCheck", "com.dan.flock.demo.WaderCheck", "com.dan.sky.demo.SkyCheck", "com.dan.weather.demo.WeatherCheck",
                 "com.dan.rain.demo.RainCheck", "com.dan.fog.demo.FogCheck", "com.dan.lightning.demo.LightningCheck", "com.dan.mudflat.demo.MudflatCheck",
-                "com.dan.seal.demo.SealCheck"}) {
+                "com.dan.seal.demo.SealCheck", "com.dan.soundscape.demo.SoundscapeCheck"}) {
             Process p = new ProcessBuilder(javaBin(), "-Dstdout.encoding=UTF-8", "-cp", System.getProperty("java.class.path"), c).redirectErrorStream(true).start();
             String out = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             check(p.waitFor() == 0 && out.contains("Alles in Ordnung."), c + ": " + (out.contains("Alles in Ordnung.") ? "Alles in Ordnung." : out.strip()));
@@ -832,6 +835,74 @@ public final class Pruefung {
         check(alle, "HUD: Zeilen für Wetter, Regen, Seenebel, Gewitter, Leben und Licht");
         check(com.dan.sylt.tools.Abbruch.STUNDE == 23, "Bildfolge des Abbruchs seit Phase 13 am Vormittag danach (Stunde 23, hell)");
         rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.SOMMERABEND);
+    }
+
+    /**
+     * Phase 14: der Klang (com.dan.soundscape) ohne Lautsprecher. Am Spülsaum: Brandungslinie aus dem Wellenfeld, einzelne
+     * Wellen, Vögel; auf der Uwe-Düne nur noch das Rollen; oben hinter der Kante dämpft sie; Flugsand im Sandsturm;
+     * Abbruch und Donner verdrahtet; Rechenzeit.
+     */
+    static void klang(Renderer r, SceneClock clock) {
+        com.dan.sylt.gl.Klang k = r.klang;
+        com.dan.soundscape.Soundscape s = k.s;
+        k.offline = true;
+        s.autoGain = false;
+        s.quality = com.dan.soundscape.Soundscape.Quality.MEDIUM;
+        clock.set(java.time.LocalDate.of(2026, 9, 12), 18.5);
+        clock.lapse = 1;
+        r.wiring.regie.lage(com.dan.sylt.wiring.Wetterregie.Lage.SOMMERABEND);
+        r.placeView(com.dan.sylt.camera.Ansichten.byName("Spülsaum"));
+        double x = r.camera.eye[0] + com.dan.sylt.scene.Kueste.SX * 6, z = r.camera.eye[2] + com.dan.sylt.scene.Kueste.SZ * 6;
+        r.camera.place(x, Math.max(r.groundHeight(x, z), r.wiring.pegel) + 1.6, z, 200, 2);
+        r.brandungJetzt();
+        int w0 = k.schwallbrecher + k.sturzbrecher, sw0 = k.schwaelle, b0 = k.moewen + k.sanderlinge + k.austernfischer;
+        long t0 = System.nanoTime();
+        double[] lv = new double[com.dan.soundscape.Soundscape.PARTS.length];
+        int n = 0;
+        for (int i = 0; i < 60 * 40; i++) {
+            r.step(1 / 60.0);
+            s.render(1 / 60.0);
+            if (i > 60 * 8) { double[] l = s.levels(); for (int q = 0; q < lv.length; q++) lv[q] += Math.pow(10, l[q] / 10); n++; }
+        }
+        double ms = s.msPerSecond();
+        double fern = 10 * Math.log10(lv[12] / n), alles = 10 * Math.log10(lv[lv.length - 1] / n), ev = 10 * Math.log10(lv[14] / n);
+        int wellen = k.schwallbrecher + k.sturzbrecher - w0, schw = k.schwaelle - sw0, voegel = k.moewen + k.sanderlinge + k.austernfischer - b0;
+        check(k.stuecke > 100 && fern > 45 && fern < 80, f("Spülsaum, Sommerabend: Brandung fern %.0f dB aus %d Stücken (%.0f W/m vergehen gegenüber), am Ohr %.0f dB", fern, k.stuecke, k.wattsHier, alles));
+        check(wellen >= 3 && schw >= 1 && ev > 40, f("einzelne Wellen am Ohr in 40 s: %d Brecher, %d Schwälle, Ereignisse %.0f dB", wellen, schw, ev));
+        check(voegel >= 2, f("Vögel rufen: %d in 40 s (Möwen %d, Sanderlinge %d, Austernfischer %d)", voegel, k.moewen, k.sanderlinge, k.austernfischer));
+        check(ms < 60, f("Rechenzeit des Klangs am Strand (32 kHz): %.0f ms je s Ton", ms));
+        // fern: auf der Uwe-Düne nur das Rollen
+        double strand = s.surfLineDb();
+        r.placeView(com.dan.sylt.camera.Ansichten.byName("Uwe-Düne"));
+        for (int i = 0; i < 90; i++) { r.step(1 / 60.0); s.render(1 / 60.0); }
+        double[] bd = s.surfLineBandsDb();
+        check(s.surfLineDb() < strand - 4 && bd[0] > bd[2] + 10, f("Uwe-Düne: Brandung fern %.0f dB (am Strand %.0f dB), Rollen %.0f dB über dem Zischen", s.surfLineDb(), strand, bd[0] - bd[2]));
+        // hinter der Kante: oben 40 m landwärts der Kliffkante dämpft sie
+        com.dan.sylt.scene.Kante kt = r.kliff.kante;
+        int row = kt.row(com.dan.sylt.scene.Site.N0 - 6_089_500);
+        if (row < 0) row = kt.n / 2;
+        double hx = kt.kanteX(row) + com.dan.sylt.scene.Kueste.SX * 40, hz = kt.z(row) + com.dan.sylt.scene.Kueste.SZ * 40;
+        int r2 = kt.row(hz);
+        double hk = r2 < 0 ? 25 : kt.hKante[r2];
+        // das Ohr 40 m landwärts der Kante, 1 m über ihrer Höhe (der Grund steigt dort meist an, dann sieht man über sie hinweg)
+        double kd = k.kante(hx, hk + 1, hz, r.wiring.pegel), vor = k.kante(kt.kanteX(row) - com.dan.sylt.scene.Kueste.SX * 30, 2, kt.z(row) - com.dan.sylt.scene.Kueste.SZ * 30, r.wiring.pegel);
+        check(kd < -3 && vor == 0, f("40 m hinter der Kliffkante, 1 m über ihr: die Kante nimmt %.0f dB (Beugung nach Maekawa); am Strand davor nichts", -kd));
+        // Sandsturm: Flugsand am Ohr, Wind an der Kante
+        r.sandsturm();
+        r.sandJetzt();
+        for (int i = 0; i < 60; i++) { r.step(1 / 60.0); s.render(1 / 60.0); }
+        check(s.sandFlux > 0.005, f("Sandsturm: Flugsand am Ohr %.3f kg/(m·s), %s", s.sandFlux, s.describe()));
+        // Abbruch und Donner sind verdrahtet; ein Abbruch klingt
+        int a0 = k.abbrueche;
+        if (r.abbruch != null && r.abbruch.onKlang != null) r.abbruch.onKlang.klang(0, r.camera.eye[0] + 40, 10, r.camera.eye[2], 300, 0);
+        s.render(0.2);
+        int voices = s.activeVoices();
+        check(r.abbruch != null && k.abbrueche == a0 + 1 && voices > 0 && r.unwetter.blitz.onThunder != null, f("Abbruch klingt (%d Stimmen), Donner verdrahtet", voices));
+        check(k.describe().startsWith("Klang") && java.util.Arrays.stream(r.hudLines()).anyMatch(l -> l.startsWith("Klang")), "HUD: Zeile für den Klang");
+        k.offline = false;
+        clock.lapse = 0;
+        r.wiring.regie.lage(com.dan.sylt.wiring.Wetterregie.Lage.SOMMERABEND);
+        System.out.printf(Locale.GERMAN, "  (Klang gerechnet in %.1f s)%n", (System.nanoTime() - t0) / 1e9);
     }
 
     static double lum(double[] c) { return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; }
