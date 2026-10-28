@@ -15,3 +15,7 @@
 /db/User.sql
 # Austausch mit Claude (Archive, Zwischenstände)
 /_transfer/
+
+# Bildfolgen für das Video (ant vorschaubilder, rund 190 MB) und Probebilder
+/docs/bilder/clip_*/
+/docs/video/_*.jpg

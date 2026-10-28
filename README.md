@@ -2,7 +2,7 @@
 
 Der Weststrand von Sylt zwischen Wenningstedt und Kampen als 3D-Echtzeitszene in Java 21 und OpenGL 4.3: die Brandung über Riff und Rinnen, Auflauf und Rücklauf auf nassem Sand, Flugsand über Strand und Dünen, das Rote Kliff mit seinen Schichten, das Quermarkenfeuer und der Kampener Leuchtturm – vom stillen Sommerabend bis zur Sturmflut, in der das Kliff abbricht. Gelände, Kante und Häuser kommen aus den amtlichen Daten (DGM1, DOP20, LOD2), die Wellen, der Sand und der Bruch werden gerechnet. Fortsetzung von Brocken („Projekt der Luft“), mit den Packages aus `lib/Renderer.jar`; neu entstanden sind `surf` (die Brandung) und `dune` (Flugsand und Dünen), erweitert wurden `cliff`, `fracture`, `reed`, `flock` und `soundscape`, geholt wurde `beacon` aus Lighthouse.
 
-**Stand: Phase 19 von 19, Schliff** (28.10.2026). Plan und Fortschritt stehen im Artefakt „Sylt Werkbuch“.
+**Stand: v1.0, Phase 19 von 19 abgeschlossen** (28.10.2026). Plan, Fortschritt und der Abschluss mit den offenen Punkten stehen im Artefakt „Sylt Werkbuch“.
 
 [![Abend am Kliff](docs/bilder/Abend_am_Kliff.png)](docs/video/Sylt_Vorschau.mp4)
 
@@ -10,8 +10,8 @@ Der Weststrand von Sylt zwischen Wenningstedt und Kampen als 3D-Echtzeitszene in
 
 | | |
 |---|---|
-| ![Brecher am Spülsaum](docs/bilder/Brecher.png) | ![Sturmflut](docs/bilder/Sturmflut.png) |
-| **Brandung** – jede Welle läuft phasenaufgelöst über den Grund, bricht als Schwall- oder Sturzbrecher und läuft den Strand hinauf (`surf`). | **Sturmflut** – Orkan Xaver, 5. Dezember 2013: Windstau über 3 m, die Brandung schlägt eine Hohlkehle in den Fuß. |
+| ![Kliffkante mit Strandhafer](docs/bilder/Kliffkante.png) | ![Sturmflut](docs/bilder/Sturmflut.png) |
+| **Kante und Brandung** – oben Strandhafer und Grasnarbe, unten läuft die Brandung phasenaufgelöst über Riff und Rinne und den Strand hinauf (`surf`, `dune`, `reed`). | **Sturmflut** – Orkan Xaver, 5. Dezember 2013: Windstau über 3 m, die Brandung schlägt eine Hohlkehle in den Fuß. |
 | ![Abbruch](docs/bilder/Abbruch_3.png) | ![Nach dem Abbruch](docs/bilder/Abbruch_6.png) |
 | **Abbruch** – wird die Kehle kritisch, rechnet `fracture` das Stück Kliff darüber: Geschiebelehm und Kaolinsand nach Mohr-Coulomb, nass schwächer. | **Einen Tag später** – Sturzkegel und Findlinge am Fuß, die nächste Flut trägt den Kegel ab; die Chronik schreibt die neue Kante. |
 | ![Kampener Leuchtturm bei Nacht](docs/bilder/Nacht_Kampen.png) | ![Vogelauge](docs/bilder/Vogelauge.png) |
@@ -41,7 +41,7 @@ Die Bilder rechnet `ant vorschaubilder` (Stufe Hoch, Full HD, ohne HUD), das Vid
 | Hoch | 100 % | Standbilder, Kino |
 | Ultra | 100 %, feinste See und Wolken | Standbilder |
 
-Gemessen mit `ant stufen` (je Stufe Sommerabend und Sturmflut, ohne HUD nach 60 Bildern Vorlauf): `docs/status/Stufen_Phase19.txt`. Die Regelung der Auflösung hält das Ziel im Fenster.
+Gemessen mit `ant stufen` (je Stufe Sommerabend und Sturmflut, ohne HUD nach 60 Bildern Vorlauf; die Zeiten schreibt das Ziel selbst nach `docs/status/Stufen_Phase19.txt`, die Konsole bitte nicht in dieselbe Datei umleiten). Im Dauerlauf auf der Radeon 680M in Full HD hielt „Mittel“ bei der Sturmflut 65–70 Bilder/s (Grafikkarte rund 13 ms), am Sommerabend 108–119; im Mittel über alle Stufen und Szenen 59 Bilder/s. Die Regelung der Auflösung hält das Ziel im Fenster.
 
 ## Klang
 
@@ -81,6 +81,14 @@ Die Rohdaten (DGM1, bDOM, DOP20, LOD2 unter `C:\Daten\Sylt`, die BAW-Küstenhöh
 - `ant vorgaenger` – alle Prüfklassen in `lib/Renderer.jar` und die Vorgänger Brocken, Geiranger, Glacier, Lighthouse und Thunder mit diesem Jar übersetzt (`docs/status/Vorgaenger_Phase19.txt`).
 - `ant dauerlauf` – 30 Minuten ohne Fenster: Lagen, Regiebücher und Kino, alle Ansichten und Fahrten, Blitze, Sturmflut mit Abbruch und Vorspulen, Vorspülung, Stufenwechsel, Klang offline, die Chronik schreibt in den Speicher der App; jede Minute der Zustand hin und zurück. Bestanden heißt: keine Ausnahme, kein Bild über 2 s, der Speicher wächst nach Minute 5 nicht mehr als 25 % (`docs/status/Dauerlauf_Phase19.txt`; `-Ddauerlauf.minuten=5` für kurz, `-Dbehalten=ja` lässt die Chronik stehen).
 - `ant stufen`, `ant vorschaubilder` (`-Dohne.clips=ja` nur die Standbilder), `ant regiebuecher`, `ant abbruch`, `ant wetterbilder`, `ant vorlagen` – Bilder auf der Grafikkarte.
+
+## Bekannte Grenzen (v1.0)
+
+- Bei hoher Dünung (H_s 3,5 m) und flachem Blick vom Spülsaum wird die See vor dem Strand zu einer gleichmäßig weißen Fläche (Schaum ohne Struktur; `docs/bilder/Brecher.png`).
+- Aus der Höhe (Drohne) sieht man den Rand des Netzes der Nahbrandung als helles Rechteck.
+- Bei der Sturmflut wirkt die See grau und flach, Brecher sind aus der Ansicht am Kliff kaum zu sehen.
+- Der Dauerlauf mit Datenbank meldete 15 Schreibfehler der Chronik (bei 50 Schreibvorgängen); seit v1.0 nennt das Protokoll die Fehlertexte. Ohne Datenbank (Dateien) schreibt die Chronik fehlerfrei.
+- Die Kante von 1870 bis 2024 gibt es nicht als Bildfolge: Die Szene kennt die Kante 2024 und die Abbrüche der App.
 
 ## Entstehung
 
