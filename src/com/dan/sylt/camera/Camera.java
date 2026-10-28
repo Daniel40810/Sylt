@@ -75,6 +75,9 @@ public final class Camera {
     /** Phase 16: bei der Mitfahrt den Blick weich zur Seite drehen (Grad, negativ nach Backbord). */
     public void mitBlick(double lookDeg) { mitYaw = Math.max(-170, Math.min(170, lookDeg)); }
 
+    /** Seit Phase 15: bei der Mitfahrt die Neigung setzen (Grad, + nach unten; für „Mit der Welle“). */
+    public void mitNeigung(double deg) { mitPitch = Math.max(-60, Math.min(60, deg)); }
+
     /** Mitfahrt beenden; die Kamera bleibt frei, wo sie ist. */
     public void stopMitfahrt() { mitfahrt = null; }
 
@@ -94,8 +97,11 @@ public final class Camera {
         fahrt = null;
     }
 
-    /** Untergrenze für das Auge. */
-    private double floor() { return (diving ? groundLevel : Math.max(groundLevel, waterLevel)) + MIN_EYE; }
+    /** Seit Phase 15: Augenhöhe über Grund oder Wasser mindestens (das Strandläufer-Auge geht auf 0,25 m). */
+    public volatile double minEye = MIN_EYE;
+
+    /** Untergrenze für das Auge (unter Wasser 0,2 m über dem Grund). */
+    private double floor() { return diving ? groundLevel + Math.min(minEye, 0.2) : Math.max(groundLevel, waterLevel) + minEye; }
 
     /**
      * Grundansicht (Pos1): kreisen um die Kliffkante, 1,8 km weit von See aus Westsüdwest (Auge rund 500 m), Blick nach

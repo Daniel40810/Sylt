@@ -170,6 +170,8 @@ public final class SyltApp {
             south.setVisible(an);
             root.revalidate();
         }));
+        // seit Phase 15: der Kinomodus – Bedienfeld, Statuszeile und Titelleiste weg, das Fenster über den ganzen Bildschirm
+        rd.kinoFenster = an -> SwingUtilities.invokeLater(() -> kinoFenster(f, view, side, south, root, an));
         view.requestFocusInWindow();
         frame = f;
         scene = view;
@@ -240,6 +242,58 @@ public final class SyltApp {
         } catch (UnsupportedOperationException | IllegalComponentStateException e) {
             // Form nicht möglich: dann eben eckig
         }
+    }
+
+    private static boolean kinoVoll, kinoSeite = true, kinoSueden = true;
+    private static int kinoZustand;
+    private static Rectangle kinoRahmen;
+
+    /** Seit Phase 15: Vollbild für das Kino und zurück (aus Glacier und Rungholt). */
+    private static void kinoFenster(FFrame f, SceneView view, java.awt.Component side, java.awt.Component south, JPanel root, boolean an) {
+        if (an == kinoVoll) return;
+        java.awt.Component bar = taskbar(f);
+        if (an) {
+            kinoSeite = side.isVisible();
+            kinoSueden = south.isVisible();
+            kinoZustand = f.getExtendedState();
+            kinoRahmen = f.getBounds();
+            kinoVoll = true;
+            side.setVisible(false);
+            south.setVisible(false);
+            if (bar != null) bar.setVisible(false);
+            Rectangle schirm = f.getGraphicsConfiguration().getBounds();
+            f.setExtendedState(Frame.NORMAL);
+            f.setBounds(schirm);
+            reshape(f);
+            view.zeigerVerbergen(true);
+            f.toFront();
+        } else {
+            kinoVoll = false;
+            side.setVisible(kinoSeite);
+            south.setVisible(kinoSueden);
+            if (bar != null) bar.setVisible(true);
+            if ((kinoZustand & Frame.MAXIMIZED_BOTH) != 0) f.setExtendedState(kinoZustand);
+            else if (kinoRahmen != null) f.setBounds(kinoRahmen);
+            reshape(f);
+            view.zeigerVerbergen(false);
+        }
+        root.revalidate();
+        root.repaint();
+        view.requestFocusInWindow();
+    }
+
+    /** Die Titelleiste des FFrame (FTaskbar), für das Kino zum Verbergen. */
+    private static java.awt.Component taskbar(FFrame f) {
+        try {
+            for (java.lang.reflect.Field fd : FFrame.class.getDeclaredFields()) {
+                if (!fd.getType().getSimpleName().equals("FTaskbar")) continue;
+                fd.setAccessible(true);
+                return (java.awt.Component) fd.get(f);
+            }
+        } catch (Exception e) {
+            System.err.println("FFrame-Titelleiste nicht gefunden: " + e);
+        }
+        return null;
     }
 
     private SyltApp() { }

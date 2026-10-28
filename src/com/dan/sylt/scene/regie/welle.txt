@@ -1,0 +1,28 @@
+# Sylt · Regiebuch (Phase 15), Befehle wie in abend.txt. Gestaltet [G]. Die Kür: die Kamera reitet auf einer Welle der
+# Nahbrandung, vom Riff bis zum Auflauf; bei einem Sturzbrecher durch den Hohlraum unter der Lippe und kurz unter Wasser.
+Regiebuch: Mit der Welle
+Beschreibung: 3. Oktober 2026, ablandiger Wind und Dünung aus West, die Brecher stürzen: auf dem Kamm einer Welle vom Riff bis an den Strand, durch den Hohlraum unter der Lippe, kurz unter Wasser, mit der Walze und dem Schwall den Strand hinauf
+Länge: 1:30
+0:00 zeit 03.10.2026 14:00 | 3. Oktober, 14 Uhr: ablandiger Wind, Dünung aus West, die Brecher stürzen
+0:00 lage Ablandig
+0:00 raffer 1
+0:00 ansicht Spülsaum
+0:08 foto Am Spülsaum: Dünung bei ablandigem Wind
+0:12 warte serie
+0:12 sage eine Serie großer Wellen läuft an
+0:12 fahrt Welle
+0:20 foto Auf dem Kamm über dem Riff
+0:22 warte welle
+0:22 foto Der Schwall läuft aus
+0:28 ansicht Spülsaum | noch einmal, mit der nächsten Serie
+0:34 warte serie
+0:34 fahrt Welle
+0:40 foto Mit der Welle
+0:42 warte unter
+0:42 foto Die Welle von unten: in der Rinne läuft sie über die Kamera | unter der Welle durch
+0:44 warte welle
+0:44 foto Am Ende des Auflaufs
+0:52 ansicht Kliffkante | von oben: die Serien kommen alle paar Minuten
+1:10 foto Kliffkante: die Brandung von oben
+1:20 blatt Mit der Welle
+1:20 raffer 1

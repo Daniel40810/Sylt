@@ -286,7 +286,8 @@ public final class Pruefung {
             check(Math.abs(topHere - kt.hKante[kr]) < 4, f("Oberkante aus dem Gelände %.1f m, Kante aus dem bDOM %.1f m (N 6 089 600)", topHere, kt.hKante[kr]));
             int spts = 0;
             for (com.dan.cliff.Sod sd : kf.sods) spts += sd.points();
-            check(kf.sods.size() > 0 && spts * 2 > 1500, f("Grasnarbe entlang der Kante: %d Stücke, %.1f km", kf.sods.size(), spts * 2 / 1000.0));
+            // seit Phase 15 nur, wo der Grund gleich vor der Kante abbricht (vorher 3 km, ein Teil lag als roter Wulst auf Dünenkämmen)
+            check(kf.sods.size() > 0 && spts * 2 > 150, f("Grasnarbe an der Abbruchkante: %d Stücke, %.1f km", kf.sods.size(), spts * 2 / 1000.0));
             double fdl = kf.findlinge.density.at(kt.fussX(kr) - 5, kzr), fdlLand = kf.findlinge.density.at(kt.kanteX(kr) + 50, kzr);
             check(fdl > 0 && fdlLand == 0, f("Findlinge nur auf dem Strand vor dem Fuß (Dichte %.2f, hinter der Kante 0)", fdl));
             // Strandhafer auf den Sturzkegeln: irgendwo vor dem Fuß im Band
@@ -344,6 +345,9 @@ public final class Pruefung {
 
         teil("Klang (Phase 14)");
         klang(r3, clock);
+
+        teil("Regie und Kino (Phase 15)");
+        regie(r3, clock);
 
         teil("Renderer.jar und Shader");
         List<String> pk = Bibliothek.pakete();
@@ -990,6 +994,122 @@ public final class Pruefung {
         k.manuell = false;
         clock.set(SceneClock.START_DATE, SceneClock.START_HOUR);
         r.sturmflut.aktiv = false;
+    }
+
+    /**
+     * Phase 15: die Regiebücher als Text, die Blicke und Fahrten, die Vorspülung, das Kino (Vor- und Abspann, Schnitte,
+     * Ton), die Vögel im Gewitter; dann alle vier Regiebücher ohne Bild bis zum Ende, ohne Eingriff und ohne dass ein
+     * {@code warte} ausweichen muss (DoD); dabei Serie, Fahrt mit der Welle, Abbruch mit Spur und Findlingen.
+     */
+    static void regie(Renderer r, SceneClock clock) {
+        java.util.List<com.dan.sylt.scene.Regie.Book> bs = com.dan.sylt.scene.Regie.all();
+        StringBuilder nm = new StringBuilder();
+        int fotos = 0;
+        boolean blicke = true;
+        java.util.Set<String> fahrten = new java.util.TreeSet<>();
+        String fehlt = "";
+        for (com.dan.sylt.scene.Regie.Book b : bs) {
+            nm.append(nm.length() > 0 ? ", " : "").append(b.name());
+            fotos += b.fotos();
+            for (com.dan.sylt.scene.Regie.Zeile z : b.zeilen()) {
+                if (z.befehl().equals("ansicht") && !r.placeNamed(z.argumente())) { blicke = false; fehlt += " " + z.argumente(); }
+                if (z.befehl().equals("fahrt")) fahrten.add(com.dan.sylt.scene.Regie.plainName(z.argumente()));
+                if (z.befehl().equals("lage") && Renderer.lageNachName(z.argumente()) == null) { blicke = false; fehlt += " Lage " + z.argumente(); }
+            }
+        }
+        check(bs.size() == 4 && fotos >= 30, f("4 Regiebücher als Text (scene/regie/*.txt): %s; %d Fotos", nm, fotos));
+        check(blicke, "alle Ansichten und Lagen der Regiebücher gibt es" + (fehlt.isEmpty() ? " (Strandkörbe, Strandläufer, Sonnenuntergang, Vor dem Kliff, Abbruch, Vorspülung dazu)" : ": es fehlen" + fehlt));
+        check(fahrten.equals(new java.util.TreeSet<>(java.util.List.of("drohne", "moewe", "treppe", "welle"))), "Fahrten der Regiebücher: " + fahrten);
+        boolean falsch = false;
+        try { com.dan.sylt.scene.Regie.parse("Regiebuch: X\n0:00 tanze Kliff\n"); } catch (IllegalArgumentException e) { falsch = e.getMessage().startsWith("Zeile 2"); }
+        check(falsch, "ein falscher Befehl nennt die Zeile");
+        com.dan.sylt.camera.Fahrt tr = r.treppenFahrt();
+        double[] t0 = tr == null ? null : tr.at(0), t1 = tr == null ? null : tr.at(tr.length);
+        check(tr != null && t0[1] - t1[1] > 15 && tr.length > 40, tr == null ? "Treppe: kein Weg" : f("Fahrt „Treppe“: %.0f m von %.1f m auf %.1f m NHN hinunter in %.0f s", tr.length, t0[1], t1[1], tr.duration));
+        com.dan.sylt.camera.Fahrt dr = r.drohnenFahrt();
+        check(dr.length > 1900 && dr.length < 2600, f("Fahrt „Drohne“: %.0f m längs des Kliffs, 45 m hoch, %.0f s", dr.length, dr.duration));
+
+        // Vögel im Gewitter (Befund aus Phase 14: im Gewitter hört man keine Vögel)
+        r.wiring.regie.lage(com.dan.sylt.wiring.Wetterregie.Lage.SOMMERABEND);
+        r.step(1 / 30.0);
+        double ruhig = r.klang.rufe();
+        r.wiring.regie.lage(com.dan.sylt.wiring.Wetterregie.Lage.GEWITTER);
+        r.step(1 / 30.0);
+        double gew = r.klang.rufe();
+        check(ruhig > 0.9 && gew < 0.1, f("Vögel rufen am Sommerabend zu %.0f %%, im Gewitter zu %.0f %% (nach einem Donner 30 s gar nicht)", ruhig * 100, gew * 100));
+
+        // Vorspülung: aufspülen, dann trägt die Brandung ab
+        com.dan.sylt.scene.Vorspuelung v = r.vorspuelung;
+        if (v == null) check(false, "Vorspülung: keine Kante");
+        else {
+            com.dan.sylt.scene.Kante kn = r.kliff.kante;
+            int row = Renderer.zeile(kn, 6_089_550);
+            double fx = kn.fussX(row) - 10, fz = kn.z(row), h0 = r.terrain.height(fx, fz);
+            double ms = clock.epochMillis();
+            v.starten(ms);
+            for (int i = 0; i <= 80; i++) v.schritt(1, ms + i * 3_600_000.0, 1.2);
+            double h1 = r.terrain.height(fx, fz), vol = v.volumen;
+            check(v.fertig() && vol > 35_000 && vol < 60_000 && h1 - h0 > 1.5, f("Vorspülung in 72 h aufgespült: %.0f m³ auf 600 m, 10 m vor dem Fuß %.1f m höher · %s", vol, h1 - h0, v.describe()));
+            for (int i = 1; i <= 60; i++) v.schritt(1, ms + (80 + i * 24) * 3_600_000.0, 1.2);
+            double halb = v.volumen;
+            check(halb > 0.4 * vol && halb < 0.6 * vol, f("bei H_s 1,2 m nach 60 Tagen noch %.0f %% (Halbwert 60 Tage)", 100 * halb / vol));
+            v.entfernen();
+            check(Math.abs(r.terrain.height(fx, fz) - h0) < 0.01, "Vorspülung wieder entfernt (Gelände wie vorher)");
+        }
+
+        // Kino: Vorspann, Schnitte mit Überblendung, Untertitel, Abspann, Ton folgt dem Schwarz
+        com.dan.sylt.scene.Regie.Book probe = com.dan.sylt.scene.Regie.parse("Regiebuch: Probe\nBeschreibung: Kino ohne Bild\n0:00 zeit 20.07.2026 21:00 | Anfang\n"
+                + "0:00 ansicht Kliffkante\n0:06 ansicht Spülsaum | Schnitt\n0:12 sage Ende\nLänge: 0:14\n");
+        double vol0 = r.klang.s.volume;
+        r.kinoStart(probe);
+        java.util.Set<com.dan.kino.Kino.Lage> lagen = java.util.EnumSet.noneOf(com.dan.kino.Kino.Lage.class);
+        double tonMin = 9;
+        for (int i = 0; i < 60 * 40 && (i < 10 || r.kino.laeuft()); i++) {
+            r.step(1 / 30.0);
+            r.bildlos();
+            lagen.add(r.kino.lage());
+            if (r.kino.sichtbar()) tonMin = Math.min(tonMin, r.klang.s.volume / Math.max(1e-9, vol0));
+        }
+        check(!r.kino.laeuft() && lagen.containsAll(java.util.List.of(com.dan.kino.Kino.Lage.VORSPANN, com.dan.kino.Kino.Lage.FILM, com.dan.kino.Kino.Lage.ABSPANN))
+                        && Math.abs(r.klang.s.volume - vol0) < 1e-9 && tonMin < 0.3,
+                f("Kino: %s, Ton im Schwarz bis %.0f %%, danach wie vorher", lagen, tonMin * 100));
+
+        // alle vier Regiebücher ohne Eingriff bis zum Ende (DoD)
+        r.ohneBlatt = true;
+        int abbr0 = r.abbruch != null ? r.abbruch.abbrueche : 0;
+        for (com.dan.sylt.scene.Regie.Book b : bs) {
+            long ns = System.nanoTime();
+            r.regieStart(b);
+            int n = 0;
+            java.util.Set<com.dan.sylt.scene.Wellenritt.Abschnitt> ritt = java.util.EnumSet.noneOf(com.dan.sylt.scene.Wellenritt.Abschnitt.class);
+            while ((r.regie.running() || r.regieWantsFrame()) && n < 30_000) {
+                r.step(0.1);
+                r.physik.drain();
+                r.bildlos();
+                if (r.ritt.laeuft()) ritt.addAll(r.ritt.erlebt);
+                n++;
+            }
+            ritt.addAll(r.ritt.erlebt);
+            int stichworte = b.cues().size();
+            check(!r.regie.running() && r.regie.fired() == stichworte && r.regie.ausgewichen == 0 && r.fotosVerlangt == b.fotos(),
+                    f("„%s“ läuft ohne Eingriff durch: %d Stichworte, %d Fotos, %.0f s gewartet, %d Mal ausgewichen (%.0f s Rechenzeit) · %s", b.name(), r.regie.fired(), r.fotosVerlangt,
+                            r.regie.waitedTotal(), r.regie.ausgewichen, (System.nanoTime() - ns) / 1e9, r.regie.describe()));
+            if (b.name().contains("Welle"))
+                check(r.serie.serien > 0 && ritt.contains(com.dan.sylt.scene.Wellenritt.Abschnitt.KAMM) && ritt.contains(com.dan.sylt.scene.Wellenritt.Abschnitt.ENDE)
+                                && (ritt.contains(com.dan.sylt.scene.Wellenritt.Abschnitt.WALZE) || ritt.contains(com.dan.sylt.scene.Wellenritt.Abschnitt.SCHWALL)),
+                        f("Mit der Welle: %s · Abschnitte %s", r.serie.describe(), ritt));
+        }
+        if (r.abbruch != null)
+            check(r.abbruch.abbrueche > abbr0 && !r.abbruch.spur.isEmpty() && !r.kliff.neueFindlinge.isEmpty(),
+                    f("Die Spur der Eiszeit: %d Abbrüche in den Regiebüchern, %s", r.abbruch.abbrueche - abbr0, r.spurLine()));
+        r.ohneBlatt = false;
+        r.camera.diving = false;
+        r.camera.minEye = com.dan.sylt.camera.Camera.MIN_EYE;
+        if (r.vorspuelung != null) r.vorspuelung.entfernen();
+        clock.lapse = 1;
+        clock.set(SceneClock.START_DATE, SceneClock.START_HOUR);
+        r.sturmflut.aktiv = false;
+        r.wiring.regie.lage(com.dan.sylt.wiring.Wetterregie.Lage.SOMMERABEND);
     }
 
     static void teil(String t) { System.out.println("\n— " + t); }

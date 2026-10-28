@@ -107,6 +107,12 @@ public final class Kliffabbruch implements Physik.Aufgabe {
      */
     @FunctionalInterface public interface Klang { void klang(int art, double x, double y, double z, double volumen, double tempo); }
     public volatile Klang onKlang;
+    /**
+     * Seit Phase 15 („Die Spur der Eiszeit“): nach jedem Abbruch, wo der Fuß der Wand vorher lag ({x, z} je Zeile, für
+     * Pflöcke und eine Linie), und wo Findlinge aus dem Geschiebelehm am Strand liegen ({x, z, Halbmesser}).
+     */
+    public final java.util.List<double[]> spur = new java.util.concurrent.CopyOnWriteArrayList<>(), findlingStellen = new java.util.concurrent.CopyOnWriteArrayList<>();
+    public volatile int spurVersion;
     public volatile Fracture.Quality qualitaet = Fracture.Quality.MEDIUM;
     public volatile boolean asyncSolve = true;
     /** Ob ein kritisch gewordenes Stück von selbst gerechnet wird (aus: nur die Kehle wächst, etwa für Prüfungen). */
@@ -597,6 +603,10 @@ public final class Kliffabbruch implements Physik.Aufgabe {
                 geprueft[r] = 0;
             }
             if (strata != null) strata.clearNotch(s.x0 - 3, s.z0, s.x1, s.z1);
+            // die Spur: alter Fuß, wo die Wand zurückwich; Findlinge vor dem Kegel (aus dem Lehm gefallen) [G]
+            for (int r = s.r0; r <= s.r1; r++) if (!Double.isNaN(abriss[r])) spur.add(new double[]{s.fuss[r - s.r0], kante.z(r)});
+            findlingStellen.add(new double[]{s.fuss[s.mitte - s.r0] - 6, kante.z(s.mitte), Math.max(8, (s.r1 - s.r0) * 0.6)});
+            spurVersion++;
         } else for (int r = s.r0; r <= s.r1; r++) geprueft[r] = kehle[r];
         synchronized (fertig) { fertig.add(s); }
         meldung = String.format(Locale.GERMAN, "Abbruch bei N %,.0f fertig: %s · Kante bis %.1f m zurück", kante.nord[s.mitte],

@@ -85,7 +85,10 @@ public final class Renderer implements GLEventListener {
     public final TerrainLod lod = new TerrainLod();
     /** Die Verdrahtung der Packages (Phase 1: Hüllen von surf und dune am Gelände). */
     public final Wiring wiring;
-    /** Phase 15: der Kinomodus (com.dan.kino); bis dahin nur der Anschluss für die Tasten der Szene. */
+    /**
+     * Seit Phase 15: der Kinomodus (com.dan.kino). Ein Regiebuch im Kino: ohne Bedienfeld und HUD, Balken 2,39 : 1, Vor-
+     * und Abspann, Untertitel aus den Stichworten, Überblendung bei jedem Schnitt, ruhiger Schwenk, der Ton folgt dem Schwarz.
+     */
     public final com.dan.kino.Kino kino = new com.dan.kino.Kino();
     /** Phase 3: Himmel und Wolken, die See, die Arten des Kerns zu 1 m, die Nässe des Sands, die Bodendecke. */
     public final Wetter wetter = new Wetter();
@@ -260,6 +263,9 @@ public final class Renderer implements GLEventListener {
         feuer = new com.dan.sylt.scene.Leuchtfeuer(bauwerke.fokusKampen, bauwerke.fokusQuermarke, com.dan.beacon.Beacon.Quality.MEDIUM);
         leben = new com.dan.sylt.scene.Strandleben(terrain::height, kliff.kante, brandung.buhnen.pfaehle);
         klang = new Klang(this);
+        // seit Phase 15: Vorspülung (in die Änderung des Geländes wie die Sturzkegel), Fahrt mit der Welle
+        vorspuelung = abbruch != null ? new com.dan.sylt.scene.Vorspuelung(kliff.kante, abbruch.aenderung) : null;
+        ritt = new com.dan.sylt.scene.Wellenritt(nah, terrain::height);
         // seit Phase 13: ein Blitz lässt den Himmel um seine Richtung aufleuchten (com.dan.sky), Licht je Schlag
         unwetter.blitz.onStroke = (b, k, x, y, z, cd) -> wetter.sky.flash(x - camera.eye[0], y - camera.eye[1], z - camera.eye[2],
                 Math.min(1, cd / 2e8), wetter.sky.time(), 0.5);
@@ -563,8 +569,8 @@ public final class Renderer implements GLEventListener {
         else adaptLum = Math.exp(Math.log(adaptLum) + (Math.log(target) - Math.log(adaptLum)) * Math.min(1, dt / 1.0));
     }
 
-    /** Kinomodus verlassen (Esc im Kino; ab Phase 15 läuft das Regiebuch dabei weiter). */
-    public void kinoVerlassen() { kino.abbrechen(); }
+    /** Kinomodus verlassen (Esc im Kino); das Regiebuch läuft im Fenster weiter. */
+    public void kinoVerlassen() { frozen = false; kino.abbrechen(); }
 
     /** Eine Arbeit im Faden des Bildlaufs (vor dem nächsten Schritt). */
     public void imBild(Runnable r) { imBild.add(r); }
@@ -627,6 +633,15 @@ public final class Renderer implements GLEventListener {
             System.err.println("Sylt: Bodendecke nicht verfügbar: " + e.getMessage());
         }
         belichtung.init(gl);
+        try {   // seit Phase 15: der Kinomodus
+            com.dan.kino.KinoMaler km = new com.dan.kino.KinoMaler();
+            km.kopfFarbe = new java.awt.Color(226, 180, 160);
+            kinoGl = new com.dan.kino.gl.KinoGl(kino, km);
+            kinoGl.init(gl);
+        } catch (RuntimeException e) {
+            System.err.println("Sylt: Kino nicht verfügbar (ohne Balken und Blenden): " + e.getMessage());
+            kinoGl = null;
+        }
         physik.start();
         lastNanos = System.nanoTime();
         statsNanos = lastNanos;
@@ -646,7 +661,8 @@ public final class Renderer implements GLEventListener {
             try { r.run(); } catch (RuntimeException e) { System.err.println("Sylt: Arbeit im Bildlauf: " + e); }
         }
         clock.step(dt);
-        kino.schritt(dt);
+        regie.step(dt, regieCtx);   // seit Phase 15: fällige Stichworte des Regiebuchs
+        kinoSchritt(dt);
         physik.advance(dt);
         camera.groundLevel = groundHeight(camera.eye[0], camera.eye[2]);
         camera.waterLevel = wiring.pegel;
@@ -660,6 +676,7 @@ public final class Renderer implements GLEventListener {
         sturmflut.schritt(clock, wiring);
         wiring.stepTide();
         abbruchSchritt();
+        phase15Schritt(dt);
         wiring.feed(wetter.sky, camera.eye[1]);
         wiring.feed(wetter.clouds);
         wiring.feed(meer.ocean);
@@ -776,6 +793,8 @@ public final class Renderer implements GLEventListener {
         int w = Math.max(64, (int) Math.round(surfW * renderScale)), h = Math.max(64, (int) Math.round(surfH * renderScale));
         if (w != hdrW || h != hdrH) resizeTargets(gl, w, h);
         renderFrame(gl, w, h);
+        regieBild(gl);       // seit Phase 15: Fotos des Regiebuchs (ohne HUD und Balken) und das Blatt am Ende
+        kinoBild(gl, now);   // Kino über das fertige Bild; F12 und Tempo mit
         if (photoRequest) { photoRequest = false; takePhoto(gl, surfW, surfH); }
         Consumer<BufferedImage> gr = grabRequest;
         if (gr != null) { grabRequest = null; try { gr.accept(readDefault(gl, surfW, surfH)); } catch (RuntimeException e) { System.err.println("Sylt: Bild nicht abgeholt: " + e); } }
@@ -1070,6 +1089,7 @@ public final class Renderer implements GLEventListener {
             gl.glDisable(GL.GL_DEPTH_TEST);
             gl.glBindVertexArray(emptyVao);
         }
+        unterWasser(gl, w, h, inv, st, pre, sun);   // seit Phase 15: mit der Welle unter Wasser
         // Belichtung im Bild messen (alle 0,2 s, gelesen ohne Warten beim nächsten Mal)
         if (frameSky && bildMessung) {
             gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrColorFbo);
@@ -1092,7 +1112,7 @@ public final class Renderer implements GLEventListener {
 
         // 7 HUD (vorher abschicken: die Grafikkarte arbeitet, während das HUD im selben Faden gemalt wird; aus Brocken)
         gl.glFlush();
-        if (showHud && !kino.laeuft()) {
+        if (showHud && !kino.laeuft() && captureCaption == null) {   // seit Phase 15: nicht im Kino und nicht auf den Fotos des Regiebuchs
             hud.refresh(gl, 250, this::paintHud, frozen);
             hud.draw(gl, overlay, emptyVao, 12, Math.max(0, surfH - hud.height - 12), surfW, surfH);
         }
@@ -1113,6 +1133,7 @@ public final class Renderer implements GLEventListener {
             bautenGl.upload(gl, BautenGl.BROCKEN, brockenNetz);
             brockenDa = brockenNetz.ecken() > 0;
         }
+        if (spurNeu) { synchronized (spurNetz) { bautenGl.upload(gl, BautenGl.SPUR, spurNetz); } spurNeu = false; }   // seit Phase 15
         if (feuer.an && feuerGl.ok && umgebungLux < 2000) feuerGl.update(gl, feuer);
         gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrFbo);
         gl.glEnable(GL.GL_DEPTH_TEST);
@@ -1457,6 +1478,8 @@ public final class Renderer implements GLEventListener {
         double[] sp = clock.sun();
         l.add(String.format(Locale.GERMAN, "%s · Sonne %.0f° aus %03.0f° · Pegel %+.2f m NHN", clock.label(), sp[0], sp[1], wiring.pegel));
         l.add(cameraLine() + " · H: volles HUD, F1: Tasten");
+        if (regie.running()) l.add(regieLine());   // seit Phase 15
+        if (ritt.laeuft()) l.add(ritt.describe());
         if (System.currentTimeMillis() < meldungUntil) l.add(meldung);
         if (error != null) l.add("!" + error.split("\n")[0]);
         return l.toArray(new String[0]);
@@ -1501,6 +1524,9 @@ public final class Renderer implements GLEventListener {
                 leben.describe()[1] + " · " + lebenGl.describe(),
                 lichtZeile(),
                 klang.describe(),
+                regieLine(),
+                serie.describe() + (ritt.laeuft() ? " · " + ritt.describe() : ""),
+                (vorspuelung != null ? vorspuelung.describe() + " · " : "") + spurLine(),
                 "Bauten: " + bauwerke.describe(),
                 "Leuchtfeuer (beacon): " + feuer.describe(),
                 koerbe.describe() + " · " + herde.describe(),
@@ -1583,6 +1609,7 @@ public final class Renderer implements GLEventListener {
         brandungGl.dispose(gl);
         sandGl.dispose(gl);
         bautenGl.dispose(gl);
+        if (kinoGl != null) kinoGl.dispose(gl);
         feuerGl.dispose(gl);
         unwetter.dispose(gl);
         lebenGl.dispose(gl);
@@ -1599,5 +1626,578 @@ public final class Renderer implements GLEventListener {
         if (emptyVao != 0) gl.glDeleteVertexArrays(1, new int[]{emptyVao}, 0);
         for (int[] s : stamp) if (s[0] != 0) gl.glDeleteQueries(MARKS, s, 0);
         ready = false;
+    }
+
+    // ================================================================== Phase 15: Regiebücher, Kino, Vorspülung, Serie, mit der Welle
+
+    /** Phase 15: die Regiebücher (Text mit Blatt am Ende), ihre Fotos und was sie sagen. */
+    public final com.dan.sylt.scene.Regie regie = new com.dan.sylt.scene.Regie();
+    private final RegieCtx regieCtx = new RegieCtx();
+    private com.dan.kino.gl.KinoGl kinoGl;
+    private final java.util.List<Runnable> kinoSchnitte = new java.util.ArrayList<>();
+    private double kinoYaw, kinoTonBasis = Double.NaN;
+    private boolean kinoFensterAn;
+    private com.dan.sylt.scene.Regie.Book kinoBuch;
+    /** true, wenn das Kino beginnt (Bedienfeld weg, Vollbild), false, wenn es zu Ende ist; im Bildlauf gerufen. */
+    public volatile Consumer<Boolean> kinoFenster = an -> { };
+    private volatile String captureCaption, sheetName, regieMsg = "";
+    private final java.util.List<BufferedImage> album = new java.util.ArrayList<>();
+    private final java.util.List<String> albumCaps = new java.util.ArrayList<>();
+    private double albumFps, albumGpu;
+    private int albumSamples;
+    /** Das zuletzt geschriebene Blatt (für Tempo und die Prüfung); null: noch keins. */
+    public volatile File lastSheet;
+    /** Ohne Blatt (Prüfung). */
+    public volatile boolean ohneBlatt;
+    /** Foto und Blatt noch nicht abholen (Tempo: erst ein paar Bilder zum Einschwingen von Belichtung und Himmel). */
+    public volatile boolean fotoAufschub;
+    /** Fotos und Blatt des Regiebuchs (für die Prüfung: wie viele Fotos verlangt wurden). */
+    public int fotosVerlangt;
+    /** Abbrüche, als das Regiebuch den letzten auslöste (für {@code warte abbruch}). */
+    private int abbruchZahl;
+    /** Seit Phase 15: die Vorspülung vor dem Kliff (null ohne Kante). */
+    public final com.dan.sylt.scene.Vorspuelung vorspuelung;
+    /** Seit Phase 15: die Serien großer Wellen der Nahbrandung. */
+    public final com.dan.sylt.scene.Serie serie = new com.dan.sylt.scene.Serie();
+    /** Seit Phase 15: die Fahrt mit der Welle (Kür). */
+    public final com.dan.sylt.scene.Wellenritt ritt;
+    private java.util.function.Supplier<double[]> rittPose;
+    /** Seit Phase 15: Pflöcke an der Linie, wo die Wand vor dem Abbruch stand („Die Spur der Eiszeit“). */
+    private final com.dan.sylt.scene.Netz spurNetz = new com.dan.sylt.scene.Netz();
+    private int spurGesehen;
+    private volatile boolean spurNeu;
+    public volatile boolean showSpur = true;
+
+    /** Ein Regiebuch von vorn (das Album beginnt leer). */
+    public void regieStart(com.dan.sylt.scene.Regie.Book b) {
+        album.clear();
+        albumCaps.clear();
+        albumFps = albumGpu = 0;
+        albumSamples = 0;
+        fotosVerlangt = 0;
+        regieMsg = "";
+        frozen = false;
+        abbruchZahl = abbruch != null ? abbruch.abbrueche : 0;
+        regie.start(b, regieCtx);
+    }
+
+    public void regieStop() {
+        regie.stop();
+        if (kino.laeuft()) kino.abbrechen();
+    }
+
+    /** Ein Regiebuch im Kino (Vorspann mit Titel und Beschreibung, am Ende der Abspann). */
+    public void kinoStart(com.dan.sylt.scene.Regie.Book b) {
+        frozen = false;
+        regie.beiText = kino::untertitel;
+        kinoBuch = b;
+        kino.beginnen("Sylt · Rotes Kliff, das Projekt der Brandung", b.name(), b.about());
+        regieStart(b);
+    }
+
+    /** Die Zeilen des Abspanns (erste Zeile groß). */
+    java.util.List<String> abspann(com.dan.sylt.scene.Regie.Book b) {
+        java.util.List<String> z = new java.util.ArrayList<>();
+        z.add(b != null ? b.name() : "Sylt");
+        z.add("Ort: das Rote Kliff zwischen Wenningstedt und Kampen, Sylt");
+        z.add("Szene: " + clock.dateLabel());
+        z.add("Gelände: DGM1 Schleswig-Holstein, Küstenvorfeld der BAW, Kante aus kante.csv");
+        z.add("Brandung, Sand, Kliff, Wetter, Licht, Vögel und Klang: com.dan");
+        if (!album.isEmpty()) z.add("Fotos: " + album.size() + " auf dem Blatt in docs/status");
+        z.add("Sylt · Rotes Kliff, das Projekt der Brandung · Phase 15");
+        return z;
+    }
+
+    /** Ein Schnitt (Ansicht, Fahrt). Im Kino wartet er auf das Merken des Bilds für die Überblendung. */
+    private void schnitt(Runnable r) {
+        if (kino.schnitt()) kinoSchnitte.add(r);
+        else { r.run(); kinoYaw = 0; }
+    }
+
+    /** Die wartenden Schnitte ausführen (nach dem Merken oder ohne Kino). */
+    private void schnitteJetzt() {
+        if (kinoSchnitte.isEmpty()) return;
+        java.util.List<Runnable> l = new java.util.ArrayList<>(kinoSchnitte);
+        kinoSchnitte.clear();
+        for (Runnable x : l) x.run();
+        kinoYaw = 0;
+    }
+
+    /** Kino weiter, Abspann am Ende des Regiebuchs, Schwenk und Ton. */
+    private void kinoSchritt(double dt) {
+        com.dan.kino.Kino.Lage l = kino.lage();
+        if ((l == com.dan.kino.Kino.Lage.VORSPANN || l == com.dan.kino.Kino.Lage.FILM) && !regie.running() && !regieWantsFrame())
+            kino.beenden(abspann(kinoBuch));
+        kino.schritt(l == com.dan.kino.Kino.Lage.VORSPANN && regie.waiting() != null ? 0 : dt);
+        if (!kino.laeuft() && !kinoSchnitte.isEmpty() && !kino.schnittFaellig()) schnitteJetzt();
+        // der Schwenk: nur bei stehender Kamera, als Änderung der Blickrichtung
+        double s = kino.schwenk();
+        if (camera.fahrt == null && camera.mitfahrt == null && kinoSchnitte.isEmpty()) {
+            double d = s - kinoYaw;
+            if (camera.mode == com.dan.sylt.camera.Camera.Mode.FREI) camera.fyaw += d; else camera.yaw += d;
+        }
+        kinoYaw = s;
+        // der Ton folgt dem Schwarz
+        com.dan.soundscape.Soundscape ss = klang.s;
+        if (kino.sichtbar()) {
+            if (Double.isNaN(kinoTonBasis)) kinoTonBasis = ss.volume;
+            ss.volume = kinoTonBasis * kino.ton();
+        } else if (!Double.isNaN(kinoTonBasis)) { ss.volume = kinoTonBasis; kinoTonBasis = Double.NaN; }
+    }
+
+    /** Ohne Bild (Prüfung): was der Bildlauf nach dem Zeichnen tut – Schnitte ausführen, Fotos und Blatt verwerfen. */
+    public void bildlos() {
+        if (kino.schnittFaellig()) { schnitteJetzt(); kino.geschnitten(); }
+        captureCaption = null;
+        sheetName = null;
+    }
+
+    /** Ob ein Foto oder das Blatt auf das nächste Bild wartet (Tempo zeichnet dann sofort). */
+    public boolean regieWantsFrame() { return captureCaption != null || sheetName != null || kino.schnittFaellig(); }
+
+    /** „Regie: Ein Abend am Kliff · 21:52: die Sonne berührt die Kimm · 2:10 von 4:30 · 5 Fotos“ (HUD). */
+    public String regieLine() {
+        return "Regie: " + regie.describe() + (album.isEmpty() ? "" : " · " + album.size() + " Fotos") + (regieMsg.isEmpty() ? "" : " · " + regieMsg);
+    }
+
+    /** Seit Phase 15, je Schritt: Vorspülung, Serie, Fahrt mit der Welle, Spur nach dem Abbruch. */
+    private void phase15Schritt(double dt) {
+        if (vorspuelung != null) vorspuelung.schritt(dt, clock.epochMillis(), wiring.surf.hs);
+        if (strandlaeuferIn > 0) {
+            strandlaeuferT += dt;
+            if (strandlaeuferAusrichten(strandlaeuferT > 8 ? 1e9 : 40)) strandlaeuferIn = 0;
+        }
+        com.dan.sylt.scene.Nahbrandung.Stueck st = nah.stueck();
+        serie.schritt(dt, st != null ? st.zug : null);
+        if (rittPose != null) {
+            ritt.schritt(dt);
+            if (ritt.laeuft() && camera.mitfahrt == rittPose) camera.mitNeigung(ritt.neigung);
+            else {
+                if (camera.mitfahrt == rittPose) camera.stopMitfahrt();
+                camera.diving = false;
+                rittPose = null;
+            }
+        }
+        if (abbruch != null && abbruch.spurVersion != spurGesehen) {
+            spurGesehen = abbruch.spurVersion;
+            kliff.neueFindlinge.clear();
+            kliff.neueFindlinge.addAll(abbruch.findlingStellen);
+            kliff.findlinge.invalidate();
+            spurBauen();
+        }
+    }
+
+    private int strandlaeuferIn;
+    private double strandlaeuferT;
+
+    /** Das Strandläufer-Auge: 6 m landwärts und 4 m längs eines Trupps am Spülsaum (Sanderlinge zuerst), 25 cm über dem Sand, Blick auf ihn. */
+    private boolean strandlaeuferAusrichten(double hoechstens) {
+        double[] a = camera.eye.clone();
+        double bx = Double.NaN, bz = 0, bd = 1e18;
+        for (com.dan.flock.Waders.Group g : leben.strand.groups()) {
+            if (g.size() == 0) continue;
+            // Sanderlinge zuerst (im Sommer sind sie selten, dann Austernfischer oder Möwen)
+            double d = Math.hypot(g.cx - a[0], g.cz - a[2]) * (g.species == com.dan.flock.WaderSpecies.SANDERLING ? 0.3 : 1);
+            if (d < bd) { bd = d; bx = g.cx; bz = g.cz; }
+        }
+        if (Double.isNaN(bx) && hoechstens < 1e8) return false;
+        if (Double.isNaN(bx) || bd > hoechstens) return hoechstens > 1e8;
+        double ex = bx + com.dan.sylt.scene.Kueste.SX * 6 + com.dan.sylt.scene.Kueste.AX * 4, ez = bz + com.dan.sylt.scene.Kueste.SZ * 6 + com.dan.sylt.scene.Kueste.AZ * 4;
+        blick(ex, ez, 0.25, bx, Math.max(groundHeight(bx, bz), wiring.pegel) + 0.15, bz, 50);
+        return true;
+    }
+
+    /** Pflöcke alle 6 m an der alten Linie des Fußes, rot und weiß, und eine Leine dazwischen [G]. */
+    private void spurBauen() {
+        synchronized (spurNetz) {
+            spurNetz.leeren();
+            java.util.List<double[]> l = new java.util.ArrayList<>(abbruch.spur);
+            l.sort(java.util.Comparator.comparingDouble(p -> p[1]));
+            double[] vorher = null;
+            int k = 0;
+            for (double[] p : l) {
+                if (vorher != null && Math.abs(p[1] - vorher[1]) < 6) continue;
+                double g = groundHeight(p[0], p[1]);
+                int m = com.dan.sylt.scene.Netz.merkmal(k++ % 2 == 0 ? com.dan.sylt.scene.Netz.ROT : com.dan.sylt.scene.Netz.LACK, false, 0, g);
+                spurNetz.balken(new double[]{p[0], g - 0.4, p[1]}, new double[]{p[0], g + 1.1, p[1]}, 0.08, 0.08, m);
+                if (vorher != null && Math.abs(p[1] - vorher[1]) < 14) {
+                    double gv = groundHeight(vorher[0], vorher[1]);
+                    spurNetz.balken(new double[]{vorher[0], gv + 0.95, vorher[1]}, new double[]{p[0], g + 0.95, p[1]}, 0.015, 0.015,
+                            com.dan.sylt.scene.Netz.merkmal(com.dan.sylt.scene.Netz.GELB, false, 0, g));
+                }
+                vorher = p;
+            }
+        }
+        spurNeu = true;
+    }
+
+    /** „Spur der Eiszeit: alte Linie auf 120 m, Findlinge an 3 Stellen“ */
+    public String spurLine() {
+        if (abbruch == null || abbruch.spur.isEmpty()) return "Spur der Eiszeit: noch kein Abbruch";
+        return String.format(Locale.GERMAN, "Spur der Eiszeit: alte Linie auf %,d m, Findlinge an %d Stellen", abbruch.spur.size(), abbruch.findlingStellen.size());
+    }
+
+    /** Seit Phase 15: die Fahrt „Mit der Welle“ beginnen; false ohne Stück der Nahbrandung. */
+    public boolean wellenritt() {
+        if (!ritt.starten(camera.eye)) return false;
+        camera.stopFahrt();
+        camera.diving = true;
+        rittPose = ritt::pose;
+        camera.startMitfahrt(rittPose);
+        camera.mitNeigung(ritt.neigung);
+        camera.fovy = 62;
+        return true;
+    }
+
+    /** Die Fahrt „Treppe“: von der Kante die Strandtreppe hinunter und 25 m auf den Strand (30 s). */
+    public com.dan.sylt.camera.Fahrt treppenFahrt() {
+        com.dan.sylt.scene.Kante k = kliff.kante;
+        if (k == null) return null;
+        double z = Site.N0 - com.dan.sylt.scene.Bauwerke.TREPPE_N - 1.5;
+        int r = k.row(z);
+        if (r < 0) return null;
+        double x0 = k.fussX(r) - 5, x1 = k.kanteX(r) + 5;
+        int m = (int) Math.ceil(x1 - x0);
+        double[] ly = new double[m + 1];
+        double mx = -1e9;
+        for (int i = 0; i <= m; i++) {
+            double x = x0 + (x1 - x0) * i / m;
+            mx = Math.max(mx, Math.max(groundHeight(x, z - 0.7), groundHeight(x, z + 0.7)) + 0.35);
+            ly[i] = mx;
+        }
+        java.util.List<double[]> pts = new java.util.ArrayList<>();
+        pts.add(new double[]{x1 + 12, groundHeight(x1 + 12, z) + 1.7, z});
+        for (int i = m; i >= 0; i -= 2) pts.add(new double[]{x0 + (x1 - x0) * i / m, ly[i] + 1.65, z});
+        for (double d = 3; d <= 25; d += 3) pts.add(new double[]{x0 - d, Math.max(groundHeight(x0 - d, z), wiring.pegel) + 1.7, z});
+        com.dan.sylt.camera.Fahrt f = new com.dan.sylt.camera.Fahrt("Treppe", pts.toArray(new double[0][]), 30, 0, 14);
+        f.endHeading = 250;
+        f.endTurn = 12;
+        return f;
+    }
+
+    /** Die Fahrt „Drohne“: 130 m vor dem Fuß, 45 m hoch, von N 6 088 800 nach N 6 090 800, Blick schräg zum Kliff (40 s). */
+    public com.dan.sylt.camera.Fahrt drohnenFahrt() {
+        com.dan.sylt.scene.Kante k = kliff.kante;
+        java.util.List<double[]> pts = new java.util.ArrayList<>();
+        for (double n = 6_088_800; n <= 6_090_800; n += 50) {
+            double z = Site.N0 - n;
+            int r = k == null ? -1 : k.row(z);
+            double x = r >= 0 ? k.fussX(r) - 130 : Site.fromUtm(Site.wasserlinieE(n) - 70, n)[0];
+            pts.add(new double[]{x, wiring.pegel + 45, z});
+        }
+        return new com.dan.sylt.camera.Fahrt("Drohne", pts.toArray(new double[0][]), 40, 68, 12);
+    }
+
+    /** Die Fahrt „Möwe“: hinter einer Möwe im Flug (die nächste fliegende am Auge), 5 m hinter und 1 m über ihr. */
+    public boolean moewenFlug() {
+        com.dan.flock.Flock.Gull best = null;
+        double bd = 1e18;
+        for (com.dan.flock.Flock.Gull g : leben.moewen.gulls()) {
+            if (g.state != com.dan.flock.Flock.State.SOAR && g.state != com.dan.flock.Flock.State.FLY) continue;
+            double d = Math.hypot(g.pos[0] - camera.eye[0], g.pos[2] - camera.eye[2]);
+            if (d < bd) { bd = d; best = g; }
+        }
+        if (best == null) return false;
+        final com.dan.flock.Flock.Gull g = best;
+        final double[] kurs = {Double.NaN};
+        camera.stopFahrt();
+        camera.startMitfahrt(() -> {
+            double vx = g.vel[0], vz = g.vel[2], v = Math.hypot(vx, vz);
+            double h = v > 0.5 ? (Math.toDegrees(Math.atan2(vx, -vz)) + 360) % 360 : (Double.isNaN(kurs[0]) ? 0 : kurs[0]);
+            if (Double.isNaN(kurs[0])) kurs[0] = h;
+            else kurs[0] = (kurs[0] + (((h - kurs[0] + 540) % 360) - 180) * 0.04 + 360) % 360;
+            double a = Math.toRadians(kurs[0]);
+            return new double[]{g.pos[0] - Math.sin(a) * 5, g.pos[1] + 1.0, g.pos[2] + Math.cos(a) * 5, kurs[0], 0, 0};
+        });
+        camera.mitNeigung(6);
+        return true;
+    }
+
+    /**
+     * Phase 15: eine Ansicht nach Namen: die Tasten 1 bis 9 und die Vorlagen, dazu die Blicke der Regiebücher
+     * (Strandkörbe, Strandläufer, Sonnenuntergang, Vor dem Kliff, Abbruch, Vorspülung) [G].
+     */
+    public boolean placeNamed(String name) {
+        camera.minEye = com.dan.sylt.camera.Camera.MIN_EYE;
+        camera.fovy = com.dan.sylt.camera.Camera.FOVY;
+        String k = com.dan.sylt.scene.Regie.plainName(name);
+        com.dan.sylt.scene.Kante kn = kliff.kante;
+        switch (k) {
+            case "strandkoerbe" -> {
+                double nord = com.dan.sylt.scene.Strandkoerbe.GRUPPEN[1][0], z0 = Site.N0 - nord, wl = Site.wasserlinieE(nord) - Site.E0, fuss = wl + 60;
+                for (double x = wl + 10; x < wl + 250; x += 1) if (groundHeight(x, z0) > 5.0) { fuss = x; break; }
+                double ex = fuss - 30, ez = z0 + 22, tx = fuss - 9, tz = z0;
+                return blick(ex, ez, 1.6, tx, groundHeight(tx, tz) + 0.6, tz, 50);
+            }
+            case "strandlaeufer" -> {
+                // erst an den Spülsaum (die Vögel folgen dem Auge, sobald dort das Stück der Nahbrandung steht), dann auf einen Trupp richten
+                placeView(com.dan.sylt.camera.Ansichten.byName("Spülsaum"));
+                camera.minEye = 0.25;
+                if (nah.an) nah.jetzt(camera.tx, camera.tz, wiring.pegel);   // das Stück der Nahbrandung gleich hier (die Vögel leben darin)
+                strandlaeuferIn = 1;
+                strandlaeuferT = 0;
+                return true;
+            }
+            case "sonnenuntergang" -> {
+                double x = Site.KLIFFKANTE.x(), z = Site.KLIFFKANTE.z(), y = groundHeight(x, z) + 1.7;
+                double[] sp = clock.sun();
+                camera.place(x, y, z, sp[1], 0.6);
+                camera.fovy = 40;
+                return true;
+            }
+            case "vordemkliff" -> {
+                if (kn == null) break;
+                int r = zeile(kn, 6_089_500);
+                double fx = kn.fussX(r), fz = kn.z(r);
+                double a = Math.toRadians(com.dan.sylt.scene.Kueste.SHOREWARD_DEG), ex = fx - Math.sin(a) * 60, ez = fz + Math.cos(a) * 60;
+                return blick(ex, ez, 1.7, (fx + kn.kanteX(r)) / 2, (kn.hFuss[r] + kn.hKante[r]) / 2, fz, 60);
+            }
+            case "abbruch" -> {
+                if (kn == null) break;
+                int r = zeile(kn, 6_090_335);
+                double fx = kn.fussX(r), fz = kn.z(r);
+                return blick(fx - 48, fz + 34, 2.2, (fx + kn.kanteX(r)) / 2, (kn.hFuss[r] + kn.hKante[r]) / 2, fz, 55);
+            }
+            case "vorspuelung" -> {
+                if (kn == null) break;
+                int r = zeile(kn, 6_089_950), r2 = zeile(kn, 6_089_550);
+                double ex = kn.kanteX(r) + 1, ez = kn.z(r);
+                return blick(ex, ez, 1.7, kn.fussX(r2) - 30, wiring.pegel + 1, kn.z(r2), 55);
+            }
+            default -> { }
+        }
+        com.dan.sylt.camera.Ansichten.Ansicht a = com.dan.sylt.camera.Ansichten.byName(name);
+        if (a == null && kn == null) return false;
+        if (a == null) return false;
+        return placeView(a);
+    }
+
+    /** Die Zeile der Kante am Nordwert (oder die nächste bis 150 m daneben; 0 ohne). */
+    public static int zeile(com.dan.sylt.scene.Kante kn, double nord) {
+        int r = kn.rowNear(Site.N0 - nord, 150);
+        return Math.max(0, r);
+    }
+
+    /** Frei stehen bei (ex, ez), hoch über Grund oder Wasser, Blick auf (tx, ty, tz), Öffnung fovy. */
+    private boolean blick(double ex, double ez, double hoch, double tx, double ty, double tz, double fovy) {
+        camera.stopFahrt();
+        camera.stopMitfahrt();
+        camera.diving = false;
+        camera.waterLevel = wiring.pegel;
+        camera.groundLevel = groundHeight(ex, ez);
+        double ey = Math.max(groundHeight(ex, ez), wiring.pegel) + hoch;
+        double yaw = (Math.toDegrees(Math.atan2(tx - ex, -(tz - ez))) + 360) % 360;
+        double pitch = -Math.toDegrees(Math.atan2(ty - ey, Math.hypot(tx - ex, tz - ez)));
+        camera.place(ex, ey, ez, yaw, pitch);
+        camera.fovy = fovy;
+        return true;
+    }
+
+    /** Was die Regiebücher in der App tun. */
+    private final class RegieCtx implements com.dan.sylt.scene.Regie.Ctx {
+        @Override public void time(java.time.LocalDate date, double hour) {
+            clock.set(date, hour);
+            if (sturmflut.aktiv && Math.abs(sturmflut.stunden(clock) - 24) > 30) sturmflut.aktiv = false;
+            wetter.sky.epochMillis = clock.epochMillis();
+            koerbeNeu = true;
+            readapt();
+        }
+        @Override public void lapse(double x) { clock.lapse = x; }
+        @Override public void lage(String name) {
+            com.dan.sylt.wiring.Wetterregie.Lage l = lageNachName(name);
+            if (l == null) { regieMsg = "Lage „" + name + "“ gibt es nicht"; return; }
+            sturmflut.aktiv = false;
+            wiring.regie.lage(l);
+        }
+        @Override public void regie(String modus) {
+            sturmflut.aktiv = false;
+            switch (modus) {
+                case "frei" -> wiring.regie.frei();
+                case "sturmtag" -> wiring.regie.sturmtag();
+                default -> wiring.regie.hand();
+            }
+        }
+        @Override public void sturmflut(java.time.LocalDate tag, double stunde) {
+            sturmflut.datum = tag;
+            sturmflutStarten(stunde);
+            wetter.sky.epochMillis = clock.epochMillis();
+            koerbeNeu = true;
+            readapt();
+        }
+        @Override public void abbruch(double nord) {
+            if (abbruch == null) { regieMsg = "kein Kliff zum Abbrechen"; return; }
+            abbruchZahl = abbruch.abbrueche;
+            double z = Site.fromUtm(Site.E0, nord)[1];
+            abbruch.imFaden(() -> {
+                int r = abbruch.ausloesen(0, z);
+                if (r < 0) regieMsg = String.format(Locale.GERMAN, "bei N %,.0f ist keine Wand über 6 m", nord);
+            });
+        }
+        @Override public void vorspuelung() {
+            if (vorspuelung == null) { regieMsg = "keine Kante für die Vorspülung"; return; }
+            vorspuelung.starten(clock.epochMillis());
+        }
+        @Override public void view(String name) {
+            schnitt(() -> {
+                if (rittPose != null) ritt.halt();
+                camera.stopFahrt();
+                camera.stopMitfahrt();
+                if (!placeNamed(name)) regieMsg = "Ansicht „" + name + "“ gibt es nicht";
+                readapt();
+            });
+        }
+        @Override public void fahrt(String name) {
+            schnitt(() -> {
+                String k = com.dan.sylt.scene.Regie.plainName(name);
+                camera.minEye = com.dan.sylt.camera.Camera.MIN_EYE;
+                camera.fovy = com.dan.sylt.camera.Camera.FOVY;
+                if (rittPose != null) ritt.halt();
+                switch (k) {
+                    case "treppe" -> {
+                        com.dan.sylt.camera.Fahrt f = treppenFahrt();
+                        if (f == null) regieMsg = "die Treppe hat keinen Weg (ohne Kante)"; else camera.startFahrt(f);
+                    }
+                    case "drohne" -> camera.startFahrt(drohnenFahrt());
+                    case "moewe" -> { if (!moewenFlug()) { regieMsg = "keine Möwe im Flug, die Drohne fliegt"; camera.startFahrt(drohnenFahrt()); } }
+                    case "welle" -> { if (!wellenritt()) regieMsg = "keine Welle (Nahbrandung aus?)"; }
+                    default -> regieMsg = "Fahrt „" + name + "“ gibt es nicht";
+                }
+                readapt();
+            });
+        }
+        @Override public boolean ready(com.dan.sylt.scene.Regie.Warte w) {
+            return switch (w.was()) {
+                case "uhr" -> clock.epochMillis() / 3_600_000.0 >= w.hours();
+                case "abbruch" -> abbruch == null || abbruch.abbrueche > abbruchZahl;
+                case "ruhe" -> abbruch == null || abbruch.schnitt() == null;
+                case "serie" -> serie.laeuft;
+                case "unter" -> !ritt.laeuft() || ritt.abschnitt == com.dan.sylt.scene.Wellenritt.Abschnitt.UNTER;
+                case "welle" -> !ritt.laeuft() && kinoSchnitte.isEmpty();
+                case "vorspuelung" -> vorspuelung == null || vorspuelung.fertig();
+                default -> true;
+            };
+        }
+        @Override public void capture(String caption) { captureCaption = caption; fotosVerlangt++; }
+        @Override public void sheet(String name) { sheetName = name; }
+        @Override public void say(String text) { regieMsg = text; kino.untertitel(text); }
+    }
+
+    /** Eine Wetterlage nach Namen (Anfang des Namens im Bedienfeld oder des Schlüssels, ohne Umlaute). */
+    public static com.dan.sylt.wiring.Wetterregie.Lage lageNachName(String name) {
+        String k = com.dan.sylt.scene.Regie.plainName(name);
+        for (com.dan.sylt.wiring.Wetterregie.Lage l : com.dan.sylt.wiring.Wetterregie.Lage.values())
+            if (com.dan.sylt.scene.Regie.plainName(l.label).equals(k) || com.dan.sylt.scene.Regie.plainName(l.name()).equals(k)) return l;
+        for (com.dan.sylt.wiring.Wetterregie.Lage l : com.dan.sylt.wiring.Wetterregie.Lage.values())
+            if (com.dan.sylt.scene.Regie.plainName(l.label).startsWith(k)) return l;
+        return null;
+    }
+
+    /** Die Fotos des Regiebuchs als ein Blatt nach docs/status (zwei Spalten, Unterschrift in zwei Zeilen; aus Glacier und Rungholt). */
+    private void writeSheet(String name) {
+        if (album.isEmpty() || ohneBlatt) return;
+        try {
+            int n = album.size(), cols = 2, rows = (n + 1) / 2, cw = 960, ch = (int) Math.round(album.get(0).getHeight() * cw / (double) album.get(0).getWidth()), cap = 50, head = 44;
+            BufferedImage out = new BufferedImage(cols * cw, head + rows * (ch + cap), BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D g = out.createGraphics();
+            g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION, java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING, java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.setColor(new java.awt.Color(24, 14, 12));
+            g.fillRect(0, 0, out.getWidth(), out.getHeight());
+            g.setColor(new java.awt.Color(240, 230, 222));
+            g.setFont(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.BOLD, 20));
+            g.drawString(String.format(Locale.GERMAN, "Sylt · Regiebuch „%s“ · %s · Ø %.0f Bilder/s · Grafikkarte Ø %.2f ms · %s", name, quality.label,
+                    albumFps / Math.max(1, albumSamples), albumGpu / Math.max(1, albumSamples), glInfo.replaceAll(" ·.*", "")), 14, 29);
+            g.setFont(new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.PLAIN, 16));
+            for (int i = 0; i < n; i++) {
+                int cx = (i % cols) * cw, cy = head + (i / cols) * (ch + cap);
+                g.drawImage(album.get(i), cx, cy, cw, ch, null);
+                g.setColor(new java.awt.Color(196, 170, 160));
+                String[] ln = albumCaps.get(i).split("\n");
+                for (int k = 0; k < ln.length; k++) g.drawString(ln[k], cx + 10, cy + ch + 21 + 20 * k);
+            }
+            g.dispose();
+            File dir = photoDir != null ? photoDir : new File("docs/status");
+            if (!dir.isDirectory() && !dir.mkdirs()) throw new java.io.IOException("Ordner " + dir + " lässt sich nicht anlegen");
+            String fn = "Regiebuch_" + name.replace("ü", "ue").replace("ö", "oe").replace("ä", "ae").replace("ß", "ss").replace(' ', '_') + "_"
+                    + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".png";
+            File f = new File(dir, fn);
+            javax.imageio.ImageIO.write(out, "png", f);
+            photoMsg = "Regiebuch gespeichert: " + f.getPath();
+            lastSheet = f;
+            System.out.println(photoMsg);
+        } catch (Exception e) {
+            photoMsg = "Blatt des Regiebuchs fehlgeschlagen: " + e.getMessage();
+            System.err.println(photoMsg);
+        }
+        photoMsgUntil = System.currentTimeMillis() + 6000;
+    }
+
+    /** Fotos und Blatt eines Regiebuchs nach dem fertigen Bild (ohne HUD und Balken). */
+    private void regieBild(GL4 gl) {
+        if (fotoAufschub) return;
+        String cap = captureCaption;
+        if (cap != null) {
+            captureCaption = null;
+            album.add(readDefault(gl, surfW, surfH));
+            albumCaps.add(clock.dateLabel() + " " + clock.timeLabel() + " · " + cap + "\n" + String.format(Locale.GERMAN, "%.0f Bilder/s · Grafikkarte %.1f ms", fps, gpuMs));
+        }
+        if (regie.running()) { albumFps += fps; albumGpu += gpuMs; albumSamples++; }
+        String sn = sheetName;
+        if (sn != null) { sheetName = null; writeSheet(sn); }
+    }
+
+    /** Schnitt mit gemerktem Bild, dann Balken, Schwarz, Untertitel; Fenster auf und zu. */
+    private void kinoBild(GL4 gl, long now) {
+        if (kinoGl != null && kinoGl.bereit()) {
+            try {
+                if (kino.schnittFaellig()) {
+                    kinoGl.merken(gl, defaultFbo, surfW, surfH);
+                    schnitteJetzt();
+                    kino.geschnitten();
+                }
+                kinoGl.zeichnen(gl, defaultFbo, surfW, surfH, now / 1e9);
+            } catch (RuntimeException e) {
+                System.err.println("Sylt: Kino: " + e);
+                kinoGl = null;
+            }
+        } else if (kino.schnittFaellig()) { schnitteJetzt(); kino.geschnitten(); }
+        boolean an = kino.laeuft();
+        if (an != kinoFensterAn) {
+            kinoFensterAn = an;
+            try { kinoFenster.accept(an); } catch (RuntimeException e) { System.err.println("Sylt: Kinofenster: " + e); }
+        }
+        if (kino.endeMelden()) hudMeldung("Kino zu Ende" + (lastSheet != null ? " · Blatt: " + lastSheet.getName() : ""));
+    }
+
+    /** Seit Phase 15: unter Wasser (mit der Welle): trübes Wasser der Brandung über die Szene (Tiefe als Kopie). */
+    private void unterWasser(GL4 gl, int w, int h, float[] inv, Sky.State st, double pre, double[] sun) {
+        double spiegel = ritt.spiegel;
+        if (rittPose == null || !camera.diving || Double.isNaN(spiegel) || camera.eye[1] > spiegel - 0.05) return;
+        int kopie = unwetter.tiefe(gl, hdrFbo, w, h);
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrColorFbo);
+        gl.glViewport(0, 0, w, h);
+        com.dan.ocean.gl.OceanGl.Under u = new com.dan.ocean.gl.OceanGl.Under();
+        u.invViewProj = inv;
+        u.eye = camera.eye.clone();
+        u.reversedZ = reversedZ;
+        u.width = w;
+        u.height = h;
+        u.depthTexture = kopie;
+        u.surface = spiegel;
+        double[] e;
+        if (st != null) {
+            double[][] L = Unwetter.licht(st, pre, wetter.ambient(st, showClouds), cloudShade, new double[]{0, 1, 0}, new double[3], new double[]{0, 1, 0});
+            double sy = Math.max(0, sun[1]);
+            e = new double[]{L[1][0] * sy + L[4][0] * Math.PI, L[1][1] * sy + L[4][1] * Math.PI, L[1][2] * sy + L[4][2] * Math.PI};
+        } else e = new double[]{1, 1, 1};
+        // Brandungswasser: Sand und Blasen in Schwebe, grünlich [G]; Streulicht rund 5 % der Bestrahlung, trüb (σ 0,45/m)
+        double[] wc = {0.045, 0.075, 0.065};
+        u.scatter = new double[]{wc[0] * e[0] * 0.6, wc[1] * e[1] * 0.6, wc[2] * e[2] * 0.6};
+        u.sigma = 0.45;
+        u.darkening = 0.3;
+        meer.oceanGl.drawUnderwater(gl, u);
+        gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrColorFbo);
+        gl.glViewport(0, 0, w, h);
+        gl.glBindVertexArray(emptyVao);
     }
 }

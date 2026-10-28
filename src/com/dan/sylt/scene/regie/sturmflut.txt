@@ -1,0 +1,38 @@
+# Sylt · Regiebuch (Phase 15), Befehle wie in abend.txt. Gestaltet [G]; der Fahrplan des Sturms nach Xaver (Phase 12).
+Regiebuch: Die Sturmflut
+Beschreibung: Orkan Xaver, 5. bis 7. Dezember 2013: der Sturm frischt auf, der Windstau hebt das Wasser bis an den Kliffuß, die Brecher schlagen die Hohlkehle, das Kliff bricht, am Morgen danach liegen Sturzkegel und Findlinge am Strand, eine Linie zeigt, wo die Wand stand
+Länge: 4:10
+0:00 sturmflut 05.12.2013 12:00 | 5.12.2013, 12 Uhr: Xaver frischt aus West auf
+0:00 raffer 120
+0:00 ansicht Am Kliff
+0:12 foto Am Kliff: der Sturm kommt aus West
+0:16 ansicht Kliffkante | Sturm über der Kante, die Gischt weht landeinwärts
+0:28 foto Kliffkante im Sturm
+0:32 fahrt Drohne | die Brandung weiß bis zum Riff
+1:12 foto Drohne: die Brandungszone weiß bis zum Riff
+1:20 raffer 1800
+1:20 ansicht Kampener Leuchtturm | die Nacht: Orkan aus Nordwest, der Windstau hebt das Wasser über drei Meter
+1:40 foto Kampener Leuchtturm in der Sturmnacht
+1:44 warte uhr 06.12. 09:30
+1:44 raffer 120 | 6.12., 9:30: der Morgen, die See steht am Kliffuß
+1:44 ansicht Vor dem Kliff
+1:56 foto Vor dem Kliff: Brecher am Fuß
+2:00 ansicht Abbruch | die Hohlkehle unter der Wand
+2:12 foto Die Hohlkehle vor dem Abbruch
+2:16 warte uhr 06.12. 11:00
+2:16 raffer 1 | 11 Uhr: die Wand bricht
+2:16 abbruch 6090335
+2:18 warte abbruch
+2:24 foto Der Abbruch
+2:26 warte ruhe
+2:26 foto Der Sturzkegel, kaum dass alles liegt
+2:32 raffer 1800 | die nächste Flut trägt am Kegel
+2:32 ansicht Kliffkante
+2:44 warte uhr 07.12. 10:00
+2:44 raffer 60 | 7.12., der Morgen danach: Sturzkegel, Findlinge, die Linie, wo die Wand stand
+2:44 ansicht Abbruch
+2:58 foto Der Morgen danach: Sturzkegel und Findlinge
+3:04 fahrt Drohne | die neue Wand vom Wasser aus
+3:44 foto Drohne: das Kliff nach der Sturmflut
+3:54 blatt Die Sturmflut
+3:54 raffer 1

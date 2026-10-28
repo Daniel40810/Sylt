@@ -1,0 +1,36 @@
+# Sylt · Regiebuch (Phase 15). Eine Zeile je Stichwort: Zeit (Minuten:Sekunden echte Zeit), Befehl, Argumente, nach
+# „ | “ der Text fürs HUD und die Untertitel im Kino. Mehrere Befehle zur selben Zeit sind ein Stichwort. Befehle: zeit,
+# raffer, lage, regie, sturmflut, abbruch, vorspuelung, ansicht, fahrt, warte, foto, blatt, sage.
+# „warte uhr [TT.MM.] hh:mm“ hält die Uhr des Regiebuchs an, bis die Szene so weit ist. Gestaltet [G].
+Regiebuch: Ein Abend am Kliff
+Beschreibung: 20. Juli 2026, ein Sommerabend am Roten Kliff: die Treppe hinunter an den Strand, Strandkörbe im letzten Licht, Vögel am Spülsaum aus der Höhe eines Strandläufers, eine Möwe im Aufwind, die Sonne geht über der See unter, das Kliff glüht, der Kampener Leuchtturm geht an
+Länge: 4:10
+0:00 zeit 20.07.2026 20:40 | 20:40: ein Sommerabend am Roten Kliff
+0:00 lage Sommerabend
+0:00 raffer 1
+0:00 ansicht Kliffkante
+0:08 foto Kliffkante: der Abend über der See
+0:12 fahrt Treppe | die Treppe hinunter an den Strand
+0:44 foto Treppe: unten am Strand
+0:48 raffer 30
+0:48 ansicht Strandkörbe | 20:45: die Strandkörbe im letzten Licht
+1:00 foto Strandkörbe im Abendlicht
+1:06 ansicht Strandläufer | am Spülsaum laufen Austernfischer und Möwen dem Schwall nach
+1:18 foto Strandläufer-Auge: Vögel am Spülsaum
+1:24 fahrt Möwe | mit einer Möwe im Aufwind vor der Kante
+1:50 foto Möwenflug vor der Kante
+1:56 ansicht Sonnenuntergang | die Sonne sinkt zur Kimm
+2:08 warte uhr 21:52
+2:08 raffer 4 | 21:52: die Sonne berührt die Kimm
+2:14 foto Sonnenuntergang über der See
+2:34 raffer 20
+2:34 ansicht Vor dem Kliff | das Kliff glüht im letzten Licht
+2:44 foto Vor dem Kliff: das Kliff glüht
+2:52 raffer 40
+2:52 ansicht Kampener Leuchtturm | der Kampener Leuchtturm wartet auf die Dämmerung
+3:00 warte uhr 22:25
+3:00 foto Kampener Leuchtturm: das Feuer ist an | 22:25: Kampen brennt, alle 7 Sekunden ein Blitz
+3:20 ansicht Spülsaum | die Nacht kommt vom Meer
+3:45 foto Spülsaum in der Dämmerung
+4:00 blatt Ein Abend am Kliff
+4:00 raffer 1

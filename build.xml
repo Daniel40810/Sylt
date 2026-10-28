@@ -242,6 +242,21 @@
             <classpath><pathelement path="${run.classpath}"/></classpath>
         </java>
     </target>
+    <!-- Phase 15: die Regiebücher ohne Fenster bis zum Ende, je ein Blatt mit den Fotos nach docs/status (Regiebuch_*.png);
+         nur eines: -Dbuch=Abend|Sturmflut|Jahr|Welle (Grafikkarte, gut 10 min für alle). -->
+    <property name="buch" value="alle"/>
+    <target name="regiebuecher" depends="jar" description="Phase 15: die vier Regiebücher ohne Fenster, Blätter mit den Fotos nach docs/status.">
+        <property name="platform.java" value="java"/>
+        <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+            <jvmarg value="-Xmx6g"/>
+            <jvmarg value="-Dregiebuch=${buch}"/>
+            <jvmarg value="-Dhud=aus"/>
+            <arg line="1 1920 1080 - MITTEL"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+    </target>
     <!-- Phase 12: der Abbruch als Bildfolge auf der Grafikkarte (docs/status/Abbruch_1..6.png): Xaver bis Stunde 15, dann
          das Stück bei N 6 090 335 (oder -Dnord=…, -Dstunde=…), Physik fest 1/120 s, das letzte Bild einen Tag später (zwei Fluten). Seit Phase 13 Stunde 23 (6.12.2013 11 Uhr, hell). -->
     <property name="nord" value=""/>

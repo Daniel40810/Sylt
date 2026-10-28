@@ -34,7 +34,9 @@ import java.util.Locale;
  * mm/h, {@code nebel} = 0..1[,Obergrenze m], {@code gewitter} = 0..4, {@code blitz} = see|turm (ein Blitz kurz vor dem
  * Bild), {@code leben} = aus, {@code leuchten} = an (Meeresleuchten mit voller Blüte), {@code fernrohr} = sonne (Fernrohr auf die Sonne von der Kliffkante), {@code blick} = Richtung,Neigung[,m landwärts], {@code wolke} = Wolkenart (CUMULUS … CUMULONIMBUS), {@code gruen} = Vergrößerung der
  * Spiegelung für das grüne Leuchten. Wetter von Hand ({@code bedeckung}, {@code see}, {@code wind}, {@code regen} …) stellt
- * die Regie auf „von Hand“.
+ * die Regie auf „von Hand“. Seit Phase 15 {@code regiebuch} = Name[,Name…] oder {@code alle}: die Regiebücher laufen ohne
+ * Fenster in Schritten von 0,1 s bis zum Ende, gezeichnet wird nur für die Fotos, am Ende je ein Blatt in docs/status
+ * ({@code ant regiebuecher}).
  */
 public final class Tempo {
     private Tempo() { }
@@ -165,6 +167,45 @@ public final class Tempo {
             r.unwetter.blitzVonHand(r.camera.eye, r.camera.fwd, "turm".equals(bl));
             for (int i = 0; i < 4; i++) { r.step(1 / 60.0); d.display(); }
             frames = Math.min(frames, 2);
+        }
+        // seit Phase 15: -Dregiebuch=Name läuft ein Regiebuch ohne Fenster bis zum Ende (Schritte von 0,1 s); Bilder nur
+        // für die Fotos (davor 12 Bilder zum Einschwingen), am Ende das Blatt in docs/status
+        String rb = opt("regiebuch");
+        if (rb != null && !rb.isBlank()) {
+            java.util.List<com.dan.sylt.scene.Regie.Book> buecher = new java.util.ArrayList<>();
+            if (rb.equalsIgnoreCase("alle")) buecher.addAll(com.dan.sylt.scene.Regie.all());
+            else for (String n : rb.split(",")) {
+                com.dan.sylt.scene.Regie.Book b = com.dan.sylt.scene.Regie.byName(n.trim());
+                if (b == null) { System.err.println("FEHLER: kein Regiebuch „" + n + "“"); System.exit(1); }
+                buecher.add(b);
+            }
+            boolean ok = true;
+            for (com.dan.sylt.scene.Regie.Book b : buecher) {
+                r.lastSheet = null;
+                r.regieStart(b);
+                r.frozen = true;
+                long t0 = System.nanoTime();
+                int schritte = 0, bilder = 0;
+                double letzte = -30;
+                while (r.regie.running() || r.regieWantsFrame()) {
+                    r.step(0.1);
+                    schritte++;
+                    if (r.regieWantsFrame()) {
+                        r.fotoAufschub = true;
+                        r.wetter.sky.updateNow();
+                        for (int i = 0; i < 12; i++) { r.step(1 / 60.0); d.display(); }
+                        r.fotoAufschub = false;
+                        d.display();
+                        bilder++;
+                    }
+                    if (r.regie.time() - letzte >= 30) { letzte = r.regie.time(); System.out.println("  " + r.regieLine() + " · " + clock.label()); }
+                }
+                System.out.printf(Locale.GERMAN, "Regiebuch „%s“: %d Schritte, %d Bilder, %.0f s gewartet, %d Mal ausgewichen, %.0f s Rechenzeit · Blatt: %s%n", b.name(), schritte, bilder,
+                        r.regie.waitedTotal(), r.regie.ausgewichen, (System.nanoTime() - t0) / 1e9, r.lastSheet);
+                ok &= r.lastSheet != null && r.regie.ausgewichen == 0;
+            }
+            d.destroy();
+            System.exit(ok ? 0 : 1);
         }
         double best = Double.MAX_VALUE, sum = 0;
         for (int i = 0; i < frames; i++) {

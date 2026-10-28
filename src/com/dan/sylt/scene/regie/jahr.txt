@@ -1,0 +1,63 @@
+# Sylt · Regiebuch (Phase 15), Befehle wie in abend.txt. Gestaltet [G]. Die Wintersturmflut folgt dem Fahrplan von
+# Xaver, an einem Tag im Dezember 2026. Die Vorspülung ist gerafft: in Wirklichkeit dauert sie Wochen.
+Regiebuch: Ein Jahr am Kliff
+Beschreibung: Juni 2026 bis Juni 2027 am Roten Kliff: Sommer mit Strandkörben, ein Gewitter im August, die Sanderlinge im September, der erste Herbststurm, die Wintersturmflut mit dem Abbruch, die Vorspülung im Frühjahr, der Sommer danach
+Länge: 4:40
+0:00 zeit 15.06.2026 16:00 | Juni: Sommer am Roten Kliff
+0:00 lage Sommerabend
+0:00 raffer 60
+0:00 ansicht Kliffkante
+0:10 foto Juni: Sommer am Kliff
+0:14 ansicht Strandkörbe | die Strandkörbe stehen von Mai bis September
+0:24 foto Juni: Strandkörbe
+0:28 zeit 02.08.2026 21:15 | August: ein Gewitter über der See
+0:28 lage Gewitter
+0:28 raffer 2
+0:28 ansicht Am Kliff
+0:44 foto August: Gewitter über der See
+0:48 zeit 20.09.2026 18:00 | September: die Sanderlinge ziehen durch
+0:48 lage Sommerabend
+0:48 raffer 30
+0:48 ansicht Strandläufer
+1:00 foto September: Sanderlinge am Spülsaum
+1:04 zeit 25.10.2026 13:00 | Oktober: der erste Herbststurm, die Strandkörbe sind fort
+1:04 lage Sturm
+1:04 raffer 60
+1:04 ansicht Am Kliff
+1:16 foto Oktober: Herbststurm
+1:20 ansicht Kliffkante
+1:30 foto Oktober: Sturm über der Kante
+1:34 sturmflut 05.12.2026 12:00 | Dezember: die Wintersturmflut, wie Xaver
+1:34 raffer 1800
+1:34 ansicht Vor dem Kliff
+1:52 warte uhr 06.12. 10:30
+1:52 raffer 120 | 6.12.: die See steht am Kliffuß
+1:52 ansicht Abbruch
+2:02 foto Dezember: die Hohlkehle
+2:06 raffer 1 | die Wand bricht
+2:06 abbruch 6090335
+2:08 warte abbruch
+2:14 foto Dezember: der Abbruch
+2:16 warte ruhe
+2:16 raffer 3600 | Winter: die Fluten tragen am Sturzkegel
+2:16 ansicht Kliffkante
+2:30 zeit 10.03.2027 10:00 | März: die Vorspülung legt Sand vor das Kliff
+2:30 lage Westwind
+2:30 vorspuelung
+2:30 raffer 3600
+2:30 ansicht Vorspülung
+2:33 foto März: das Spülfeld wächst
+2:42 warte vorspuelung
+2:42 foto März: der neue Strand vor dem Kliff
+2:48 raffer 3600 | die Brandung formt den Sand um
+2:48 ansicht Abbruch
+3:10 foto April: der Sand vor dem Kliff, von der Brandung geformt
+3:16 zeit 15.06.2027 16:00 | Juni 2027: ein Jahr ist um, die Strandkörbe stehen wieder
+3:16 lage Sommerabend
+3:16 raffer 60
+3:16 ansicht Strandkörbe
+3:28 foto Juni 2027: Strandkörbe auf dem vorgespülten Strand
+3:34 fahrt Drohne | das Kliff ein Jahr später
+4:14 foto Drohne: das Kliff ein Jahr später
+4:24 blatt Ein Jahr am Kliff
+4:24 raffer 1

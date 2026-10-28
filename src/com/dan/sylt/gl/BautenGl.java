@@ -14,7 +14,7 @@ import java.nio.IntBuffer;
  * Änderung) und Herde (jedes Bild); seit Phase 12 die Brocken eines Abbruchs am Kliff (jedes Bild, solange er fällt).
  */
 final class BautenGl {
-    static final int FEST = 0, KOERBE = 1, HERDE = 2, BROCKEN = 3, N = 4;
+    static final int FEST = 0, KOERBE = 1, HERDE = 2, BROCKEN = 3, SPUR = 4, N = 5;
     private final int[] vao = new int[N], vbo = new int[N], ecken = new int[N], platz = new int[N];
     boolean ok;
     String info = "";
@@ -63,7 +63,7 @@ final class BautenGl {
     void draw(GL4 gl, boolean fest, boolean koerbe, boolean herde, boolean brocken) {
         if (!ok) return;
         gl.glDisable(GL.GL_CULL_FACE);
-        boolean[] an = {fest, koerbe, herde, brocken};
+        boolean[] an = {fest, koerbe, herde, brocken, true};
         for (int i = 0; i < N; i++) {
             if (!an[i] || ecken[i] == 0) continue;
             gl.glBindVertexArray(vao[i]);

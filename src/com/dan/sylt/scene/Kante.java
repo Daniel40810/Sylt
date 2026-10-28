@@ -61,6 +61,19 @@ public final class Kante {
         return Math.abs(nord[best] - nn) <= 3 ? best : -1;
     }
 
+    /** Seit Phase 15: die nächste Zeile bis {@code maxM} Meter neben z (über Lücken der Kante hinweg), sonst -1. */
+    public int rowNear(double z, double maxM) {
+        double nn = Site.N0 - z;
+        int lo = 0, hi = n - 1;
+        while (lo < hi) {
+            int mid = (lo + hi) >>> 1;
+            if (nord[mid] > nn) lo = mid + 1; else hi = mid;
+        }
+        int best = lo;
+        if (lo > 0 && Math.abs(nord[lo - 1] - nn) < Math.abs(nord[lo] - nn)) best = lo - 1;
+        return Math.abs(nord[best] - nn) <= maxM ? best : -1;
+    }
+
     /** Szene: x des Fußes, x der Kante (Zeile i). */
     public double fussX(int i) { return fussE[i] - Site.E0; }
     public double kanteX(int i) { return kanteE[i] - Site.E0; }

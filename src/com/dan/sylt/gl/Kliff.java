@@ -37,6 +37,8 @@ public final class Kliff {
     public final StrataMap strata;
     public final List<Sod> sods = new ArrayList<>();
     public final Blockfield findlinge = new Blockfield();
+    /** Seit Phase 15: Stellen, an denen ein Abbruch Findlinge freigelegt hat ({x, z, Halbmesser}); dichter dort. */
+    public final java.util.List<double[]> neueFindlinge = new java.util.concurrent.CopyOnWriteArrayList<>();
     final CliffGl gl = new CliffGl();
     boolean ok;
     String check = "";
@@ -105,10 +107,15 @@ public final class Kliff {
         findlinge.sink = 0.35;
         findlinge.radius = 300;
         findlinge.density = (x, z) -> {
+            double extra = 0;
+            for (double[] f : neueFindlinge) {
+                double d = Math.hypot(x - f[0], z - f[1]);
+                if (d < f[2]) extra += 1.6 * (1 - d / f[2]);
+            }
             int r = k.row(z);
-            if (r < 0 || k.wand[r] < 8) return 0;
+            if (r < 0 || k.wand[r] < 8) return extra;
             double vor = k.fussX(r) - x;   // m vor dem Fuß (zur See)
-            return vor < -2 || vor > 15 ? 0 : 0.35 * (1 - vor / 15);
+            return (vor < -2 || vor > 15 ? 0 : 0.35 * (1 - vor / 15)) + extra;
         };
         buildMs = (System.nanoTime() - t0) / 1_000_000;
     }
@@ -142,6 +149,16 @@ public final class Kliff {
                 double ox = tl > 0 ? tz / tl : -1, oz = tl > 0 ? -tx / tl : 0;
                 if (ox > 0) { ox = -ox; oz = -oz; }   // aus der Wand heraus: zur See (Westen)
                 double x = k.kanteX(i), z = k.z(i);
+                // seit Phase 15: nur, wo der Grund gleich vor der Kante abbricht (4 m davor mindestens 2,5 m tiefer); sonst lagen
+                // Narben als rote Wülste auf dem Dünenkamm, wo kante.csv die Kante einige Meter landwärts der Abbruchkante verzeichnet
+                if (h.height(x, z) - h.height(x + ox * 4, z + oz * 4) < 2.5) an = false;
+            }
+            if (an) {
+                double x = k.kanteX(i), z = k.z(i);
+                int a = Math.max(0, i - 3), b = Math.min(k.n - 1, i + 3);
+                double tx = k.kanteX(b) - k.kanteX(a), tz = k.z(b) - k.z(a), tl = Math.hypot(tx, tz);
+                double ox = tl > 0 ? tz / tl : -1, oz = tl > 0 ? -tx / tl : 0;
+                if (ox > 0) { ox = -ox; oz = -oz; }
                 seg.add(x); seg.add(h.height(x, z)); seg.add(z); seg.add(ox); seg.add(oz);
             }
             if ((!an || i + 2 >= k.n) && seg.size() >= 20) {

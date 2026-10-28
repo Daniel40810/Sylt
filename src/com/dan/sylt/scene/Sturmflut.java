@@ -36,17 +36,22 @@ public final class Sturmflut {
     public static final double BOEEN = 39;
 
     public volatile boolean aktiv;
+    /** Seit Phase 15: der Tag, an dem der Fahrplan beginnt (sonst Xaver, 5.12.2013). */
+    public volatile LocalDate datum = DATUM;
     private double startMs = Double.NaN;
     private Punkt jetzt = XAVER[0];
 
-    public static double startMillis() {
-        return ZonedDateTime.of(DATUM.atStartOfDay(), SceneClock.ZONE).plusMinutes((long) (STUNDE * 60)).toInstant().toEpochMilli();
+    public static double startMillis() { return startMillis(DATUM); }
+
+    /** Seit Phase 15: derselbe Fahrplan an einem anderen Tag (Regiebuch „Ein Jahr am Kliff“), Beginn um 12 Uhr. */
+    public static double startMillis(LocalDate tag) {
+        return ZonedDateTime.of(tag.atStartOfDay(), SceneClock.ZONE).plusMinutes((long) (STUNDE * 60)).toInstant().toEpochMilli();
     }
 
     /** Die Sturmflut beginnt: Uhr auf den 5. Dezember 2013 um {@code stunde}, Tide an, Windstau vom Wind des Fahrplans. */
     public void starten(SceneClock clock, Wiring w, double stunde) {
-        clock.set(DATUM, stunde);
-        startMs = startMillis();
+        clock.set(datum, stunde);
+        startMs = startMillis(datum);
         aktiv = true;
         w.tideAn = true;
         schritt(clock, w);
@@ -55,7 +60,7 @@ public final class Sturmflut {
     }
 
     /** Stunden seit dem Beginn nach der Uhr der Szene. */
-    public double stunden(SceneClock clock) { return (clock.epochMillis() - startMillis()) / 3_600_000.0; }
+    public double stunden(SceneClock clock) { return (clock.epochMillis() - startMillis(datum)) / 3_600_000.0; }
 
     /** Den Fahrplan zur Uhr der Szene anwenden (jedes Bild); nach dem letzten Punkt endet das Szenario. */
     public void schritt(SceneClock clock, Wiring w) {

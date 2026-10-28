@@ -70,7 +70,21 @@ public final class Klang {
     private volatile double yOhr = Double.NaN;
     private final double[] lastRun = new double[3], lastPlunge = new double[3], lastSpill = new double[3];
     private double lineT = 99, lineX = 1e18, lineZ = 1e18, edgeX = 1e18, edgeZ = 1e18, cowT = 20, brockenT, rieselT;
-    private double time, moeweT;
+    private double time, moeweT, donnerT = -1e9;
+
+    /**
+     * Seit Phase 15: wie gern die Vögel jetzt rufen (0..1). Im Gewitter, im Regen und im Sturm schweigen sie fast
+     * (Möwen ducken sich in den Wind, Watvögel drängen sich zusammen); nach einem Donner eine halbe Minute ganz [G].
+     */
+    public double rufe() {
+        var w = r.wiring;
+        if (time - donnerT < 30) return 0;
+        double f = 1;
+        if (w.gewitter > 0) f *= 0.08;
+        if (w.regen > 1.5) f *= 0.3;
+        if (w.windSpeed > 17) f *= 0.3;
+        return f;
+    }
 
     Klang(Renderer r) {
         this.r = r;
@@ -79,13 +93,13 @@ public final class Klang {
         s.windCarry = true;
         var lb = r.leben;
         lb.moewen.onCall = (x, y, z, str, g) -> {
-            if (!tiereAn || time - moeweT < 0.9) return;   // ein Schwarm ruft durcheinander, aber nicht ohne Pause
+            if (!tiereAn || time - moeweT < 0.9 || rng.nextDouble() > rufe()) return;   // ein Schwarm ruft durcheinander, aber nicht ohne Pause
             moeweT = time;
             moewen++;
             ev(Kind.MOEWE, x, y, z, str);
         };
         lb.strand.onCall = (x, y, z, str, sp) -> {
-            if (!tiereAn) return;
+            if (!tiereAn || rng.nextDouble() > rufe()) return;
             switch (sp.key()) {
                 case "sanderling" -> { sanderlinge++; ev(Kind.SANDERLING, x, y + 0.1, z, Math.min(1, str + 0.2), 1 + rng.nextInt(3)); }
                 case "austernfischer" -> { austernfischer++; ev(Kind.AUSTERNFISCHER, x, y + 0.2, z, Math.min(1, str + 0.2), 0.5); }
@@ -100,6 +114,7 @@ public final class Klang {
         r.unwetter.blitz.onThunder = th -> {
             if (!wetterAn) return;
             donner++;
+            donnerT = time;
             run(() -> s.thunder(th.x(), th.y(), th.z(), th.levelDb(), null, null, null, true));
         };
         if (r.abbruch != null) r.abbruch.onKlang = (art, x, y, z, vol, speed) -> {
@@ -250,7 +265,7 @@ public final class Klang {
                 if (d > 400) continue;
                 String key = g.species.key();
                 double per = (key.equals("sanderling") ? 12 : key.equals("austernfischer") ? 9 : 16) / Math.sqrt(Math.max(1, g.birds.size() / 6.0));
-                if (rng.nextDouble() >= dt / per) continue;
+                if (rng.nextDouble() >= dt / per * rufe()) continue;
                 var b = g.birds.get(rng.nextInt(g.birds.size()));
                 switch (key) {
                     case "sanderling" -> { sanderlinge++; ev(Kind.SANDERLING, b.x, b.y + 0.1, b.z, 0.5 + 0.4 * rng.nextDouble(), 1 + rng.nextInt(Math.min(4, Math.max(1, g.birds.size() / 5)))); }

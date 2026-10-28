@@ -75,6 +75,8 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
     private final FSlider regenMmSl = new FSlider(0, 300, 0), nebelSl = new FSlider(0, 100, 0);
     private final JLabel regenMmLbl = label(""), nebelLbl = label(""), unwetterLbl = small(""), lebenLbl = small(""), lichtLbl = small("");
     private final JLabel klangLbl = small(""), lautLbl = label("");
+    /** Seit Phase 15: Stand des Regiebuchs, Serie und Vorspülung. */
+    private final JLabel regieLbl = small(""), serieLbl = small("");
     private final FCheckBox regenBox = new FCheckBox("Regen zeigen (com.dan.rain)"), nebelBox = new FCheckBox("Seenebel zeigen (com.dan.fog)"),
             gewitterZeigen = new FCheckBox("Gewitter zeigen (com.dan.lightning)"), leuchtenBox = new FCheckBox("Meeresleuchten in Sommernächten"),
             leuchtenFest = new FCheckBox("Blüte erzwingen (jede Nacht, volle Stärke)"), gruenBox = new FCheckBox("Grünes Leuchten beim Sonnenuntergang"),
@@ -519,9 +521,54 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
                 + "jede Welle: der Schwallbrecher zischt, der Sturzbrecher schlägt, der Schwall läuft hinauf und zischt über den Sand "
                 + "zurück. Fern bleibt das Rollen, die Luft nimmt die Höhen. Oben hinter der Kliffkante dämpft die Kante. Wind aus dem "
                 + "Windfeld, die Kante heult im Sturm, Strandhafer raschelt, Flugsand prasselt. Hörproben: ant hoerproben.</body></html>"));
-        block("REGIEBÜCHER", false);
-        put(small("<html><body style='width:215px'>Kommt mit Phase 15: „Ein Abend am Kliff“, „Die Sturmflut“, „Ein Jahr am Kliff“, als Kür "
-                + "„Mit der Welle“; im Kinomodus aus com.dan.kino.</body></html>"));
+        // ============================================================== REGIEBÜCHER (Phase 15)
+        block("REGIEBÜCHER", true);
+        put(regieLbl);
+        java.util.List<com.dan.sylt.scene.Regie.Book> books;
+        JLabel buchInfo = small("");
+        try { books = com.dan.sylt.scene.Regie.all(); }
+        catch (RuntimeException ex) { books = java.util.List.of(); buchInfo.setText("Regiebücher nicht lesbar: " + ex.getMessage()); }
+        FComboBox bookBox = new FComboBox(books.toArray());
+        put(bookBox);
+        Runnable showAbout = () -> {
+            if (bookBox.getSelectedItem() instanceof com.dan.sylt.scene.Regie.Book b)
+                buchInfo.setText("<html><body style='width:215px'>" + esc(b.about()) + String.format(Locale.GERMAN, " · %d:%02d min ohne Warten, %d Fotos",
+                        (int) b.length() / 60, (int) b.length() % 60, b.fotos()) + "</body></html>");
+        };
+        bookBox.addActionListener(e -> { showAbout.run(); view.requestFocusInWindow(); });
+        showAbout.run();
+        JPanel bookRow = grid(2);
+        FButton bookGo = new FButton("Von vorn"), bookStop = new FButton("Anhalten");
+        bookGo.setToolTipText("Das Regiebuch von vorn: Datum, Uhrzeit, Wetter, Ansichten, Fahrten; am Ende ein Blatt mit den Fotos in docs/status");
+        FCheckBox imKino = new FCheckBox("Im Kino zeigen");
+        imKino.setSelected(PREFS.getBoolean("kino", true));
+        imKino.setToolTipText("Ganzer Bildschirm ohne Bedienfeld, Breitwand mit Balken, Vor- und Abspann, Untertitel aus den Stichworten, "
+                + "Überblendung bei jedem Schnitt, der Ton blendet mit. Esc beendet das Kino (das Regiebuch läuft weiter), Leertaste hält an, F12 fotografiert.");
+        imKino.addActionListener(e -> { PREFS.putBoolean("kino", imKino.isSelected()); view.requestFocusInWindow(); });
+        bookGo.addActionListener(e -> {
+            if (bookBox.getSelectedItem() instanceof com.dan.sylt.scene.Regie.Book b) { if (imKino.isSelected()) r.kinoStart(b); else r.regieStart(b); }
+            view.requestFocusInWindow();
+        });
+        bookStop.addActionListener(e -> { r.regieStop(); view.requestFocusInWindow(); });
+        bookRow.add(bookGo);
+        bookRow.add(bookStop);
+        put(bookRow);
+        put(imKino);
+        put(buchInfo);
+        JPanel extra = grid(2);
+        FButton welleGo = new FButton("Mit der Welle"), spuelGo = new FButton("Vorspülung");
+        welleGo.setToolTipText("Jetzt auf der nächsten Welle der Nahbrandung mitfahren (vom Riff bis zum Auflauf; erst eine Ansicht nahe am Strand wählen)");
+        welleGo.addActionListener(e -> { r.imBild(() -> { if (!r.wellenritt()) r.hudMeldung("Mit der Welle: keine Nahbrandung am Auge (Spülsaum wählen)"); }); view.requestFocusInWindow(); });
+        spuelGo.setToolTipText("Die Vorspülung beginnt jetzt: ein Sandkörper vor dem Kliff (N 6 089 250 bis 6 089 850), aufgespült in 72 h Szenenzeit, danach trägt ihn die Brandung ab");
+        spuelGo.addActionListener(e -> { r.imBild(() -> { if (r.vorspuelung != null) r.vorspuelung.starten(r.clock.epochMillis()); }); view.requestFocusInWindow(); });
+        extra.add(welleGo);
+        extra.add(spuelGo);
+        put(extra);
+        put(serieLbl);
+        put(small("<html><body style='width:215px'>Vier Regiebücher als Text (scene/regie/*.txt): ein Abend am Kliff, die Sturmflut nach Xaver, "
+                + "ein Jahr am Kliff, als Kür mit der Welle. Jedes setzt Datum, Uhr, Zeitraffer und Wetter, wechselt Ansichten und Fahrten "
+                + "(Treppe, Möwe, Drohne, Welle), wartet auf die Uhr, den Abbruch, die Serie oder die Welle („warte“) und fotografiert; "
+                + "am Ende liegt ein Blatt mit allen Fotos in docs/status (Regiebuch_….png). Ohne Fenster: ant regiebuecher.</body></html>"));
 
         // ============================================================== DATEN
         block("DATEN", false);
@@ -792,6 +839,9 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         txt(lebenLbl, "<html><body style='width:215px'>" + esc(lb[0]) + "<br>" + esc(lb[1]) + "</body></html>");
         txt(lichtLbl, "<html><body style='width:215px'>" + esc(r.lichtZeile()) + "</body></html>");
         txt(klangLbl, "<html><body style='width:215px'>" + esc(r.klang.describe()) + "</body></html>");
+        txt(regieLbl, "<html><body style='width:215px'>" + esc(r.regieLine()) + "</body></html>");
+        txt(serieLbl, "<html><body style='width:215px'>" + esc(r.serie.describe()) + "<br>" + esc(r.vorspuelung != null ? r.vorspuelung.describe() : "Vorspülung: ohne Kante")
+                + "<br>" + esc(r.spurLine()) + (r.ritt.laeuft() ? "<br>" + esc(r.ritt.describe()) : "") + "</body></html>");
     }
 
     private void technik() {
