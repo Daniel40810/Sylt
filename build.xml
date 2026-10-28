@@ -178,6 +178,140 @@
             <classpath><pathelement path="${run.classpath}"/></classpath>
         </java>
     </target>
+    <!-- Phase 19 (F55 A): das Programmsymbol als Sylt.ico und als PNGs im Jar (src/com/dan/sylt/ui/icon). -->
+    <target name="symbol" depends="compile" description="Phase 19: tools.Symbol schreibt Sylt.ico und die PNGs des Symbols.">
+        <property name="platform.java" value="java"/>
+        <java classname="com.dan.sylt.tools.Symbol" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="-Djava.awt.headless=true"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+    </target>
+
+    <!-- Phase 19 (F56 A): docs/QUELLEN.md aus data/quellen.txt, befunde.txt, sturmfluten.txt, vorspuelungen.txt und rohdaten.md. -->
+    <target name="quellen" depends="compile" description="Phase 19: tools.Quellenliste schreibt docs/QUELLEN.md.">
+        <property name="platform.java" value="java"/>
+        <java classname="com.dan.sylt.tools.Quellenliste" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="-Djava.awt.headless=true"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+    </target>
+
+    <!-- Phase 19 (F59 A): alle Prüfklassen in lib/Renderer.jar, je im eigenen Prozess, und die Vorgänger mit Renderer.jar
+         (Brocken, Geiranger, Glacier, Lighthouse, Thunder) mit diesem Jar übersetzt; Bericht docs/status/Vorgaenger_Phase19.txt. -->
+    <target name="vorgaenger" depends="compile" description="Phase 19: tools.Vorgaenger prüft die Packages und übersetzt die Vorgänger mit lib/Renderer.jar.">
+        <property name="platform.java" value="java"/>
+        <java classname="com.dan.sylt.tools.Vorgaenger" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="-Djava.awt.headless=true"/>
+            <jvmarg value="-Xmx3g"/>
+            <arg line="lib/Renderer.jar"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+    </target>
+
+    <!-- Phase 19: das neue Renderer.jar aus ../Renderer/dist nach Sylt, Lighthouse und Thunder (nach Clean and Build im Renderer). -->
+    <target name="renderer" description="Phase 19: ../Renderer/dist/Renderer.jar nach lib/ von Sylt, Lighthouse und Thunder kopieren.">
+        <copy file="../Renderer/dist/Renderer.jar" todir="lib" overwrite="true"/>
+        <copy file="../Renderer/dist/Renderer.jar" todir="../Lighthouse/lib" overwrite="true" failonerror="false"/>
+        <copy file="../Renderer/dist/Renderer.jar" todir="../Thunder/lib" overwrite="true" failonerror="false"/>
+        <checksum file="lib/Renderer.jar" property="renderer.md5"/>
+        <echo message="Renderer.jar ${renderer.md5} liegt in Sylt, Lighthouse und Thunder."/>
+    </target>
+
+    <!-- Phase 19 (F54 A): die vier Qualitätsstufen auf der Radeon, je bei Sommerabend und bei Sturmflut (Lage Sturm, Pegel
+         +2,6 m) vom Hauptblick am Kliff, volles HUD; Bilder docs/status/Stufe_*.png, Zeiten in docs/status/Stufen_Phase19.txt. -->
+    <target name="stufen" depends="jar" description="Phase 19: die vier Qualitätsstufen messen (docs/status/Stufe_*.png, Stufen_Phase19.txt).">
+        <property name="platform.java" value="java"/>
+        <delete file="docs/status/Stufen_Phase19.txt" quiet="true"/>
+        <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true" output="docs/status/Stufen_Phase19.txt" append="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+            <jvmarg value="-Xmx6g"/>
+            <jvmarg value="-Dhud=voll"/>
+            <jvmarg value="-Dansicht=AmKliff"/>
+            <jvmarg value="-Dlage=Sommerabend"/>
+            <arg line="180 1920 1080 docs/status/Stufe_Niedrig_Sommerabend.png NIEDRIG 20.5 2026-07-20"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+        <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true" output="docs/status/Stufen_Phase19.txt" append="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+            <jvmarg value="-Xmx6g"/>
+            <jvmarg value="-Dhud=voll"/>
+            <jvmarg value="-Dansicht=AmKliff"/>
+            <jvmarg value="-Dlage=Sturm"/>
+            <jvmarg value="-Dpegel=2.6"/>
+            <arg line="180 1920 1080 docs/status/Stufe_Niedrig_Sturmflut.png NIEDRIG 20.5 2026-07-20"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+        <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true" output="docs/status/Stufen_Phase19.txt" append="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+            <jvmarg value="-Xmx6g"/>
+            <jvmarg value="-Dhud=voll"/>
+            <jvmarg value="-Dansicht=AmKliff"/>
+            <jvmarg value="-Dlage=Sommerabend"/>
+            <arg line="180 1920 1080 docs/status/Stufe_Mittel_Sommerabend.png MITTEL 20.5 2026-07-20"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+        <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true" output="docs/status/Stufen_Phase19.txt" append="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+            <jvmarg value="-Xmx6g"/>
+            <jvmarg value="-Dhud=voll"/>
+            <jvmarg value="-Dansicht=AmKliff"/>
+            <jvmarg value="-Dlage=Sturm"/>
+            <jvmarg value="-Dpegel=2.6"/>
+            <arg line="180 1920 1080 docs/status/Stufe_Mittel_Sturmflut.png MITTEL 20.5 2026-07-20"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+        <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true" output="docs/status/Stufen_Phase19.txt" append="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+            <jvmarg value="-Xmx6g"/>
+            <jvmarg value="-Dhud=voll"/>
+            <jvmarg value="-Dansicht=AmKliff"/>
+            <jvmarg value="-Dlage=Sommerabend"/>
+            <arg line="180 1920 1080 docs/status/Stufe_Hoch_Sommerabend.png HOCH 20.5 2026-07-20"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+        <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true" output="docs/status/Stufen_Phase19.txt" append="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+            <jvmarg value="-Xmx6g"/>
+            <jvmarg value="-Dhud=voll"/>
+            <jvmarg value="-Dansicht=AmKliff"/>
+            <jvmarg value="-Dlage=Sturm"/>
+            <jvmarg value="-Dpegel=2.6"/>
+            <arg line="180 1920 1080 docs/status/Stufe_Hoch_Sturmflut.png HOCH 20.5 2026-07-20"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+        <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true" output="docs/status/Stufen_Phase19.txt" append="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+            <jvmarg value="-Xmx6g"/>
+            <jvmarg value="-Dhud=voll"/>
+            <jvmarg value="-Dansicht=AmKliff"/>
+            <jvmarg value="-Dlage=Sommerabend"/>
+            <arg line="180 1920 1080 docs/status/Stufe_Ultra_Sommerabend.png ULTRA 20.5 2026-07-20"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+        <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true" output="docs/status/Stufen_Phase19.txt" append="true">
+            <jvmarg value="-Dstdout.encoding=UTF-8"/>
+            <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+            <jvmarg value="-Xmx6g"/>
+            <jvmarg value="-Dhud=voll"/>
+            <jvmarg value="-Dansicht=AmKliff"/>
+            <jvmarg value="-Dlage=Sturm"/>
+            <jvmarg value="-Dpegel=2.6"/>
+            <arg line="180 1920 1080 docs/status/Stufe_Ultra_Sturmflut.png ULTRA 20.5 2026-07-20"/>
+            <classpath><pathelement path="${run.classpath}"/></classpath>
+        </java>
+        <echo message="Zeiten: docs/status/Stufen_Phase19.txt"/>
+    </target>
+
     <!-- Phase 10: die acht Vorlagen der Türme auf der Grafikkarte, je docs/status/Vorlage_<Name>.png (Ansicht, Öffnung, Tag
          und Stunde der Vorlage, volles HUD). Zum Vergleich mit templates/Leuchturm1–4 und Kampen1–4. -->
     <macrodef name="vorlage">

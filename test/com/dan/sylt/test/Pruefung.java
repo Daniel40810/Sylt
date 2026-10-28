@@ -352,6 +352,9 @@ public final class Pruefung {
         teil("Oberfläche und Datenbank (Phase 16, ohne Datenbank)");
         datenbank(r3, clock);
 
+        teil("Schliff (Phase 19)");
+        schliff();
+
         teil("Renderer.jar und Shader");
         List<String> pk = Bibliothek.pakete();
         check(Bibliothek.fehlend().isEmpty(), "Renderer.jar: " + Bibliothek.kurz());
@@ -1351,6 +1354,26 @@ public final class Pruefung {
                         && r.wiring.surf.tp == 11.5 && clock.lapse == lapse0,
                 f("Zustand der Szene hin und zurück: %d Werte (Uhr, Lage, Kamera, Regler)", z2.size()) + (fehler.isEmpty() ? "" : "; nicht: " + fehler));
         r.wiring.regie.lage(lage0);
+    }
+
+    /** Phase 19: Symbol, Bat-Dateien, Quellenliste aktuell, Werkzeuge da. */
+    static void schliff() throws Exception {
+        for (int sz : com.dan.sylt.ui.AppIcon.SIZES)
+            check(com.dan.sylt.ui.AppIcon.class.getResource("icon/sylt_" + sz + ".png") != null, "Symbol " + sz + " px im Jar (ant symbol)");
+        File ico = new File("Sylt.ico");
+        check(ico.isFile() && ico.length() > 4000, "Sylt.ico im Projektordner (" + ico.length() / 1024 + " KB)");
+        for (String b : new String[]{"Sylt.bat", "Sylt_Konsole.bat", "Sylt_Verknuepfung.bat"}) {
+            File f = new File(b);
+            check(f.isFile() && java.nio.file.Files.readString(f.toPath(), StandardCharsets.ISO_8859_1).contains("Sylt"), b);
+        }
+        File q = new File("docs/QUELLEN.md");
+        String soll = com.dan.sylt.tools.Quellenliste.text();
+        check(q.isFile() && java.nio.file.Files.readString(q.toPath(), StandardCharsets.UTF_8).equals(soll),
+                "docs/QUELLEN.md passt zu den Listen (sonst ant quellen): " + com.dan.sylt.data.Startdaten.quellen().size() + " Quellen, "
+                        + com.dan.sylt.data.Startdaten.befunde().size() + " Befunde");
+        File jar = new File("lib/Renderer.jar");
+        java.util.List<String> ks = jar.isFile() ? com.dan.sylt.tools.Vorgaenger.pruefklassen(jar) : java.util.List.of();
+        check(ks.size() >= 20, ks.size() + " Prüfklassen in lib/Renderer.jar für ant vorgaenger");
     }
 
     static void teil(String t) { System.out.println("\n— " + t); }
