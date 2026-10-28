@@ -17,7 +17,8 @@ import java.util.Locale;
 
 /**
  * Seit Phase 12: der Abbruch als Bildfolge auf der Grafikkarte, {@code docs/status/Abbruch_1.png} bis {@code _6.png}.
- * Die Sturmflut nach Xaver läuft im Zeitraffer bis Stunde {@link #STUNDE} (Höhepunkt der Nacht), die Kehle wächst überall; dann
+ * Die Sturmflut nach Xaver läuft im Zeitraffer bis Stunde {@link #STUNDE} (seit Phase 13 der Vormittag danach, 6.12.2013 11 Uhr,
+ * damit man im Bild etwas sieht; die Kehle hat die Nacht mit dem Höhepunkt hinter sich), die Kehle wächst überall; dann
  * wird das Stück am Nordwert {@link #NORD} (oder {@code -Dnord=…}) gerechnet; die Kamera steht am Strand schräg davor, die
  * Physik läuft fest mit 1/120 s.
  * <ol>
@@ -26,15 +27,18 @@ import java.util.Locale;
  * <li>Sturz (3 s)</li>
  * <li>Aufschlag, Zerfall, Staub (6 s)</li>
  * <li>Sturzkegel, wenn alles ruht</li>
- * <li>nach der nächsten Flut (12 h später): Abtrag, neue Kante</li>
+ * <li>einen Tag später, nach zwei Fluten (24 h): Abtrag, neue Kante</li>
  * </ol>
  * <pre>ant abbruch [-Dnord=6090600]</pre>
  */
 public final class Abbruch {
     private Abbruch() { }
 
-    /** Stelle und Stunde der Bildfolge: im Norden des Kliffs, wo der Fuß tief liegt, auf dem Höhepunkt der Nacht. */
-    public static final double NORD = 6_090_335, STUNDE = 15;
+    /**
+     * Stelle und Stunde der Bildfolge: im Norden des Kliffs, wo der Fuß tief liegt; seit Phase 13 der Vormittag nach der
+     * Nacht mit dem Höhepunkt (Stunde 23 = 6.12.2013 11 Uhr; bis Phase 12 Stunde 15 = 3 Uhr, da war im Bild nichts zu sehen).
+     */
+    public static final double NORD = 6_090_335, STUNDE = 23;
 
     public static void main(String[] a) throws Exception {
         int w = a.length > 0 ? Integer.parseInt(a[0]) : 1920, h = a.length > 1 ? Integer.parseInt(a[1]) : 1080;
@@ -79,7 +83,9 @@ public final class Abbruch {
         r.brandungJetzt();
         r.wetter.sky.updateNow();
         r.bautenJetzt();
-        warm(r, d, 30);
+        // seit Phase 13: Augenanpassung neu nach dem Zeitraffer (vorher stand sie noch auf dem Licht vor dem Sprung: Bild 1 schwarz)
+        r.readapt();
+        warm(r, d, 60);
         bild(r, d, new File(dir, "Abbruch_1.png"), "1 Hohlkehle");
         double t = 0;
         double[] zeiten = {1.5, 3, 6};
@@ -90,10 +96,12 @@ public final class Abbruch {
         while (k.schnitt() != null && t < 120) t = lauf(r, d, k, t, t + 1);
         bild(r, d, new File(dir, "Abbruch_5.png"), "5 Sturzkegel nach " + Math.round(t) + " s");
         k.rechnen = false;   // die nächste Flut: nur Kehle und Abtrag, kein neues Stück
-        r.vorspulen(r.sturmflut.stunden(clock) + 12, 5, false);
+        r.vorspulen(r.sturmflut.stunden(clock) + 24, 5, false);
         r.brandungJetzt();
-        warm(r, d, 30);
-        bild(r, d, new File(dir, "Abbruch_6.png"), "6 nach der nächsten Flut");
+        r.wetter.sky.updateNow();
+        r.readapt();
+        warm(r, d, 60);
+        bild(r, d, new File(dir, "Abbruch_6.png"), "6 einen Tag später (zwei Fluten)");
         for (String l : r.hudLines()) if (l.startsWith("Sturmflut")) System.out.println("  " + l);
         double[] b = k.bilanz();
         System.out.printf(Locale.GERMAN, "Bilanz %.0f m³ = %.0f steht + %.0f Blöcke + %.0f zerfallen + %.0f ausgespült · Kegel %.0f m³ · Abtrag %.0f m³ · Kante bis %.1f m zurück%n",

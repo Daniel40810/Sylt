@@ -20,7 +20,7 @@ public final class Strandnaesse {
     public final WetField feld;
     private final float[] grund;
     private final boolean[] watt;
-    private double pegel = Double.NaN, auflauf = Double.NaN;
+    private double pegel = Double.NaN, auflauf = Double.NaN, regenNass;
     /** Nässe nach Pegel und Auflauf, ohne das Stück der Nahbrandung. */
     private final float[] basis;
     /** Zellen, die das Stück zuletzt überschrieben hat (Rechteck i0, j0, i1, j1). */
@@ -51,16 +51,20 @@ public final class Strandnaesse {
      * Seit Phase 7a: dazu der Auflauf (m über dem Pegel, etwa R_2% nach Stockdon), bis zu dem der Strand nass ist; die
      * Stufen darüber verschieben sich mit ihm. Neu gerechnet, wenn Pegel oder Auflauf sich um mehr als 3 cm ändern.
      */
-    public boolean update(double level, double r2) {
-        if (!Double.isNaN(pegel) && Math.abs(level - pegel) < 0.03 && Math.abs(r2 - auflauf) < 0.03) return false;
+    public boolean update(double level, double r2) { return update(level, r2, regenNass); }
+
+    /** Seit Phase 13: Nässe nach Regen 0..1 (der trockene Sand oben wird dunkel und fest); neu ab 3 % Änderung. */
+    public boolean update(double level, double r2, double regen) {
+        if (!Double.isNaN(pegel) && Math.abs(level - pegel) < 0.03 && Math.abs(r2 - auflauf) < 0.03 && Math.abs(regen - regenNass) < 0.03) return false;
         pegel = level;
         auflauf = r2;
+        regenNass = regen;
         float[] w = basis;
         for (int k = 0; k < w.length; k++) {
             double ueber = grund[k] - level - (watt[k] ? 0 : Math.max(0, r2));
             float rest = WetField.residual(feld.sediment[k]);
             double v = ueber <= 0 ? 1 : ueber < 0.4 ? 1 - 0.15 * ueber / 0.4 : Math.max(rest, 0.85 - (0.85 - rest) * Math.min(1, (ueber - 0.4) / 1.2));
-            w[k] = (float) v;
+            w[k] = (float) Math.max(v, Math.min(0.75, regenNass * 0.75));   // seit Phase 13: Regen macht auch den oberen Strand nass
         }
         System.arraycopy(basis, 0, feld.wet, 0, basis.length);
         zuletzt = null;

@@ -69,6 +69,13 @@ public final class Sturmflut {
         w.surf.seaFromDeg = jetzt.richtung();
         w.oktas = 8;
         w.visibilityKm = Math.max(4, 30 - jetzt.wind());
+        // seit Phase 13: Schauer und Graupel aus tiefer Decke (Xaver: Regen- und Graupelschauer [G]), Böen nach dem Fahrplan
+        w.cloudType = com.dan.cloud.CloudType.STRATOCUMULUS;
+        w.regen = Math.max(0.5, Math.min(6, 1 + 4 * (jetzt.wind() - 14) / 13));
+        w.nebel = 0;
+        w.gewitter = 0;
+        w.gustiness = 0.3;
+        w.gustNow = jetzt.wind() * BOEEN / 27;
         if (h > XAVER[XAVER.length - 1].stunde()) aktiv = false;
     }
 

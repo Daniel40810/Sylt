@@ -138,8 +138,11 @@ public final class Nahbrandung {
         anlegen(s);
         netzMs = netzMs * 0.9 + (System.nanoTime() - t1) / 1e6 * 0.1;
         schrittMs = schrittMs * 0.9 + (t1 - t0) / 1e6 * 0.1;
-        meldung = String.format(Locale.GERMAN, "Netz %d Reihen auf %.0f m, Wasserlinie %.0f m vom Rand zur See · %d Wellen · R_2%% %.2f m (Stockdon %.2f m) · Rechnen %.1f ms, Netz %.1f ms",
-                s.zug.rows, s.zug.width, s.xWasserlinie, s.zug.waves.size(), s.schwall.r2(), brandung.auflaufR2(), schrittMs, netzMs);
+        // seit Phase 13: ohne gezählte Spitzen (Schwall noch jung, oder er läuft bis an den Kliffuß) kein „NaN“ im HUD
+        double r2 = s.schwall.r2();
+        String r2s = Double.isNaN(r2) ? "noch keine Spitze" : String.format(Locale.GERMAN, "%.2f m", r2);
+        meldung = String.format(Locale.GERMAN, "Netz %d Reihen auf %.0f m, Wasserlinie %.0f m vom Rand zur See · %d Wellen · R_2%% %s (Stockdon %.2f m) · Rechnen %.1f ms, Netz %.1f ms",
+                s.zug.rows, s.zug.width, s.xWasserlinie, s.zug.waves.size(), r2s, brandung.auflaufR2(), schrittMs, netzMs);
     }
 
     /** Ein Stück an der Wasserlinie w bauen und einschwingen (im Faden des Aufrufers). */

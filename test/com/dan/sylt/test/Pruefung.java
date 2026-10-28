@@ -339,6 +339,9 @@ public final class Pruefung {
         teil("Sturmflut und Abbruch des Kliffs (Phase 12)");
         sturmflut(r3, clock);
 
+        teil("Wetter, Licht, Leben (Phase 13)");
+        wetter(r3, clock);
+
         teil("Renderer.jar und Shader");
         List<String> pk = Bibliothek.pakete();
         check(Bibliothek.fehlend().isEmpty(), "Renderer.jar: " + Bibliothek.kurz());
@@ -347,7 +350,10 @@ public final class Pruefung {
         for (String[] prog : rd.shaderFiles())
             for (String file : prog)
                 check(Renderer.class.getResource("/com/dan/sylt/gl/shader/" + file) != null, "Shader " + file + " im Jar");
-        for (String c : new String[]{"com.dan.surf.demo.SurfCheck", "com.dan.dune.demo.DuneCheck", "com.dan.tide.demo.TideCheck", "com.dan.beacon.demo.BeaconCheck", "com.dan.fracture.demo.FractureCheck"}) {
+        for (String c : new String[]{"com.dan.surf.demo.SurfCheck", "com.dan.dune.demo.DuneCheck", "com.dan.tide.demo.TideCheck", "com.dan.beacon.demo.BeaconCheck", "com.dan.fracture.demo.FractureCheck",
+                "com.dan.flock.demo.FlockCheck", "com.dan.flock.demo.WaderCheck", "com.dan.sky.demo.SkyCheck", "com.dan.weather.demo.WeatherCheck",
+                "com.dan.rain.demo.RainCheck", "com.dan.fog.demo.FogCheck", "com.dan.lightning.demo.LightningCheck", "com.dan.mudflat.demo.MudflatCheck",
+                "com.dan.seal.demo.SealCheck"}) {
             Process p = new ProcessBuilder(javaBin(), "-Dstdout.encoding=UTF-8", "-cp", System.getProperty("java.class.path"), c).redirectErrorStream(true).start();
             String out = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             check(p.waitFor() == 0 && out.contains("Alles in Ordnung."), c + ": " + (out.contains("Alles in Ordnung.") ? "Alles in Ordnung." : out.strip()));
@@ -660,6 +666,178 @@ public final class Pruefung {
     }
 
     static String f(String fmt, Object... a) { return String.format(Locale.GERMAN, fmt, a); }
+
+    /**
+     * Seit Phase 13: die Wetterregie (Lagen, freie Regie, „Ein Sturmtag“, von Hand, Ruhe während der Sturmflut), Regen
+     * unter den Wolken und nasser Sand, Seenebel und Seerauch, Gewitter mit den Türmen als Fangpunkte, Möwen im
+     * Hangaufwind, Vögel am Spülsaum mit Spuren, der seltene Seehund, Meeresleuchten, grünes Leuchten, HUD.
+     */
+    static void wetter(Renderer r, SceneClock clock) {
+        com.dan.sylt.wiring.Wiring w = r.wiring;
+        var rg = w.regie;
+        r.sturmflut.aktiv = false;
+        clock.lapse = 0;
+        clock.set(java.time.LocalDate.of(2026, 9, 20), 14);
+        w.tideAn = true;
+        rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.SOMMERABEND);
+        check(w.windSpeed == 6 && w.windFromDeg == 270 && w.oktas == 3 && w.cloudType == com.dan.cloud.CloudType.CUMULUS && Math.abs(w.highCover - 0.35) < 1e-9
+                        && w.visibilityKm == 40 && w.surf.hs == 1.0 && w.surf.tp == 8 && w.surf.seaFromDeg == 285 && w.regen == 0 && w.nebel == 0,
+                "Lage „Sommerabend“ (Vorgabe): dieselben Werte wie bis Phase 12 (Wind 6 m/s aus 270°, 3/8 Cumulus, Sicht 40 km, See 1,0 m, 8 s aus 285°)");
+        rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.STURM);
+        r.step(1 / 60.0);
+        check(w.windSpeed == 22 && w.regen == 5 && w.surf.hs == 3.4 && w.oktas == 7.5, f("Lage „Sturm“: %.0f m/s aus %03.0f°, Regen %.0f mm/h, See %.1f m", w.windSpeed, w.windFromDeg, w.regen, w.surf.hs));
+        // freie Regie über drei Tage (Uhr in Schritten von 20 min)
+        rg.frei();
+        java.util.Set<com.dan.weather.Weather.Phase> lagen = new java.util.HashSet<>();
+        double pMin = 1e9, pMax = -1e9;
+        for (int i = 0; i < 3 * 72; i++) {
+            clock.setEpochMillis(clock.epochMillis() + 20 * 60_000);
+            rg.schritt(0.1);
+            lagen.add(rg.snapshot().phase());
+            pMin = Math.min(pMin, rg.snapshot().pressure());
+            pMax = Math.max(pMax, rg.snapshot().pressure());
+        }
+        check(lagen.size() >= 3 && pMax - pMin > 8, f("freie Regie über drei Tage: %d Lagen (%s), Luftdruck %.0f bis %.0f hPa", lagen.size(), lagen, pMin, pMax));
+        clock.set(java.time.LocalDate.of(2026, 10, 20), 6);
+        rg.sturmtag();
+        clock.set(java.time.LocalDate.of(2026, 10, 20), 16);
+        rg.schritt(0.1);
+        check(rg.snapshot().phase() == com.dan.weather.Weather.Phase.STURM && w.windSpeed > 17, f("„Ein Sturmtag“ um 16 Uhr: %s", rg.zeile()));
+        rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.SOMMERABEND);
+        rg.hand();
+        w.windSpeed = 13;
+        r.step(1 / 60.0);
+        check(w.windSpeed == 13, "von Hand: die Regie ruht, der Wert bleibt");
+        rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.WESTWIND);
+        r.sturmflutStarten(com.dan.sylt.scene.Sturmflut.STUNDE);
+        r.step(1 / 60.0);
+        check(w.windSpeed > 13.5 && w.regen > 0.4 && w.cloudType == com.dan.cloud.CloudType.STRATOCUMULUS, f("Sturmflut: der Fahrplan nach Xaver führt (Wind %.0f m/s, Schauer %.1f mm/h), die Regie ruht", w.windSpeed, w.regen));
+        r.sturmflut.aktiv = false;
+        clock.set(java.time.LocalDate.of(2026, 9, 20), 14);
+
+        // Regen: Schauer unter Gewitterwolken auf einem Teil der Fläche, Landregen überall
+        Unw u = new Unw(r);
+        rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.SCHAUER);
+        double teil = u.regenAnteil();
+        rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.LANDREGEN);
+        double land = u.regenAnteil();
+        check(teil > 0.03 && teil < 0.7 && land > 0.85, f("Regen unter den Wolken: Schauer (5/8 Cumulonimbus) auf %.0f %% der Fläche in 40 km, Landregen (8/8 Nimbostratus) auf %.0f %%", teil * 100, land * 100));
+        double sicht = com.dan.rain.Rain.visibilityKm(w.regen);
+        check(sicht > 5 && sicht < 20, f("Sicht im Landregen (%.1f mm/h) %.1f km", w.regen, sicht));
+        // nass nach Regen (Uhr läuft 60-fach)
+        r.sand.regen = 0;
+        clock.lapse = 60;
+        r.placeView(com.dan.sylt.camera.Ansichten.SANDSTURM);
+        for (int i = 0; i < 400; i++) r.step(0.5);
+        clock.lapse = 0;
+        check(r.sand.regen > 0.05, f("nach 200 min Landregen ist der Sand nass (%.1f %% Wasser, er fliegt nicht mehr)", r.sand.regen * 100));
+        // Seenebel und Seerauch
+        rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.SEENEBEL);
+        r.step(1 / 60.0);
+        com.dan.fog.Fog fg = r.unwetter.fog;
+        double vMin = 1e9;
+        double[] wl = Site.fromUtm(Site.wasserlinieE(6_089_500) - 200, 6_089_500);
+        for (int i = 0; i < 40; i++) vMin = Math.min(vMin, fg.visibilityAt(wl[0] + i * 37, w.pegel + 2, wl[1] + i * 53));
+        check(fg.amount > 0.9 && vMin < 300, f("Seenebel: Bänke bis %.0f m über dem Pegel, Sicht darin bis %.0f m", fg.top, vMin));
+        rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.SEERAUCH);
+        r.step(1 / 60.0);
+        double oben = 1e9;
+        for (int i = 0; i < 40; i++) oben = Math.min(oben, fg.visibilityAt(wl[0] + i * 37, w.pegel + 25, wl[1] + i * 53));
+        check(fg.top < 12 && oben > 5000, f("Seerauch: flach (bis %.0f m), 25 m darüber klare Sicht (%.0f km)", fg.top, oben / 1000));
+        w.windSpeed = 13;
+        r.unwetter.schritt(0.1, w, r.wetter.clouds, true, r.camera.eye, r.terrain::height);
+        check(fg.amount < 0.05, "Wind Bft 6: der Nebel ist fort");
+        // Gewitter: Stufe aus der Lage, Blitz in den Kampener Leuchtturm
+        rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.GEWITTER);
+        r.step(1 / 60.0);
+        com.dan.lightning.Lightning bl = r.unwetter.blitz;
+        int hits = bl.attractorHits();
+        bl.strikeAttractor(0);
+        for (int i = 0; i < 30; i++) r.unwetter.schritt(1 / 30.0, w, r.wetter.clouds, true, r.camera.eye, r.terrain::height);
+        check(bl.level() == com.dan.lightning.Lightning.Level.MODERATE && bl.attractorHits() > hits && bl.attractors.size() == 2,
+                f("Gewitter über der See: Stufe %s, Fangpunkte %s, Blitz in den Kampener Leuchtturm", com.dan.sylt.gl.Unwetter.stufe(bl.level()), bl.attractors.stream().map(com.dan.lightning.Lightning.Attractor::name).toList()));
+        // Möwen im Hangaufwind an der Kliffkante bei Westwind
+        rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.WESTWIND);
+        r.placeView(com.dan.sylt.camera.Ansichten.byName("Am Kliff"));
+        com.dan.sylt.scene.Strandleben lb = r.leben;
+        int soar = 0;
+        for (int i = 0; i < 240 * 10; i++) {
+            lb.schritt(0.1, r.camera.eye, r.camera.tx, r.camera.tz, 11, 260, 20_000, 30, clock.date(), 14, w.pegel, null, 2);
+            if (i > 1800) for (com.dan.flock.Flock.Gull g : lb.moewen.gulls()) if (g.state == com.dan.flock.Flock.State.SOAR) soar++;
+        }
+        double mittel = soar / 600.0;
+        check(lb.moewen.ridges.size() > 20 && mittel >= 3, f("Möwen bei Westwind 11 m/s: %d Hangkanten aus kante.csv, im Mittel %.1f Möwen im Hangaufwind vor der Kante", lb.moewen.ridges.size(), mittel));
+        // Spülsaum: Stück der Nahbrandung gegenüber dem Auge, eine Minute
+        rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.SOMMERABEND);
+        r.placeView(com.dan.sylt.camera.Ansichten.byName("Spülsaum"));
+        r.brandungJetzt();
+        com.dan.sylt.scene.Nahbrandung.Stueck st = r.nah.stueck();
+        if (st == null) { check(false, "Spülsaum: kein Stück der Nahbrandung"); }
+        else {
+            for (int i = 0; i < 60 * 30; i++) {
+                r.nah.schritt(1 / 30.0, r.camera.eye, r.camera.tx, r.camera.tz, w.pegel);
+                lb.schritt(1 / 30.0, r.camera.eye, r.camera.tx, r.camera.tz, 6, 270, 20_000, 30, clock.date(), 14, w.pegel, r.nah.stueck(), 1);
+            }
+            int[] c = lb.strand.census();
+            double gap = lb.strand.meanGap();
+            check(c[0] > 10 && c[1] > 0 && !Double.isNaN(gap) && gap > -0.2 && gap < 2.5, f("Spülsaum im September: %s; Sanderlinge im Mittel %.2f m vor der Kante", lb.strand.describe(), gap));
+            check(lb.strand.steps > 1000 && lb.spuren() > 50 && lb.spurenGeloescht > 0, f("Spuren im nassen Sand: %,d Tritte, %,d Abdrücke im Raster, %,d vom Schwall gelöscht", lb.strand.steps, lb.spuren(), lb.spurenGeloescht));
+        }
+        // Seehund: selten
+        int da = 0;
+        for (int hh = 0; hh < 600; hh++) {
+            java.time.LocalDate d = java.time.LocalDate.of(2026, 6, 1).plusDays(hh / 24);
+            lb.schritt(0.1, r.camera.eye, r.camera.tx, r.camera.tz, 6, 270, 20_000, 30, d, hh % 24 + 0.5, w.pegel, null, 1);
+            if (lb.seehundDa()) da++;
+        }
+        check(da > 600 * 0.08 && da < 600 * 0.3, f("Seehund in %d von 600 Stunden (selten, etwa eine von sechs)", da));
+        // Meeresleuchten: Augustnacht ja, Januarnacht und Tag nein
+        clock.set(java.time.LocalDate.of(2026, 8, 15), 23.5);
+        double aug = lum(r.meeresleuchtenJetzt());
+        clock.set(java.time.LocalDate.of(2026, 1, 15), 23.5);
+        double jan = lum(r.meeresleuchtenJetzt());
+        clock.set(java.time.LocalDate.of(2026, 8, 15), 14);
+        double tag = lum(r.meeresleuchtenJetzt());
+        check(aug > 1e-3 && jan == 0 && tag == 0, f("Meeresleuchten: Augustnacht %.1e cd/m² im stürzenden Kamm, Januarnacht %.0f, am Tag nicht sichtbar", aug, jan));
+        // grünes Leuchten: an rund jedem vierten klaren Abend mit Spiegelung
+        int spiegel = 0, n0 = 0;
+        for (int d = 0; d < 120; d++) {
+            clock.set(java.time.LocalDate.of(2026, 6, 1).plusDays(d), 21);
+            n0++;
+            if (r.gruenesLeuchtenHeute() > 1.5) spiegel++;
+        }
+        w.regen = 3;
+        double regenTag = r.gruenesLeuchtenHeute();
+        w.regen = 0;
+        check(spiegel > n0 * 0.12 && spiegel < n0 * 0.4 && regenTag == 1, f("grünes Leuchten: an %d von %d klaren Sommerabenden mit Spiegelung, im Regen nur die Brechung", spiegel, n0));
+        // HUD
+        // ohne Grafikkarte melden Regen, Nebel und Gewitter „!… nicht gestartet“, die Zeilen sind trotzdem da
+        java.util.List<String> hud = java.util.Arrays.stream(r.hudLines()).map(l -> l.startsWith("!") ? l.substring(1) : l).toList();
+        boolean alle = hud.stream().anyMatch(l -> l.startsWith("Wetter (Lage")) && hud.stream().anyMatch(l -> l.startsWith("Regen"))
+                && hud.stream().anyMatch(l -> l.startsWith("Seenebel") || l.startsWith("Nebel")) && hud.stream().anyMatch(l -> l.startsWith("Gewitter"))
+                && hud.stream().anyMatch(l -> l.startsWith("Licht:")) && hud.stream().anyMatch(l -> l.startsWith("Spuren im nassen Sand"));
+        check(alle, "HUD: Zeilen für Wetter, Regen, Seenebel, Gewitter, Leben und Licht");
+        check(com.dan.sylt.tools.Abbruch.STUNDE == 23, "Bildfolge des Abbruchs seit Phase 13 am Vormittag danach (Stunde 23, hell)");
+        rg.lage(com.dan.sylt.wiring.Wetterregie.Lage.SOMMERABEND);
+    }
+
+    static double lum(double[] c) { return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; }
+
+    /** Prüfhilfe: Regen über einem Raster von 40 km um das Auge nach der Lage (die Zellen der Wolken liegen kilometerweit auseinander). */
+    static final class Unw {
+        final Renderer r;
+        Unw(Renderer r) { this.r = r; }
+        double regenAnteil() {
+            r.step(1 / 60.0);
+            r.wetter.clouds.step(1);
+            r.unwetter.schritt(1 / 60.0, r.wiring, r.wetter.clouds, true, r.camera.eye, r.terrain::height);
+            com.dan.rain.Rain.Curtain c = r.unwetter.rain.curtain;
+            int nass = 0, n = 0;
+            for (int i = -20; i <= 20; i++)
+                for (int j = -20; j <= 20; j++) { n++; if (c == null || c.density(r.camera.eye[0] + i * 1000, r.camera.eye[2] + j * 1000) > 0.3) nass++; }
+            return nass / (double) n;
+        }
+    }
 
     /** Phase 12: Xaver (F16 A), Hohlkehle, Abbruch nach der Physik (F17 A), Staub (F15 A), Sandbilanz, Abtrag, neue Wand. */
     static void sturmflut(Renderer r, SceneClock clock) {

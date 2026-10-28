@@ -102,7 +102,7 @@
          lassen; die Zeiten stehen auch in der Ausgabe. -Dansicht=Name wählt eine der neun Ansichten, -Dbild=… den Namen des Bilds; seit Phase 3 -Dwolken=aus, -Dboden=aus, -Dbedeckung=Achtel; seit Phase 4a -Dkamera=x,z,Richtung,Neigung,Höhe; seit Phase 7a -Dsee=H_s,T_p,Richtung (etwa 2,9,290), -Dpegel=m (von Hand, sonst die Tide), -Duhr=Stunde und -Ddatum=JJJJ-MM-TT; seit Phase 9a -Dsandsturm=an und -Dwind=m/s,Richtung; seit Phase 10 -Dvorlage=Leuchturm1 … Kampen4 (Ansicht, Tag und Stunde der Vorlage) und -Dquermarke=frueher. Werte mit Komma in Anführungszeichen: "-Dsee=2.5,9,290" (sonst trennt Windows sie). -->
     <target name="tempo" depends="jar" description="docs/status/Status_PhaseN.png (Grundansicht, volles HUD).">
         <property name="platform.java" value="java"/>
-        <property name="phase" value="10"/>
+        <property name="phase" value="13"/>
         <property name="bild" value="docs/status/Status_Phase${phase}.png"/>
         <property name="ansicht" value=""/>
         <property name="wolken" value=""/>
@@ -115,6 +115,16 @@
         <property name="wind" value=""/>
         <property name="vorlage" value=""/>
         <property name="quermarke" value=""/>
+        <property name="lage" value=""/>
+        <property name="regen" value=""/>
+        <property name="nebel" value=""/>
+        <property name="gewitter" value=""/>
+        <property name="blitz" value=""/>
+        <property name="leben" value=""/>
+        <property name="leuchten" value=""/>
+        <property name="gruen" value=""/>
+        <property name="fernrohr" value=""/>
+        <property name="wolke" value=""/>
         <property name="uhr" value="20.5"/>
         <property name="datum" value="2026-07-20"/>
         <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
@@ -133,6 +143,16 @@
             <jvmarg value="-Dwind=${wind}"/>
             <jvmarg value="-Dvorlage=${vorlage}"/>
             <jvmarg value="-Dquermarke=${quermarke}"/>
+            <jvmarg value="-Dlage=${lage}"/>
+            <jvmarg value="-Dregen=${regen}"/>
+            <jvmarg value="-Dnebel=${nebel}"/>
+            <jvmarg value="-Dgewitter=${gewitter}"/>
+            <jvmarg value="-Dblitz=${blitz}"/>
+            <jvmarg value="-Dleben=${leben}"/>
+            <jvmarg value="-Dleuchten=${leuchten}"/>
+            <jvmarg value="-Dgruen=${gruen}"/>
+            <jvmarg value="-Dfernrohr=${fernrohr}"/>
+            <jvmarg value="-Dwolke=${wolke}"/>
             <arg line="120 1920 1080 ${bild} MITTEL ${uhr} ${datum}"/>
             <classpath><pathelement path="${run.classpath}"/></classpath>
         </java>
@@ -174,10 +194,45 @@
             <classpath><pathelement path="${run.classpath}"/></classpath>
         </java>
     </target>
+    <!-- Phase 13: Wetter, Licht, Leben als Bilder auf der Grafikkarte (docs/status/Wetter_*.png, kurzes HUD): die Vorlagen
+         Leuchturm2 (Nacht, Laterne wie früher, angestrahlt) und Leuchturm4 (bedeckt, Schauer), Seenebel an der Treppe, ein
+         Gewitter über der See mit Blitz, Meeresleuchten in einer Augustnacht am Spülsaum, Sanderlinge am Spülsaum, das grüne
+         Leuchten im Fernrohr. Auf der Radeon laufen lassen. -->
+    <macrodef name="wetterbild">
+        <attribute name="name"/>
+        <attribute name="uhr" default="20.5"/>
+        <attribute name="datum" default="2026-07-20"/>
+        <attribute name="d1" default="-Dhud=kurz"/>
+        <attribute name="d2" default="-Dhud=kurz"/>
+        <attribute name="d3" default="-Dhud=kurz"/>
+        <sequential>
+            <java classname="com.dan.sylt.tools.Tempo" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">
+                <jvmarg value="-Dstdout.encoding=UTF-8"/>
+                <jvmarg value="--enable-native-access=ALL-UNNAMED"/>
+                <jvmarg value="-Xmx6g"/>
+                <jvmarg value="-Dhud=kurz"/>
+                <jvmarg value="@{d1}"/>
+                <jvmarg value="@{d2}"/>
+                <jvmarg value="@{d3}"/>
+                <arg line="30 1920 1080 docs/status/Wetter_@{name}.png MITTEL @{uhr} @{datum}"/>
+                <classpath><pathelement path="${run.classpath}"/></classpath>
+            </java>
+        </sequential>
+    </macrodef>
+    <target name="wetterbilder" depends="jar" description="Phase 13: Wetter, Licht und Leben als docs/status/Wetter_*.png.">
+        <property name="platform.java" value="java"/>
+        <wetterbild name="Leuchturm2" d1="-Dvorlage=Leuchturm2"/>
+        <wetterbild name="Leuchturm4" d1="-Dvorlage=Leuchturm4"/>
+        <wetterbild name="Seenebel" uhr="9" datum="2026-09-20" d1="-Dansicht=Treppe" d2="-Dlage=Seenebel"/>
+        <wetterbild name="Gewitter" uhr="21.5" datum="2026-08-02" d1="-Dansicht=AmKliff" d2="-Dlage=Gewitter" d3="-Dblitz=see"/>
+        <wetterbild name="Meeresleuchten" uhr="23" datum="2026-08-15" d1="-Dansicht=Spuelsaum" d2="-Dleuchten=an" d3="-Dblick=250,3,10"/>
+        <wetterbild name="Spuelsaum" uhr="10" datum="2026-09-20" d1="-Dansicht=Spuelsaum" d2="-Dblick=200,5,12"/>
+        <wetterbild name="Gruen" uhr="21.85" datum="2026-07-20" d1="-Dfernrohr=sonne" d2="-Dgruen=3"/>
+    </target>
     <!-- Phase 12: der Abbruch als Bildfolge auf der Grafikkarte (docs/status/Abbruch_1..6.png): Xaver bis Stunde 15, dann
-         das Stück bei N 6 090 335 (oder -Dnord=…, -Dstunde=…), Physik fest 1/120 s, die nächste Flut 12 h später. -->
+         das Stück bei N 6 090 335 (oder -Dnord=…, -Dstunde=…), Physik fest 1/120 s, das letzte Bild einen Tag später (zwei Fluten). Seit Phase 13 Stunde 23 (6.12.2013 11 Uhr, hell). -->
     <property name="nord" value=""/>
-    <property name="stunde" value="15"/>
+    <property name="stunde" value="23"/>
     <target name="abbruch" depends="jar" description="Phase 12: der Abbruch des Kliffs als Bildfolge (Grafikkarte), docs/status/Abbruch_1..6.png.">
         <property name="platform.java" value="java"/>
         <java classname="com.dan.sylt.tools.Abbruch" fork="true" jvm="${platform.java}" dir="${basedir}" failonerror="true">

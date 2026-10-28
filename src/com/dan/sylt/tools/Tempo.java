@@ -29,7 +29,12 @@ import java.util.Locale;
  * {@code wolken} = aus, {@code boden} = aus, {@code bedeckung} = Achtel, seit Phase 7a {@code see} = H_s,T_p,Richtung,
  * seit Phase 9a {@code sandsturm} = an und {@code wind} = m/s,Richtung, seit Phase 10 {@code vorlage} = Leuchturm1 … Kampen4
  * (Ansicht, Öffnung, Tag, Stunde und Bedeckung der Vorlage; Uhrzeit und Datum der Befehlszeile gelten dann nicht) und
- * {@code quermarke} = frueher (das Quermarkenfeuer brennt F WRG wie bis 1975).
+ * {@code quermarke} = frueher (das Quermarkenfeuer brennt F WRG wie bis 1975); seit Phase 13 {@code lage} = Name einer
+ * Wetterlage (Sommerabend, Westwind, Ablandig, Schauer, Landregen, Sturm, Seenebel, Seerauch, Gewitter), {@code regen} =
+ * mm/h, {@code nebel} = 0..1[,Obergrenze m], {@code gewitter} = 0..4, {@code blitz} = see|turm (ein Blitz kurz vor dem
+ * Bild), {@code leben} = aus, {@code leuchten} = an (Meeresleuchten mit voller Blüte), {@code fernrohr} = sonne (Fernrohr auf die Sonne von der Kliffkante), {@code blick} = Richtung,Neigung[,m landwärts], {@code wolke} = Wolkenart (CUMULUS … CUMULONIMBUS), {@code gruen} = Vergrößerung der
+ * Spiegelung für das grüne Leuchten. Wetter von Hand ({@code bedeckung}, {@code see}, {@code wind}, {@code regen} …) stellt
+ * die Regie auf „von Hand“.
  */
 public final class Tempo {
     private Tempo() { }
@@ -68,6 +73,33 @@ public final class Tempo {
         if ("aus".equals(opt("meer"))) r.showMeer = false;
         if ("aus".equals(opt("wolken"))) r.showClouds = false;
         if ("aus".equals(opt("boden"))) r.showGround = false;
+        // seit Phase 13: eine Lage der Wetterregie; Werte von Hand schalten die Regie ab
+        String la = opt("lage");
+        if (la != null && !la.isBlank()) {
+            com.dan.sylt.wiring.Wetterregie.Lage lg = null;
+            for (com.dan.sylt.wiring.Wetterregie.Lage x : com.dan.sylt.wiring.Wetterregie.Lage.values())
+                if (x.name().equalsIgnoreCase(la) || x.label.equalsIgnoreCase(la) || x.label.toLowerCase(Locale.ROOT).startsWith(la.toLowerCase(Locale.ROOT))) lg = x;
+            if (lg == null) System.err.println("FEHLER: keine Lage „" + la + "“");
+            else r.wiring.regie.lage(lg);
+        }
+        for (String k : new String[]{"bedeckung", "see", "wind", "regen", "nebel", "gewitter"}) {
+            String v = opt(k);
+            if (v != null && !v.isBlank()) { r.wiring.regie.hand(); break; }
+        }
+        String rg = opt("regen"), nb = opt("nebel"), gw = opt("gewitter");
+        if (rg != null && !rg.isBlank()) r.wiring.regen = Double.parseDouble(rg.replace(',', '.'));
+        if (nb != null && !nb.isBlank()) {
+            String[] v = nb.split(";");
+            r.wiring.nebel = Double.parseDouble(v[0].replace(',', '.'));
+            if (v.length > 1) r.wiring.nebelHoch = Double.parseDouble(v[1].replace(',', '.'));
+        }
+        if (gw != null && !gw.isBlank()) r.wiring.gewitter = Integer.parseInt(gw.trim());
+        if ("aus".equals(opt("leben"))) r.showLeben = false;
+        if ("an".equals(opt("leuchten"))) { r.bluete = 1; r.leuchtenGain = 1; }
+        String gr = opt("gruen");
+        if (gr != null && !gr.isBlank()) r.gruenFest = Double.parseDouble(gr.replace(',', '.'));
+        String wk = opt("wolke");
+        if (wk != null && !wk.isBlank()) { r.wiring.regie.hand(); r.wiring.cloudType = com.dan.cloud.CloudType.valueOf(wk.toUpperCase(Locale.ROOT)); }
         String bd = opt("bedeckung");
         if (bd != null && !bd.isBlank()) r.wiring.oktas = Double.parseDouble(bd.replace(',', '.'));
         String pg = opt("pegel");
@@ -97,6 +129,16 @@ public final class Tempo {
             if (v == null) System.err.println("FEHLER: keine Vorlage „" + vl + "“");
             else r.placeVorlage(v);
         }
+        // seit Phase 13: -Dblick=Richtung,Neigung[,m landwärts] dreht die Ansicht (und rückt das Auge quer zur Küste)
+        String bk = opt("blick");
+        if (bk != null && !bk.isBlank()) {
+            String[] p = bk.split("[,;]");
+            double sh = p.length > 2 ? Double.parseDouble(p[2]) : 0;
+            double x = r.camera.eye[0] + com.dan.sylt.scene.Kueste.SX * sh, z = r.camera.eye[2] + com.dan.sylt.scene.Kueste.SZ * sh;
+            double up = r.camera.eye[1] - Math.max(r.groundHeight(r.camera.eye[0], r.camera.eye[2]), r.wiring.pegel);
+            r.camera.place(x, Math.max(r.groundHeight(x, z), r.wiring.pegel) + Math.max(0.4, up), z, Double.parseDouble(p[0]), p.length > 1 ? Double.parseDouble(p[1]) : 0);
+        }
+        if ("sonne".equals(opt("fernrohr"))) r.fernrohrZurSonne();   // seit Phase 13: grünes Leuchten
         if ("frueher".equals(opt("quermarke")) || "früher".equals(opt("quermarke"))) r.feuer.quermarkeFrueher = true;
         // seit Phase 9a: -Dsandsturm=an (Bft 9 aus West, Blick vom Strand), -Dwind=m/s,Richtung
         if ("an".equals(opt("sandsturm"))) r.sandsturm();
@@ -110,10 +152,20 @@ public final class Tempo {
         d.display();   // init
         r.step(1 / 60.0);
         r.brandungJetzt();     // Phase 7a: Wellenfeld und Netz nahe am Auge vor dem Bild
+        r.wetterJetzt();       // Phase 13: Regen und Nebel jetzt, im Regen ist der Sand schon nass
         r.sandJetzt();         // Phase 9a: Windfeld, Flugsand um das Auge und 3 s Körner
         r.wetter.sky.updateNow();   // Phase 3: das Licht des Himmels sofort, nicht im Hintergrund
         r.bautenJetzt();       // Phase 10: Strandkörbe, Herde, Schalter der Leuchtfeuer nach dem Licht
         for (int i = 0; i < 40; i++) { r.step(1 / 60.0); d.display(); }
+        // seit Phase 13: ein Blitz kurz vor dem Bild (-Dblitz=see oder turm), dann die Bilder in seinem Licht
+        String bl = opt("blitz");
+        if (bl != null && !bl.isBlank()) {
+            if (r.wiring.gewitter == 0) r.wiring.gewitter = 2;
+            r.step(1 / 60.0);
+            r.unwetter.blitzVonHand(r.camera.eye, r.camera.fwd, "turm".equals(bl));
+            for (int i = 0; i < 4; i++) { r.step(1 / 60.0); d.display(); }
+            frames = Math.min(frames, 2);
+        }
         double best = Double.MAX_VALUE, sum = 0;
         for (int i = 0; i < frames; i++) {
             long t0 = System.nanoTime();

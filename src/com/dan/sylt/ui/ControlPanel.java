@@ -70,6 +70,16 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
     private final JLabel tuermeLbl = small(""), kliffLbl = small("");
     private final FCheckBox brockenBox = new FCheckBox("Brocken zeigen");
     private final JLabel regenLbl = label("");
+    /** Seit Phase 13: Wetterregie, Regen, Seenebel, Gewitter, Licht und Leben. */
+    private FComboBox regieBox, gewitterBox;
+    private final FSlider regenMmSl = new FSlider(0, 300, 0), nebelSl = new FSlider(0, 100, 0);
+    private final JLabel regenMmLbl = label(""), nebelLbl = label(""), unwetterLbl = small(""), lebenLbl = small(""), lichtLbl = small("");
+    private final FCheckBox regenBox = new FCheckBox("Regen zeigen (com.dan.rain)"), nebelBox = new FCheckBox("Seenebel zeigen (com.dan.fog)"),
+            gewitterZeigen = new FCheckBox("Gewitter zeigen (com.dan.lightning)"), leuchtenBox = new FCheckBox("Meeresleuchten in Sommernächten"),
+            leuchtenFest = new FCheckBox("Blüte erzwingen (jede Nacht, volle Stärke)"), gruenBox = new FCheckBox("Grünes Leuchten beim Sonnenuntergang"),
+            lebenBox = new FCheckBox("Leben am Strand (com.dan.flock, com.dan.seal)"), moewenBox = new FCheckBox("Möwen im Hangaufwind am Kliff"),
+            saumBox = new FCheckBox("Sanderlinge und Austernfischer am Spülsaum"), spurenBox = new FCheckBox("Spuren im nassen Sand"),
+            seehundBox = new FCheckBox("Seehund (selten)");
     private final JLabel tideLbl = small(""), brandungLbl = small("");
     private FComboBox lapseBox, qualBox, hudBox, artBox;
     private boolean fromScene;
@@ -163,26 +173,76 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         put(small("<html><body style='width:215px'>Deutsche Zeit (MEZ, im Sommer MESZ). Am Roten Kliff steht die Sonne rund 27 Minuten nach "
                 + "12 Uhr MEZ im Süden. Himmel, Sonne, Mond und Sterne rechnet ab Phase 3 com.dan.sky.</body></html>"));
 
-        // ============================================================== WETTER (Phase 3)
+        // ============================================================== WETTER (Phase 3, seit Phase 13 mit Regie)
         block("WETTER", true);
         put(wetterLbl);
+        put(label("Wetterregie"));
+        java.util.List<Object> regieItems = new java.util.ArrayList<>();
+        regieItems.add("von Hand");
+        for (com.dan.sylt.wiring.Wetterregie.Lage l : com.dan.sylt.wiring.Wetterregie.Lage.values()) regieItems.add(l);
+        regieItems.add("freie Regie (Deutsche Bucht)");
+        regieItems.add("Regiebuch „Ein Sturmtag“");
+        regieBox = new FComboBox(regieItems.toArray());
+        regieBox.setSelectedItem(r.wiring.regie.lage());
+        regieBox.setToolTipText("Eine Lage steht fest; die freie Regie wählt die Lagen selbst (mit Vorlauf: Barometer, Dünung, Cirren); "
+                + "„Ein Sturmtag“ ist das Regiebuch von com.dan.weather. Die Regler stellen auf „von Hand“.");
+        regieBox.addActionListener(e -> {
+            if (fromScene) return;
+            Object o = regieBox.getSelectedItem();
+            var rg = r.wiring.regie;
+            if (o instanceof com.dan.sylt.wiring.Wetterregie.Lage l) rg.lage(l);
+            else if (regieBox.getSelectedIndex() == 0) rg.hand();
+            else if (String.valueOf(o).startsWith("freie")) rg.frei();
+            else rg.sturmtag();
+            syncFromScene();
+            view.requestFocusInWindow();
+        });
+        put(regieBox);
         put(oktasLbl);
         put(oktasSl);
-        oktasSl.addChangeListener(e -> { if (!fromScene) r.wiring.oktas = oktasSl.getValue(); labels(); });
+        oktasSl.addChangeListener(e -> { if (!fromScene) { hand(); r.wiring.oktas = oktasSl.getValue(); } labels(); });
         put(label("Art der unteren Wolken"));
         artBox = new FComboBox(com.dan.cloud.CloudType.values());
         artBox.setSelectedItem(r.wiring.cloudType);
-        artBox.addActionListener(e -> { if (!fromScene) r.wiring.cloudType = (com.dan.cloud.CloudType) artBox.getSelectedItem(); view.requestFocusInWindow(); });
+        artBox.addActionListener(e -> { if (!fromScene) { hand(); r.wiring.cloudType = (com.dan.cloud.CloudType) artBox.getSelectedItem(); } view.requestFocusInWindow(); });
         put(artBox);
         put(highLbl);
         put(highSl);
-        highSl.addChangeListener(e -> { if (!fromScene) r.wiring.highCover = highSl.getValue() / 100.0; labels(); });
+        highSl.addChangeListener(e -> { if (!fromScene) { hand(); r.wiring.highCover = highSl.getValue() / 100.0; } labels(); });
         put(sichtLbl);
         put(sichtSl);
-        sichtSl.addChangeListener(e -> { if (!fromScene) r.wiring.visibilityKm = sichtSl.getValue(); labels(); });
+        sichtSl.addChangeListener(e -> { if (!fromScene) { hand(); r.wiring.visibilityKm = sichtSl.getValue(); } labels(); });
+        // seit Phase 13: Regen, Seenebel, Gewitter
+        put(regenMmLbl);
+        put(regenMmSl);
+        regenMmSl.addChangeListener(e -> { if (!fromScene) { hand(); r.wiring.regen = regenMmSl.getValue() / 10.0; } labels(); });
+        put(nebelLbl);
+        put(nebelSl);
+        nebelSl.addChangeListener(e -> { if (!fromScene) { hand(); r.wiring.nebel = nebelSl.getValue() / 100.0; } labels(); });
+        put(label("Gewitter"));
+        gewitterBox = new FComboBox(new Object[]{"kein Gewitter", "Wetterleuchten", "mäßig", "kräftig", "schwer"});
+        gewitterBox.addActionListener(e -> { if (!fromScene) { hand(); r.wiring.gewitter = gewitterBox.getSelectedIndex(); } view.requestFocusInWindow(); });
+        put(gewitterBox);
+        JPanel bg = grid(2);
+        FButton blitzSee = new FButton("Blitz über der See"), blitzTurm = new FButton("Blitz in den Leuchtturm");
+        blitzSee.setToolTipText("Ein Erdblitz 2 bis 5 km in Blickrichtung (ohne Gewitter: Gewitter mäßig von Hand)");
+        blitzSee.addActionListener(e -> { blitz(false); view.requestFocusInWindow(); });
+        blitzTurm.addActionListener(e -> { blitz(true); view.requestFocusInWindow(); });
+        bg.add(blitzSee); bg.add(blitzTurm);
+        put(bg);
+        regenBox.setSelected(r.unwetter.showRegen);
+        regenBox.addActionListener(e -> { r.unwetter.showRegen = regenBox.isSelected(); view.requestFocusInWindow(); });
+        nebelBox.setSelected(r.unwetter.showNebel);
+        nebelBox.addActionListener(e -> { r.unwetter.showNebel = nebelBox.isSelected(); view.requestFocusInWindow(); });
+        gewitterZeigen.setSelected(r.unwetter.showGewitter);
+        gewitterZeigen.addActionListener(e -> { r.unwetter.showGewitter = gewitterZeigen.isSelected(); view.requestFocusInWindow(); });
+        put(regenBox);
+        put(nebelBox);
+        put(gewitterZeigen);
+        put(unwetterLbl);
         JPanel lagen = grid(2), lagen2 = grid(2);
         FButton abend = new FButton("Sommerabend"), heiter = new FButton("Heiter"), bedeckt = new FButton("Bedeckt"), grau = new FButton("Grau");
-        abend.addActionListener(e -> wetter(3, com.dan.cloud.CloudType.CUMULUS, 0.35, 40));
+        abend.addActionListener(e -> { r.wiring.regie.lage(com.dan.sylt.wiring.Wetterregie.Lage.SOMMERABEND); syncFromScene(); view.requestFocusInWindow(); });
         heiter.addActionListener(e -> wetter(1, com.dan.cloud.CloudType.CUMULUS, 0.1, 60));
         bedeckt.addActionListener(e -> wetter(6, com.dan.cloud.CloudType.STRATOCUMULUS, 0.3, 25));
         grau.addActionListener(e -> wetter(8, com.dan.cloud.CloudType.STRATUS, 0, 8));
@@ -195,9 +255,26 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         bodenBox.setSelected(r.showGround);
         bodenBox.addActionListener(e -> { r.showGround = bodenBox.isSelected(); view.requestFocusInWindow(); });
         put(bodenBox);
+        sub("Licht");
+        leuchtenBox.setSelected(r.meeresleuchten);
+        leuchtenBox.addActionListener(e -> { r.meeresleuchten = leuchtenBox.isSelected(); view.requestFocusInWindow(); });
+        put(leuchtenBox);
+        leuchtenFest.addActionListener(e -> { r.bluete = leuchtenFest.isSelected() ? 1 : Double.NaN; view.requestFocusInWindow(); });
+        put(leuchtenFest);
+        gruenBox.setSelected(r.gruenesLeuchten);
+        gruenBox.addActionListener(e -> { r.gruenesLeuchten = gruenBox.isSelected(); view.requestFocusInWindow(); });
+        put(gruenBox);
+        FButton fern = new FButton("Fernrohr auf die Sonne");
+        fern.setToolTipText("Von der Kliffkante, Öffnung 1,2°: der grüne Rand beim Untergang (Pos1 oder eine Ansicht beendet es)");
+        fern.addActionListener(e -> { r.fernrohrZurSonne(); free.setSelected(true); orbit.setSelected(false); view.requestFocusInWindow(); });
+        put(fern);
+        put(lichtLbl);
         put(small("<html><body style='width:215px'>Seit Phase 3: Himmel aus com.dan.sky (Sonne, Mond, Sterne, Streuung über 54,9° N), "
-                + "Wolken aus com.dan.cloud mit Schatten, Bodendecke um das Auge aus com.dan.ground. Die Wetterregie mit Lagen bis zur "
-                + "Sturmflut (com.dan.weather) kommt mit Phase 13.</body></html>"));
+                + "Wolken aus com.dan.cloud mit Schatten, Bodendecke um das Auge aus com.dan.ground. Seit Phase 13 die Wetterregie aus "
+                + "com.dan.weather mit den Lagen des Werkbuchs, Regen mit Schauerwänden über der See (com.dan.rain), Seenebel und "
+                + "Seerauch (com.dan.fog), Gewitter über der See mit den Türmen als Fangpunkte (com.dan.lightning); nach Regen sind "
+                + "Sand und Kliff dunkel. Meeresleuchten (Noctiluca, Juni bis September) leuchtet in Kamm, Schaum und Schwall; das grüne "
+                + "Leuchten zeigt sich an Abenden mit Luftspiegelung, im Fernrohr.</body></html>"));
 
         // ============================================================== SEE
         block("SEE", true);
@@ -231,9 +308,9 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         put(tpSl);
         put(dirLbl);
         put(dirSl);
-        hsSl.addChangeListener(e -> { if (!fromScene) r.wiring.surf.hs = hsSl.getValue() / 10.0; labels(); });
-        tpSl.addChangeListener(e -> { if (!fromScene) r.wiring.surf.tp = tpSl.getValue(); labels(); });
-        dirSl.addChangeListener(e -> { if (!fromScene) r.wiring.surf.seaFromDeg = dirSl.getValue(); labels(); });
+        hsSl.addChangeListener(e -> { if (!fromScene) { hand(); r.wiring.surf.hs = hsSl.getValue() / 10.0; } labels(); });
+        tpSl.addChangeListener(e -> { if (!fromScene) { hand(); r.wiring.surf.tp = tpSl.getValue(); } labels(); });
+        dirSl.addChangeListener(e -> { if (!fromScene) { hand(); r.wiring.surf.seaFromDeg = dirSl.getValue(); } labels(); });
         JPanel sp = grid(3);
         FButton ruhig = new FButton("Sommer"), west = new FButton("Westwind"), sturm = new FButton("Sturm");
         ruhig.addActionListener(e -> seegang(com.dan.surf.Surf.sylt()));
@@ -258,6 +335,23 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         stormB.addActionListener(e -> { r.brandung.riffe.storm(); r.brandung.feld.bedVersion++; view.requestFocusInWindow(); });
         put(stormB);
         put(brandungLbl);
+        sub("Leben am Strand (seit Phase 13)");
+        lebenBox.setSelected(r.showLeben);
+        lebenBox.addActionListener(e -> { r.showLeben = lebenBox.isSelected(); view.requestFocusInWindow(); });
+        put(lebenBox);
+        moewenBox.setSelected(r.leben.anMoewen);
+        moewenBox.addActionListener(e -> { r.leben.anMoewen = moewenBox.isSelected(); view.requestFocusInWindow(); });
+        saumBox.setSelected(r.leben.anStrand);
+        saumBox.addActionListener(e -> { r.leben.anStrand = saumBox.isSelected(); view.requestFocusInWindow(); });
+        spurenBox.setSelected(r.leben.anSpuren);
+        spurenBox.addActionListener(e -> { r.leben.anSpuren = spurenBox.isSelected(); view.requestFocusInWindow(); });
+        seehundBox.setSelected(r.leben.anSeehund);
+        seehundBox.addActionListener(e -> { r.leben.anSeehund = seehundBox.isSelected(); view.requestFocusInWindow(); });
+        put(moewenBox);
+        put(saumBox);
+        put(spurenBox);
+        put(seehundBox);
+        put(lebenLbl);
         put(small("<html><body style='width:215px'>Seit Phase 7a: das Wellenfeld aus com.dan.surf vor dem ganzen Kern (Riffe und Rinnen, Set-up, "
                 + "Strömung), neu gerechnet im eigenen Faden, wenn sich See, Pegel oder Grund ändern; com.dan.ocean zeichnet daraus Walzen, "
                 + "Schaumteppich und Rippströme. Nahe am Auge die Brecher als Netz mit Auflauf und nassem Sand (Phase 6 und 7). Die Pfähle "
@@ -270,8 +364,8 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         put(windSl);
         put(windDirLbl);
         put(windDirSl);
-        windSl.addChangeListener(e -> { if (!fromScene) r.wiring.windSpeed = windSl.getValue(); labels(); });
-        windDirSl.addChangeListener(e -> { if (!fromScene) r.wiring.windFromDeg = windDirSl.getValue(); labels(); });
+        windSl.addChangeListener(e -> { if (!fromScene) { hand(); r.wiring.windSpeed = windSl.getValue(); } labels(); });
+        windDirSl.addChangeListener(e -> { if (!fromScene) { hand(); r.wiring.windFromDeg = windDirSl.getValue(); } labels(); });
         sub("Flugsand in der Szene");
         sandBox.setSelected(r.sand.an);
         sandBox.addActionListener(e -> { r.sand.an = sandBox.isSelected(); view.requestFocusInWindow(); });
@@ -341,6 +435,10 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         frueherBox.setSelected(r.feuer.quermarkeFrueher);
         frueherBox.addActionListener(e -> { r.feuer.quermarkeFrueher = frueherBox.isSelected(); labels(); view.requestFocusInWindow(); });
         put(frueherBox);
+        FCheckBox strahlerBox = new FCheckBox("Dazu nachts angestrahlt (wie Leuchturm2)");
+        strahlerBox.setSelected(r.feuer.anstrahlung);
+        strahlerBox.addActionListener(e -> { r.feuer.anstrahlung = strahlerBox.isSelected(); view.requestFocusInWindow(); });
+        put(strahlerBox);
         koerbeBox.setSelected(r.koerbe.an);
         koerbeBox.addActionListener(e -> { r.koerbe.an = koerbeBox.isSelected(); r.showKoerbe = koerbeBox.isSelected(); view.requestFocusInWindow(); });
         put(koerbeBox);
@@ -455,7 +553,24 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         }).start();
     }
 
+    /** Seit Phase 13: ein Regler von Hand stellt die Wetterregie ab (die Lage hielte sonst ihre Werte). */
+    private void hand() {
+        if (r.wiring.regie.modus() == com.dan.sylt.wiring.Wetterregie.Modus.HAND) return;
+        r.wiring.regie.hand();
+        fromScene = true;
+        regieBox.setSelectedIndex(0);
+        fromScene = false;
+    }
+
+    /** Seit Phase 13: ein Blitz von Hand (ohne Gewitter wird es „mäßig“ von Hand). */
+    private void blitz(boolean turm) {
+        if (r.wiring.gewitter == 0) { hand(); r.wiring.gewitter = 2; }
+        r.unwetter.blitzVonHand(r.camera.eye, r.camera.fwd, turm);
+        syncFromScene();
+    }
+
     private void wetter(double oktas, com.dan.cloud.CloudType art, double hoch, double sicht) {
+        hand();
         r.wiring.oktas = oktas;
         r.wiring.cloudType = art;
         r.wiring.highCover = hoch;
@@ -465,6 +580,7 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
     }
 
     private void seegang(com.dan.surf.Surf p) {
+        hand();
         r.wiring.surf.hs = p.hs;
         r.wiring.surf.tp = p.tp;
         r.wiring.surf.seaFromDeg = p.seaFromDeg;
@@ -567,6 +683,20 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         if (!highSl.getValueIsAdjusting()) highSl.setValue((int) Math.round(r.wiring.highCover * 100));
         if (!sichtSl.getValueIsAdjusting()) sichtSl.setValue((int) Math.round(r.wiring.visibilityKm));
         if (artBox != null && artBox.getSelectedItem() != r.wiring.cloudType) artBox.setSelectedItem(r.wiring.cloudType);
+        // seit Phase 13: Regie, Regen, Nebel, Gewitter nach der Szene
+        if (!regenMmSl.getValueIsAdjusting()) regenMmSl.setValue((int) Math.round(Math.min(30, r.wiring.regen) * 10));
+        if (!nebelSl.getValueIsAdjusting()) nebelSl.setValue((int) Math.round(r.wiring.nebel * 100));
+        if (gewitterBox != null && gewitterBox.getSelectedIndex() != Math.min(4, r.wiring.gewitter)) gewitterBox.setSelectedIndex(Math.min(4, r.wiring.gewitter));
+        if (regieBox != null) {
+            var rg = r.wiring.regie;
+            int idx = switch (rg.modus()) {
+                case HAND -> 0;
+                case LAGE -> 1 + rg.lage().ordinal();
+                case FREI -> 1 + com.dan.sylt.wiring.Wetterregie.Lage.values().length;
+                case STURMTAG -> 2 + com.dan.sylt.wiring.Wetterregie.Lage.values().length;
+            };
+            if (regieBox.getSelectedIndex() != idx) regieBox.setSelectedIndex(idx);
+        }
         fromScene = false;
         labels();
     }
@@ -605,6 +735,13 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
         txt(sichtLbl, String.format(Locale.GERMAN, "Sicht %.0f km", r.wiring.visibilityKm));
         txt(wetterLbl, "<html><body style='width:215px'>" + esc(String.format(Locale.GERMAN, "%s · Sonne am Auge %.0f %%%s", r.wiring.wetterZeile(),
                 r.cloudShade() * 100, r.skyRunning() ? "" : " · Himmel nicht gestartet")) + "</body></html>");
+        txt(regenMmLbl, r.wiring.regen <= 0.05 ? "Regen: trocken" : String.format(Locale.GERMAN, "Regen %.1f mm/h (unter den Vorhängen)", r.wiring.regen));
+        txt(nebelLbl, r.wiring.nebel <= 0.02 ? "Seenebel: keiner" : String.format(Locale.GERMAN, "Seenebel %.0f %% (bis %.0f m über dem Pegel)", r.wiring.nebel * 100, r.wiring.nebelHoch));
+        String[] uw = r.unwetterZeilen();
+        txt(unwetterLbl, "<html><body style='width:215px'>" + esc(uw[0]) + "<br>" + esc(uw[1]) + "<br>" + esc(uw[2]) + "</body></html>");
+        String[] lb = r.leben.describe();
+        txt(lebenLbl, "<html><body style='width:215px'>" + esc(lb[0]) + "<br>" + esc(lb[1]) + "</body></html>");
+        txt(lichtLbl, "<html><body style='width:215px'>" + esc(r.lichtZeile()) + "</body></html>");
     }
 
     private void technik() {

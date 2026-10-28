@@ -92,6 +92,16 @@ public final class Wetter {
      * grau [G, aus Brocken]. Ohne gezeichnete Wolken der Himmel allein.
      */
     double[] ambient(Sky.State st, boolean cloudsShown) {
+        double[] r = ambient0(st, cloudsShown);
+        // seit Phase 13: das Licht eines Blitzes (Bestrahlung am Auge, Szeneneinheiten) hellt alles auf
+        for (int k = 0; k < 3; k++) r[k] += blitz[k];
+        return r;
+    }
+
+    /** Seit Phase 13: Blitzlicht am Auge (Bestrahlung in Szeneneinheiten von com.dan.sky, unbelichtet), von {@code Unwetter}. */
+    double[] blitz = {0, 0, 0};
+
+    private double[] ambient0(Sky.State st, boolean cloudsShown) {
         double[] e = st.skyIrradiance;
         if (!cloudsOk || !cloudsShown) return e.clone();
         double c = Math.max(0, Math.min(8, clouds.oktas)) / 8, sy = Math.max(0, st.sunDir[1]);

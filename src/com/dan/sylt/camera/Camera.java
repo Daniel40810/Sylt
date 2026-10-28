@@ -274,6 +274,10 @@ public final class Camera {
         } else {
             setFwd(fyaws, fpitchs);
             eye[0] = fxs; eye[1] = Math.max(floor(), fys); eye[2] = fzs;
+            // seit Phase 13: frei stehend ist das Ziel 40 m voraus in der Ebene (Netz der Nahbrandung, Spülsaum, Abbruch
+            // „hier“); bis dahin blieb es am letzten Drehpunkt des Kreisens stehen
+            double h = Math.hypot(fwd[0], fwd[2]);
+            if (h > 1e-6) { tx = eye[0] + fwd[0] / h * 40; tz = eye[2] + fwd[2] / h * 40; }
         }
     }
 

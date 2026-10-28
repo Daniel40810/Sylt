@@ -22,9 +22,12 @@ public final class Leuchtfeuer {
     public final ScatterGrid gridKampen, gridQuermarke;
     /** Feuer zeigen (Strahl und Lichtpunkt), Strahl, Quermarkenfeuer wie früher (F19). */
     public volatile boolean an = true, strahl = true, quermarkeFrueher;
+    /** Seit Phase 13: das Quermarkenfeuer nachts angestrahlt (warm, vom Kiesweg; wie auf Leuchturm2) [G]. */
+    public volatile boolean anstrahlung = true;
     /** Stärke des Strahls (1 = physikalisch). */
     public volatile double staerke = 1;
     private double regenGefuellt = -1;
+    private long nebelGefuellt;
     private double lux;
 
     public Leuchtfeuer(double[] fokusKampen, double[] fokusQuermarke, Beacon.Quality q) {
@@ -51,7 +54,13 @@ public final class Leuchtfeuer {
     /**
      * Weiter um dt: Umgebungslicht (lx) für den Dämmerungsschalter, Sichtweite (km), Regen (mm/h).
      */
-    public void schritt(double dt, double umgebungLux, double sichtKm, double regen) {
+    public void schritt(double dt, double umgebungLux, double sichtKm, double regen) { schritt(dt, umgebungLux, sichtKm, regen, null, 0); }
+
+    /**
+     * Seit Phase 13: dazu der Seenebel als Streufeld (1/m, etwa {@code Fog::scatter}) und ein Stand, der sich ändert, wenn
+     * der Nebel gezogen ist (dann werden die Gitter der Strahlen neu gefüllt).
+     */
+    public void schritt(double dt, double umgebungLux, double sichtKm, double regen, com.dan.beacon.Scatter nebel, long nebelStand) {
         lux = umgebungLux;
         double haze = 2.996 / (Math.max(0.5, sichtKm) * 1000);
         kampen.ambientLux = umgebungLux;
@@ -60,11 +69,13 @@ public final class Leuchtfeuer {
         quermarke.hazePerM = haze;
         quermarke.automatic = quermarkeFrueher;
         quermarke.manualOn = false;
-        if (Math.abs(regen - regenGefuellt) > 0.05) {
+        if (Math.abs(regen - regenGefuellt) > 0.05 || nebelStand != nebelGefuellt) {
             double s = regenSigma(regen);
-            gridKampen.fill(Scatter.uniform(s), kampen.x, kampen.y, kampen.z);
-            gridQuermarke.fill(Scatter.uniform(s), quermarke.x, quermarke.y, quermarke.z);
+            Scatter sc = nebel == null ? Scatter.uniform(s) : (x, y, z) -> s + nebel.sigma(x, y, z);
+            gridKampen.fill(sc, kampen.x, kampen.y, kampen.z);
+            gridQuermarke.fill(sc, quermarke.x, quermarke.y, quermarke.z);
             regenGefuellt = regen;
+            nebelGefuellt = nebelStand;
         }
         kampen.step(dt);
         quermarke.step(dt);

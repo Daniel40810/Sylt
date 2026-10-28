@@ -27,6 +27,10 @@ final class BrandungGl {
     private boolean pfahlUp;
     /** Ob die Strömung (Rippströme) in der See gezeigt wird und wie stark sie trübt (DLRG-Blick). */
     volatile boolean stroemung = true, dlrg;
+    /** Seit Phase 13: Meeresleuchten (vorbelichtet) und die Spuren der Vögel im Sand (Textur und Rechteck in der Szene). */
+    double[] glow = {0, 0, 0};
+    int trackTex;
+    double[] trackRect = {0, 0, 1, 0};
 
     void init(GL4 gl, Brandung b) {
         try {
@@ -146,6 +150,12 @@ final class BrandungGl {
         double[] ls = {sun[0] * com.dan.sylt.scene.Kueste.SX + sun[2] * com.dan.sylt.scene.Kueste.SZ, sun[1],
                 sun[0] * com.dan.sylt.scene.Kueste.AX + sun[2] * com.dan.sylt.scene.Kueste.AZ};
         l.sunDir = ls;
+        l.glow = glow.clone();
+        if (trackTex != 0) {
+            l.trackTexture = trackTex;
+            l.trackRect = trackRect.clone();
+            l.trackFrame = new double[]{s.ox, s.oz, com.dan.sylt.scene.Kueste.SX, com.dan.sylt.scene.Kueste.SZ, com.dan.sylt.scene.Kueste.AX, com.dan.sylt.scene.Kueste.AZ};
+        }
         breakerGl.draw(gl, 0, v, l, time, 99);
     }
 

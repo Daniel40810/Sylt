@@ -15,6 +15,8 @@ uniform vec3 uWarm;             // Leuchtdichte eines erleuchteten Fensters (vor
 uniform vec4 uTurmQ, uTurmK;    // x, z, Höhe des Brennpunkts (m NHN), halbe Höhe der Linse
 uniform vec3 uLensQ, uLensK;    // Leuchtdichte der Linse zum Auge (vorbelichtet)
 uniform vec3 uGlowQ, uGlowK;    // Leuchtdichte der übrigen Laterne (Streulicht, vorbelichtet)
+uniform vec4 uSpotPos;          // seit Phase 13: Strahler der Anstrahlung (x, y, z, an)
+uniform vec3 uSpotI;            // Lichtstärke des Strahlers je Kanal (vorbelichtet, Szeneneinheiten)
 
 const float PI = 3.14159265;
 
@@ -219,6 +221,12 @@ void main() {
         float F = 0.04 + 0.96 * pow(1.0 - max(dot(n, V), 0.0), 5.0);
         vec3 refl = skyColor(normalize(vec3(r.x, max(r.y, 0.02), r.z))) * 0.9;
         col = mix(col, refl, F * glass);
+    }
+    // seit Phase 13: Anstrahlung (ein warmer Strahler am Fuß des Turms, nachts), Lichtstärke durch Abstand²
+    if (uSpotPos.w > 0.0) {
+        vec3 Ls = uSpotPos.xyz - vWorld;
+        float d2 = max(dot(Ls, Ls), 1.0);
+        col += alb * uSpotI * max(dot(n, Ls * inversesqrt(d2)), 0.0) / d2 / PI;
     }
     col += emit;
     col = aerial(col, -V, dist);

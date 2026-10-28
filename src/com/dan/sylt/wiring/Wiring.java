@@ -48,6 +48,14 @@ public final class Wiring {
     public volatile CloudType cloudType = CloudType.CUMULUS;
     /** Ob die Wolken gezeichnet werden (sonst graut der Himmel nach der Bedeckung ein). */
     public volatile boolean cloudsDrawn;
+    /**
+     * Seit Phase 13: Regen (mm/h unter einem Vorhang), Seenebel 0..1 mit seiner Obergrenze (m über dem Pegel), Gewitter
+     * 0..4 (aus, Wetterleuchten, mäßig, kräftig, schwer), Böigkeit und die Böe des Augenblicks (m/s), Lufttemperatur (°C).
+     */
+    public volatile double regen, nebel, nebelHoch = 50, gustiness = 0.14, gustNow = 6, temperatur = 18;
+    public volatile int gewitter;
+    /** Seit Phase 13: die Wetterregie (Lage, freie Regie, „Ein Sturmtag“ oder von Hand). */
+    public final Wetterregie regie;
 
     /** Die Brandung (Hülle seit Phase 1): Seegang draußen, Grund, Pegel. */
     public final Surf surf = Surf.sylt();
@@ -67,6 +75,9 @@ public final class Wiring {
             public double speed(double x, double z) { return windSpeed; }
             public double fromDeg(double x, double z) { return windFromDeg; }
         };
+        // seit Phase 13: die Regie beginnt in der Lage „Sommerabend“ (dieselben Werte wie bis Phase 12)
+        regie = new Wetterregie(this);
+        regie.lage(Wetterregie.Lage.SOMMERABEND);
     }
 
     /**
@@ -160,10 +171,14 @@ public final class Wiring {
         o.waterLevel = pegel;
     }
 
-    /** Eine Zeile für das HUD: Wetter. */
+    /** Eine Zeile für das HUD: Wetter (seit Phase 13 mit Regie, Regen, Nebel, Gewitter, Temperatur). */
     public String wetterZeile() {
-        return String.format(Locale.GERMAN, "Wetter: %.0f/8 %s, hoher Schleier %.0f %%, Sicht %.0f km, Wind %.0f m/s aus %03.0f°",
-                oktas, cloudType.label, highCover * 100, visibilityKm, windSpeed, windFromDeg);
+        String[] gw = {"", "Wetterleuchten", "Gewitter mäßig", "Gewitter kräftig", "Gewitter schwer"};
+        return String.format(Locale.GERMAN, "Wetter (%s): %.0f/8 %s, hoher Schleier %.0f %%, Sicht %.0f km, Wind %.0f m/s aus %03.0f° (Bft %d, Böe %.0f m/s)%s%s%s, %.0f °C",
+                regie.zeile(), oktas, cloudType.label, highCover * 100, visibilityKm, windSpeed, windFromDeg, com.dan.weather.Weather.beaufort(windSpeed), gustNow,
+                regen > 0.05 ? String.format(Locale.GERMAN, ", Regen %.1f mm/h", regen) : "",
+                nebel > 0.02 ? String.format(Locale.GERMAN, ", Seenebel %.0f %% bis %.0f m", nebel * 100, nebelHoch) : "",
+                gewitter > 0 ? ", " + gw[Math.min(4, gewitter)] : "", temperatur);
     }
 
     public static String typName(Surf.Breaker b) {

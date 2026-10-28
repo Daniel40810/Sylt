@@ -128,6 +128,23 @@ public final class Renderer implements GLEventListener {
     public final com.dan.sylt.scene.Sturmflut sturmflut = new com.dan.sylt.scene.Sturmflut();
     public final com.dan.sylt.scene.Kliffabbruch abbruch;
     public volatile boolean showBrocken = true;
+    /**
+     * Seit Phase 13: Wetter, Licht, Leben – Regen, Seenebel und Gewitter ({@link Unwetter}), das Leben am Strand (Möwen
+     * im Hangaufwind, Sanderlinge und Austernfischer am Spülsaum mit Spuren, selten ein Seehund), Meeresleuchten in
+     * Sommernächten und das grüne Leuchten beim Sonnenuntergang (beide zuschaltbar).
+     */
+    public final Unwetter unwetter = new Unwetter();
+    public final com.dan.sylt.scene.Strandleben leben;
+    final LebenGl lebenGl = new LebenGl();
+    public volatile boolean showLeben = true, meeresleuchten = true, gruenesLeuchten = true;
+    /** Verstärkung des Meeresleuchtens (1 = wie gemessen) und ob eine Blüte erzwungen wird (für Vorführungen, NaN: nach Jahr). */
+    public volatile double leuchtenGain = 1, bluete = Double.NaN;
+    /** Vergrößerung der Spiegelung für das grüne Leuchten von Hand (NaN: nach dem Tag). */
+    public volatile double gruenFest = Double.NaN;
+    /** Nässe nach Regen 0..1 (Sand, Kliff), integriert in Szenenzeit. */
+    private double sandNass, kliffNass;
+    private long nebelStand;
+    private double nebelTakt;
     private final com.dan.sylt.scene.Netz brockenNetz = new com.dan.sylt.scene.Netz();
     private boolean brockenDa;
     private int korrTex;
@@ -239,6 +256,10 @@ public final class Renderer implements GLEventListener {
         koerbe = new com.dan.sylt.scene.Strandkoerbe(terrain::height);
         herde = new com.dan.sylt.scene.Herde(14, Site.LEUCHTTURM.x(), Site.LEUCHTTURM.z(), terrain::height, haeuserNahe(Site.LEUCHTTURM.x(), Site.LEUCHTTURM.z(), 500));
         feuer = new com.dan.sylt.scene.Leuchtfeuer(bauwerke.fokusKampen, bauwerke.fokusQuermarke, com.dan.beacon.Beacon.Quality.MEDIUM);
+        leben = new com.dan.sylt.scene.Strandleben(terrain::height, kliff.kante, brandung.buhnen.pfaehle);
+        // seit Phase 13: ein Blitz lässt den Himmel um seine Richtung aufleuchten (com.dan.sky), Licht je Schlag
+        unwetter.blitz.onStroke = (b, k, x, y, z, cd) -> wetter.sky.flash(x - camera.eye[0], y - camera.eye[1], z - camera.eye[2],
+                Math.min(1, cd / 2e8), wetter.sky.time(), 0.5);
         meadow = new Meadow(Biome.sylt(), new Bodendecke(terrain, karte, kliff::talus));
         meadow.near = 6.5f;
         meadow.seed = 2026;
@@ -334,6 +355,11 @@ public final class Renderer implements GLEventListener {
         sand.koerner().budget = sand.dune.grainBudget();
         wetter.clouds.quality = q.clouds;
         if (meadow != null) meadow.radius = q.groundRadius;
+        // seit Phase 13: Regen, Nebel, Blitze und Tiere nach der Stufe
+        unwetter.rain.quality = com.dan.rain.Rain.Quality.values()[q.ordinal()];
+        unwetter.fog.quality = com.dan.fog.Fog.Quality.values()[q.ordinal()];
+        unwetter.blitz.quality = com.dan.lightning.Lightning.Quality.values()[q.ordinal()];
+        if (leben != null) leben.stufe(q.ordinal());
     }
 
     /** Höhe des Grunds am Ort: das Gelände (ohne daten/gelaende die Bühne). */
@@ -353,7 +379,11 @@ public final class Renderer implements GLEventListener {
      */
     public void placeVorlage(Ansichten.Vorlage v) {
         clock.set(v.datum(), v.uhr());
-        if (!Double.isNaN(v.bedeckung())) wiring.oktas = v.bedeckung();
+        // seit Phase 13: das Wetter der Vorlage als Lage (bedeckt mit Schauern über der See für Leuchturm4, sonst heiter)
+        if (!Double.isNaN(v.bedeckung())) {
+            if (v.bedeckung() >= 7.5) wiring.regie.lage(com.dan.sylt.wiring.Wetterregie.Lage.SCHAUER, 7, com.dan.cloud.CloudType.STRATOCUMULUS);
+            else wiring.regie.lage(com.dan.sylt.wiring.Wetterregie.Lage.SOMMERABEND, v.bedeckung(), com.dan.cloud.CloudType.CUMULUS);
+        }
         feuer.quermarkeFrueher = v.frueher();
         placeView(v.ansicht());
         wetter.sky.epochMillis = clock.epochMillis();
@@ -366,6 +396,7 @@ public final class Renderer implements GLEventListener {
      * trocken), Flugsand und Körner an, Blick vom Strand längs nach Nordnordost.
      */
     public void sandsturm() {
+        wiring.regie.hand();   // seit Phase 13: von Hand (die Regie hielte sonst ihre Lage)
         wiring.windSpeed = 22;
         wiring.windFromDeg = 280;
         wiring.surf.hs = 1.4;
@@ -403,6 +434,18 @@ public final class Renderer implements GLEventListener {
             com.dan.sylt.scene.Kliffabbruch.Schnitt s = f.get(fertigGesehen);
             if (s.gebrochen()) kliff.erneuern(s.x0, s.z0, s.x1, s.z1, terrain::height);
         }
+    }
+
+    /**
+     * Seit Phase 13: das Fernrohr auf die Sonne an der Kimm (für das grüne Leuchten): von der Kliffkante beim
+     * Quermarkenfeuer, Öffnung 1,2°, Blick auf die Sonne (unter der Kimm: auf die Stelle, wo sie unterging).
+     */
+    public void fernrohrZurSonne() {
+        double[] sp = clock.sun();
+        double x = Site.KLIFFKANTE.x(), z = Site.KLIFFKANTE.z(), y = groundHeight(x, z) + 1.7;
+        camera.place(x, y, z, sp[1], -Math.max(0.1, sp[0]));
+        camera.fovy = 1.2;
+        hudMeldung(String.format(Locale.GERMAN, "Fernrohr auf die Sonne (Öffnung 1,2°): Sonne %.2f° hoch aus %03.0f°", sp[0], sp[1]));
     }
 
     /** Seit Phase 12 (F16 A): die Sturmflut nach Xaver beginnt jetzt (5. Dezember 2013, {@code stunde} Uhr). */
@@ -454,6 +497,16 @@ public final class Renderer implements GLEventListener {
         double[] xz = Site.fromUtm(Site.E0, nord);
         abbruch.imFaden(() -> abbruch.ausloesen(0, xz[1]));
         return abbruch.schnitt();
+    }
+
+    /**
+     * Seit Phase 13, für Standbilder: regnet es am Auge, sind Sand und Kliff schon nass (sonst flöge im Regen noch Sand,
+     * denn die Uhr steht); Regen und Nebel einmal rechnen.
+     */
+    public void wetterJetzt() {
+        unwetter.schritt(1 / 60.0, wiring, wetter.clouds, wetter.cloudsOk && showClouds, camera.eye, terrain::height);
+        double hier = unwetter.regnet() ? Math.max(unwetter.rain.snapshot().rateAt(camera.eye[0], camera.eye[2]), wiring.regen / 3) : 0;
+        if (hier > 0.2) { sandNass = 1; kliffNass = 1; sand.regen = 0.06; }
     }
 
     /** Seit Phase 9a: Windfeld und Flugsand um das Auge sofort, Körner 3 s vorlaufen (für Standbilder). */
@@ -559,6 +612,8 @@ public final class Renderer implements GLEventListener {
         bautenGl.upload(gl, BautenGl.FEST, bauwerke.netz);
         feuerGl.init(gl);
         System.out.println("Sylt: Bauten " + bauwerke.describe() + " · " + bautenGl.info);
+        unwetter.init(gl, errorListener);   // seit Phase 13
+        lebenGl.init(gl, errorListener);
         klasseTex = klasseTexture(gl, karte);
         kliff.init(gl);
         System.out.println("Sylt: " + karte.describe() + (karte.hatKarte() ? " · Arten im Kern zu 1 m" : " · ohne Karte des Kerns"));
@@ -597,6 +652,8 @@ public final class Renderer implements GLEventListener {
         // Phase 3: Himmel, Wolken und See bekommen ihre Eingänge aus der Verdrahtung, dann ein Schritt
         boolean cloudsShown = wetter.cloudsOk && showClouds;
         wiring.cloudsDrawn = cloudsShown;
+        // seit Phase 13: die Wetterregie (Lage, freie Regie, Regiebuch); während der Sturmflut führt deren Fahrplan
+        if (!sturmflut.aktiv) wiring.regie.schritt(dt);
         sturmflut.schritt(clock, wiring);
         wiring.stepTide();
         abbruchSchritt();
@@ -612,8 +669,15 @@ public final class Renderer implements GLEventListener {
         nah.schritt(dt, camera.eye, camera.tx, camera.tz, wiring.pegel);
         // seit Phase 8: die Brandungsringe nur um die Buhnen nahe am Auge (die Reihen liegen über 4 km verteilt)
         meer.ocean.obstacleField = brandung.buhnen.hindernisseNahe(camera.eye[0], camera.eye[2], 900);
+        // seit Phase 13: Regen macht Sand und Kliff nass (in Szenenzeit: nass in rund 10 min, trocken in rund 3 h) [G]
+        // (in einer Schauerlage zieht immer wieder einer durch: ein Drittel der Rate zählt auch zwischen den Vorhängen)
+        double sceneDt = dt * Math.max(0, clock.lapse), regenHier = unwetter.regenFaellt()
+                ? Math.max(unwetter.rain.snapshot().rateAt(camera.eye[0], camera.eye[2]), wiring.regen / 3) : 0;
+        if (regenHier > 0.2) { sandNass += (1 - sandNass) * Math.min(1, Math.max(dt, sceneDt) / 300); kliffNass += (1 - kliffNass) * Math.min(1, Math.max(dt, sceneDt) / 400); }
+        else { sandNass -= sandNass * Math.min(1, sceneDt / (3 * 3600)); kliffNass -= kliffNass * Math.min(1, sceneDt / (5 * 3600)); }
+        if (sandNass > 0.01 || wiring.regie.modus() != com.dan.sylt.wiring.Wetterregie.Modus.HAND) sand.regen = 0.06 * sandNass;
         if (naesse != null) {
-            boolean neu = naesse.update(wiring.pegel, brandung.auflaufR2() * 0.8);
+            boolean neu = naesse.update(wiring.pegel, brandung.auflaufR2() * 0.8, sandNass);
             naesseTakt += dt;
             if (neu || naesseTakt > 0.25) {
                 naesseTakt = 0;
@@ -626,13 +690,47 @@ public final class Renderer implements GLEventListener {
         herde.schritt(dt);
         if (koerbe.stellen(clock.date(), wiring.windFromDeg, wiring.windSpeed, sp7[1])) koerbeNeu = true;
         umgebungLux = umgebungLux();
-        feuer.schritt(dt, umgebungLux, wiring.visibilityKm, 0);
+        // seit Phase 13: Regen und Seenebel streuen das Licht der Feuer (Nebel zieht: alle 3 s neu gefüllt)
+        nebelTakt -= dt;
+        if (unwetter.nebelt() && nebelTakt <= 0) { nebelTakt = 3; nebelStand++; }
+        double regenTurm = unwetter.regnet() ? unwetter.rain.snapshot().rateAt(feuer.kampen.x, feuer.kampen.z) : 0;
+        feuer.schritt(dt, umgebungLux, wiring.visibilityKm, regenTurm, unwetter.nebelt() ? unwetter.fog::scatter : null, unwetter.nebelt() ? nebelStand : 0);
+        // seit Phase 13: Regen, Seenebel, Gewitter; das Leben am Strand
+        unwetter.schritt(dt, wiring, wetter.clouds, cloudsShown, camera.eye, terrain::height);
+        if (showLeben) leben.schritt(dt, camera.eye, camera.tx, camera.tz, wiring.windSpeed, wiring.windFromDeg, umgebungLux, sp7[0], clock.date(), clock.hour(),
+                wiring.pegel, nah.sichtbar ? nah.stueck() : null, wiring.surf.hs);
+        wetter.sky.greenFlash = gruenesLeuchten ? (Double.isNaN(gruenFest) ? gruenesLeuchtenHeute() : gruenFest) : 0;
         if (wetter.skyOk) {
             Sky.State st = wetter.sky.step(dt);
             wetter.clouds.step(dt);
             cloudShade = cloudsShown ? Clouds.shadow(wetter.clouds.snapshot(), camera.eye[0], camera.eye[2], Wetter.keyDir(st)) : 1;
             adapt(st, dt);
         }
+    }
+
+    /**
+     * Seit Phase 13: das grüne Leuchten. Die Brechung trennt die Farben immer (1); an einem Abend mit Luftspiegelung über
+     * dem Wasser (warmes Wasser unter kühlerer, klarer Luft) wird der grüne Rand zum Blitz von einigen Sekunden (3). Wann
+     * das ist, würfelt der Tag [G: an rund jedem vierten klaren Abend von Juni bis Oktober]; bei Dunst, Wolken an der Kimm
+     * oder Regen nur die reine Brechung.
+     */
+    public double gruenesLeuchtenHeute() {
+        java.time.LocalDate d = clock.date();
+        long h = d.toEpochDay() * 0x9E3779B97F4A7C15L ^ 0x5EEDL;
+        h ^= h >>> 29;
+        boolean warmesWasser = d.getMonthValue() >= 6 && d.getMonthValue() <= 10;
+        boolean klar = wiring.visibilityKm > 25 && wiring.oktas < 5 && wiring.regen < 0.05 && wiring.nebel < 0.05;
+        return klar && warmesWasser && Math.floorMod(h, 4) == 0 ? 3 : 1;
+    }
+
+    /** Seit Phase 13: Meeresleuchten jetzt (Blüte nach Monat und Wasser, nur wenn es dunkel ist), cd/m² je Kanal für frisch aufgewühltes Wasser. */
+    public double[] meeresleuchtenJetzt() {
+        if (!meeresleuchten) return new double[]{0, 0, 0};
+        int m = clock.date().getMonthValue();
+        double b = Double.isNaN(bluete) ? com.dan.surf.Bioluminescence.bloom(m, com.dan.surf.Bioluminescence.northSeaTemperature(m)) : bluete;
+        // am Tag sieht man es nicht (es leuchtet trotzdem): ab bürgerlicher Dämmerung einblenden
+        double dunkel = smooth(-2, -8, clock.sun()[0]);
+        return com.dan.surf.Bioluminescence.luminance(b * dunkel, 1, leuchtenGain);
     }
 
     @Override
@@ -695,6 +793,11 @@ public final class Renderer implements GLEventListener {
         boolean cloudsNow = frameSky && wetter.cloudsOk && showClouds;
         Clouds.Snapshot cs = wetter.clouds.snapshot();
         CloudGl.Light cl = null;
+        // seit Phase 13: Ringe des Regens rechnen, Blitze hochladen, das Blitzlicht am Auge für Szene, Wolken und See
+        unwetter.hochladen(gl, camera.eye);
+        wetter.blitz = unwetter.blitzE.clone();
+        double[] glow = meeresleuchtenJetzt();
+        for (int k = 0; k < 3; k++) glow[k] *= (frameSky ? pre : exposure()) / Sky.CD_PER_UNIT;
 
         // 1 Himmel: com.dan.sky ins Bild, dann das Rundumbild mit Wolken und die Wolkenschatten (aus Brocken);
         //   ohne com.dan.sky der Verlauf aus Phase 1
@@ -725,6 +828,7 @@ public final class Renderer implements GLEventListener {
             gl.glBindVertexArray(emptyVao);
             if (cloudsNow) {
                 cl = wetter.cloudLight(st, pre);
+                unwetter.wolken(cl, pre);
                 wetter.cloudGl.update(gl, cs, cl, camera.eye.clone());
                 if (wetter.cloudCheck.isEmpty() && frame > 40) wetter.cloudCheck = wetter.cloudGl.selfCheck(gl, cs, cl);
             }
@@ -732,6 +836,7 @@ public final class Renderer implements GLEventListener {
             gl.glViewport(0, 0, Wetter.PANO_W, Wetter.PANO_H);
             wetter.skyGl.drawPanorama(gl, st, pre);
             if (cloudsNow) wetter.cloudGl.drawPanorama(gl, cs, cl, camera.eye.clone());
+            unwetter.rundum(gl, Wetter.PANO_W, Wetter.PANO_H, camera.eye.clone(), pre, wiring.visibilityKm);   // seit Phase 13: Blitze spiegeln
             gl.glBindTexture(GL.GL_TEXTURE_2D, wetter.panoTex);
             gl.glGenerateMipmap(GL.GL_TEXTURE_2D);
             gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
@@ -774,7 +879,10 @@ public final class Renderer implements GLEventListener {
         terrainShader.set(gl, "uCliffOn", kliff.ok && showCliff ? 1 : 0);
         terrainShader.set(gl, "uCliffPx", (float) (Math.toRadians(fovy()) / Math.max(1, h)));
         terrainShader.set(gl, "uCliffRange", (float) kliff.cliff.quality.reliefRange);
-        terrainShader.set(gl, "uCliffRain", 0f);
+        terrainShader.set(gl, "uCliffRain", (float) kliffNass);   // seit Phase 13: nass nach Regen
+        // seit Phase 13: Spuren der Vögel im nassen Sand (Raster um das Auge)
+        mudGl.uploadTracks(gl, leben.anSpuren ? leben.spurenKarte : null);
+        mudGl.bindTracks(gl, terrainShader.id(), 5);
         lod.draw(gl, terrainShader, camera.eye, vp);
         gl.glBindVertexArray(emptyVao);
         // Grasnarbe und Findlinge (Licht wie das Gelände, vorbelichtet)
@@ -807,6 +915,15 @@ public final class Renderer implements GLEventListener {
         }
         // seit Phase 10: Türme und Bauten, Strandkörbe, Galloways (Licht wie das Gelände, vorbelichtet)
         if (showBauten && bautenGl.ok) drawBauten(gl, vp, inv, sun, st, pre, cloudsNow);
+        // seit Phase 13: Möwen, Vögel am Spülsaum, Seehund (nach dem Gelände, vor der See)
+        if (showLeben && frameSky) {
+            double a = Math.toRadians(camera.heading());
+            double[][] L = Unwetter.licht(st, pre, wetter.ambient(st, showClouds), cloudShade, new double[]{Math.sin(a), 0.03, -Math.cos(a)}, unwetter.blitzE, unwetter.blitzDir);
+            lebenGl.draw(gl, leben, vp, camera.eye, reversedZ, L, Wetter.fogDistance(st), cloudShade, frame);
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrFbo);
+            gl.glViewport(0, 0, w, h);
+            gl.glBindVertexArray(emptyVao);
+        }
         mark(gl, 2);
 
         // 3 Boden: die Bodendecke um das Auge (nur zu Fuß, Biom Sylt)
@@ -860,7 +977,14 @@ public final class Renderer implements GLEventListener {
             boolean netzNow = showNetz && nah.sichtbar;
             meer.draw(gl, vp, camera.eye, reversedZ, st, pre, frameSky ? wetter.panoTex : 0, cloudsNow ? wetter.cloudGl.shadowTexture() : 0,
                     cloudsNow ? wetter.cloudGl.shadowRect() : new double[]{0, 0, 1}, lod.heightTexture(), sun, sunLight(sp[0]), FOG_DISTANCE,
-                    ol -> brandungGl.feed(ol, brandung, nah, netzNow));
+                    ol -> {
+                        brandungGl.feed(ol, brandung, nah, netzNow);
+                        unwetter.see(ol, pre);   // seit Phase 13: Ringe des Regens, Blitzlicht
+                        ol.glow = glow;          // seit Phase 13: Meeresleuchten
+                    });
+            brandungGl.glow = glow;
+            brandungGl.trackTex = leben.anSpuren ? mudGl.trackTexture() : 0;
+            brandungGl.trackRect = mudGl.trackRect();
             // Phase 7a: das Netz der Brecher nahe am Auge und die Pfähle der Buhnen (nach der See, mit Tiefentest)
             brandungGl.draw(gl, vp, camera.eye, reversedZ, nah, netzNow, showBuhnen, st, pre, sun, wetter, showClouds, sunLight(sp[0]), FOG_DISTANCE, clock.t());
             if (meer.check.isEmpty() && frame > 30) meer.check = meer.oceanGl.selfCheck(gl, meer.ocean);
@@ -908,6 +1032,28 @@ public final class Renderer implements GLEventListener {
             cv.height = h;
             cv.depthTexture = depthTex;
             wetter.cloudGl.draw(gl, cs, cl, cv);
+            gl.glBindVertexArray(emptyVao);
+        }
+        // seit Phase 13: Seenebel (über das Bild mit der Tiefe), Regen (mit einer Kopie der Tiefe), Blitze und ihr Leuchten
+        if (frameSky && (unwetter.nebelt() || unwetter.regnet() || unwetter.blitzt())) {
+            double a = Math.toRadians(camera.heading());
+            double[][] L = Unwetter.licht(st, pre, wetter.ambient(st, showClouds), cloudShade, new double[]{Math.sin(a), 0.03, -Math.cos(a)}, unwetter.blitzE, unwetter.blitzDir);
+            if (unwetter.nebelt()) {
+                gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrColorFbo);
+                gl.glViewport(0, 0, w, h);
+                unwetter.zeichneNebel(gl, inv, camera.eye, reversedZ, w, h, depthTex, L, frozen, frame);
+            }
+            if (unwetter.regnet() || unwetter.blitzt()) {
+                int kopie = unwetter.tiefe(gl, hdrFbo, w, h);
+                double unter = wetter.cloudsOk && showClouds ? Math.min(1, wetter.clouds.type.overcastBrightness * 1.6) : 1;
+                unwetter.zeichneRegen(gl, vp, inv, camera.eye, camera.fwd, reversedZ, fovy(), w, h, kopie, L, unter, Wetter.fogDistance(st));
+                unwetter.zeichneBlitze(gl, vp, inv, camera.eye, reversedZ, fovy(), w, h, hdrFbo, kopie, pre, wiring.visibilityKm);
+            }
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, hdrColorFbo);
+            gl.glViewport(0, 0, w, h);
+            gl.glDisable(GL.GL_BLEND);
+            gl.glDisable(GL.GL_DEPTH_TEST);
+            gl.glDepthMask(true);
             gl.glBindVertexArray(emptyVao);
         }
         // seit Phase 10: Strahlen und Lichtpunkte der Leuchtfeuer (additiv, mit der Tiefe der Szene)
@@ -981,6 +1127,14 @@ public final class Renderer implements GLEventListener {
         double k = (frameSky ? pre : exposure()) / Sky.CD_PER_UNIT;
         bautenShader.set(gl, "uWarm", (float) (15 * k), (float) (15 * k * 0.72), (float) (15 * k * 0.42));
         laterne(gl, "Q", feuer.quermarke.snapshot(), feuer.quermarkeFrueher, k);
+        // seit Phase 13: Anstrahlung des Quermarkenfeuers bei Nacht (ein warmer Strahler am Kiesweg, 3 000 cd, 2 800 K) [G]
+        if (feuer.anstrahlung && feuer.quermarkeFrueher && umgebungLux < 400) {
+            double[] f = bauwerke.fokusQuermarke;
+            double a = Math.toRadians(215), sx = f[0] + Math.sin(a) * 9, sz = f[2] - Math.cos(a) * 9, sy = groundHeight(sx, sz) + 0.6;
+            double i = 3000 * smooth(400, 50, umgebungLux) * k;
+            bautenShader.set(gl, "uSpotPos", (float) sx, (float) sy, (float) sz, 1f);
+            bautenShader.set(gl, "uSpotI", (float) (i * 1.32), (float) (i * 0.95), (float) (i * 0.58));
+        } else bautenShader.set(gl, "uSpotPos", 0f, 0f, 0f, 0f);
         laterne(gl, "K", feuer.kampen.snapshot(), true, k);
         bautenGl.draw(gl, true, showKoerbe, showHerde, showBrocken);
         gl.glBindVertexArray(emptyVao);
@@ -1275,6 +1429,20 @@ public final class Renderer implements GLEventListener {
         return im;
     }
 
+    /** Seit Phase 13: „Licht: Meeresleuchten 0,9 (August), am Kamm 5,4e-03 cd/m² · grünes Leuchten: Spiegelung heute (3-fach)“ */
+    public String[] unwetterZeilen() { return unwetter.describe(camera.eye); }
+
+    public String lichtZeile() {
+        int m = clock.date().getMonthValue();
+        double b = Double.isNaN(bluete) ? com.dan.surf.Bioluminescence.bloom(m, com.dan.surf.Bioluminescence.northSeaTemperature(m)) : bluete;
+        double[] g = meeresleuchtenJetzt();
+        double l = 0.2126 * g[0] + 0.7152 * g[1] + 0.0722 * g[2];
+        double gf = wetter.sky.greenFlash;
+        return String.format(Locale.GERMAN, "Licht: Meeresleuchten %s · grünes Leuchten %s", !meeresleuchten ? "aus" : b <= 0 ? "keine Blüte (Juni bis September, Wasser über 14 °C)"
+                        : String.format(Locale.GERMAN, "Blüte %.2f%s, im stürzenden Kamm %.1e cd/m²", b, Double.isNaN(bluete) ? "" : " (von Hand)", l),
+                gf <= 0 ? "aus" : gf > 1.5 ? String.format(Locale.GERMAN, "mit Luftspiegelung heute (%.0f-fach)", gf) : "nur die Brechung (heute keine Spiegelung)");
+    }
+
     /** Das kurze HUD: Tempo, Zeiten der Durchgänge, Uhr und Sonne, Kamera. */
     String[] hudShort() {
         java.util.List<String> l = new java.util.ArrayList<>();
@@ -1321,6 +1489,12 @@ public final class Renderer implements GLEventListener {
                 brandungGl.describe(brandung, nah),
                 sand.zeile(camera.eye[0], camera.eye[2]),
                 sturmflut.describe(clock) + (abbruch == null ? "" : " · " + abbruch.describe()),
+                unwetter.describe(camera.eye)[0],
+                unwetter.describe(camera.eye)[1],
+                unwetter.describe(camera.eye)[2],
+                leben.describe()[0],
+                leben.describe()[1] + " · " + lebenGl.describe(),
+                lichtZeile(),
                 "Bauten: " + bauwerke.describe(),
                 "Leuchtfeuer (beacon): " + feuer.describe(),
                 koerbe.describe() + " · " + herde.describe(),
@@ -1404,6 +1578,8 @@ public final class Renderer implements GLEventListener {
         sandGl.dispose(gl);
         bautenGl.dispose(gl);
         feuerGl.dispose(gl);
+        unwetter.dispose(gl);
+        lebenGl.dispose(gl);
         kliff.dispose(gl);
         if (korrTex != 0) gl.glDeleteTextures(1, new int[]{korrTex}, 0);
         korrTex = 0;
