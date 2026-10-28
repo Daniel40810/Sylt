@@ -1,0 +1,267 @@
+
+C:\Users\Dan40810\Documents\NetBeansProjects\Sylt>ant regiebuecher
+Buildfile: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build.xml
+
+-pre-init:
+
+-init-private:
+
+-pre-init-libraries:
+
+-init-private-libraries:
+
+-init-libraries:
+
+-init-user:
+
+-init-project:
+
+-init-macrodef-property:
+
+-init-modules-supported:
+
+-do-init:
+
+-post-init:
+
+-init-check:
+
+-init-ap-cmdline-properties:
+
+-init-macrodef-modulename:
+
+-init-source-module-properties:
+
+-init-macrodef-javac-with-module:
+
+-init-macrodef-javac-with-processors:
+
+-init-macrodef-javac-without-processors:
+
+-init-macrodef-javac:
+
+-init-macrodef-test-impl:
+
+-init-macrodef-junit-init:
+
+-init-test-properties:
+
+-init-macrodef-junit-prototype-with-module:
+
+-init-macrodef-junit-prototype-without-module:
+
+-init-macrodef-junit-single:
+
+-init-macrodef-junit-batch:
+
+-init-macrodef-junit:
+
+-init-macrodef-junit-impl:
+
+-init-macrodef-testng:
+
+-init-macrodef-testng-impl:
+
+-init-macrodef-test:
+
+-init-macrodef-junit-debug-impl:
+
+-init-macrodef-test-debug-junit:
+
+-init-macrodef-testng-debug:
+
+-init-macrodef-testng-debug-impl:
+
+-init-macrodef-test-debug-testng:
+
+-init-macrodef-test-debug:
+
+-init-debug-args:
+
+-init-macrodef-nbjpda:
+
+-init-macrodef-debug:
+
+-init-macrodef-java-with-module:
+
+-init-macrodef-java-with-unnamed-module:
+
+-init-macrodef-java-without-module:
+
+-init-macrodef-java:
+
+-init-presetdef-jar:
+
+-init-ap-cmdline-supported:
+
+-init-ap-cmdline:
+
+init:
+
+-deps-jar-init:
+   [delete] Deleting: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build\built-jar.properties
+
+deps-jar:
+
+-warn-already-built-jar:
+[propertyfile] Updating property file: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build\built-jar.properties
+
+-check-automatic-build:
+
+-clean-after-automatic-build:
+
+-verify-automatic-build:
+
+-pre-pre-compile:
+
+-pre-compile:
+
+-copy-persistence-xml:
+
+-compile-depend:
+
+-do-compile:
+
+check-packages:
+     [exec] check-packages: Renderer.jar mit 40 Packages (Quelle: Projekt Renderer)
+     [exec]   Package        Klassen  README  Java
+     [exec]   ocean          27       ok      21
+     [exec]   wave           20       ok      21
+     [exec]   tide           11       ok      21
+     [exec]   mudflat        11       ok      21
+     [exec]   spray          16       ok      21
+     [exec]   cliff          24       ok      21
+     [exec]   fracture       40       ok      21
+     [exec]   reed           13       ok      21
+     [exec]   wind           14       ok      21
+     [exec]   sky            44       ok      21
+     [exec]   cloud          16       ok      21
+     [exec]   rain           12       ok      21
+     [exec]   fog            25       ok      21
+     [exec]   weather        14       ok      21
+     [exec]   lightning      24       ok      21
+     [exec]   flock          49       ok      21
+     [exec]   soundscape     56       ok      21
+     [exec]   season         17       ok      21
+     [exec]   kino           11       ok      21
+     [exec]   store          23       ok      21
+     [exec]   ground         27       ok      21
+     [exec]   weathering     10       ok      21
+     [exec]   wetglass       10       ok      21
+     [exec]   surf           47       ok      21
+     [exec]   dune           27       ok      21
+     [exec]   beacon         27       ok      21
+     [exec] check-packages: alle 26 gebrauchten Packages in Renderer.jar, dazu Kern, Darstellung, Shader und Prüfklassen von surf und dune (Hüllen seit Phase 1) und beacon (aus Lighthouse, F18 A).
+
+-post-compile:
+
+compile:
+
+-pre-jar:
+
+-check-module-main-class:
+
+-set-module-main-class:
+
+-pre-pre-jar:
+
+-do-jar-create-manifest:
+
+-do-jar-copy-manifest:
+     [copy] Copying 1 file to C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\build
+
+-do-jar-set-mainclass:
+
+-do-jar-set-profile:
+
+-do-jar-set-splashscreen:
+
+-check-do-mkdist:
+
+-do-jar-jar:
+
+-init-macrodef-copylibs:
+
+-do-jar-copylibs:
+ [copylibs] Copy libraries to C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\dist\lib.
+ [copylibs] Building jar: C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\dist\Sylt.jar
+     [echo] To run this application from the command line without Ant, try:
+     [echo] C:\Program Files\Java\jdk-21/bin/java -jar "C:\Users\Dan40810\Documents\NetBeansProjects\Sylt\dist\Sylt.jar"
+
+-do-jar-delete-manifest:
+
+-do-jar-without-libraries:
+
+-do-jar-with-libraries:
+
+-post-jar:
+
+-do-jar:
+
+-pre-deploy:
+
+-check-jlink:
+
+-do-deploy:
+
+-post-deploy:
+
+deploy:
+
+jar:
+
+regiebuecher:
+     [java] Sylt: ATI Technologies Inc. · AMD Radeon(TM) Graphics · 4.6.0 Core Profile Context 26.10.1.261008
+     [java] Sylt: Compute 4.3: in Ordnung (64×64, 0,028 ms, bis 1024 Fäden, 64 KiB geteilt)
+     [java] Sylt: Gelände DGM1 2024 (138 Kacheln) + BAW 2015?2021 · Kern DGM1 1 m · See 57 %, Watt 26 %, Heide 9 %, Wiese 5 %, Düne 2 %
+     [java] Sylt: Himmel Tabellen 256×64, 32², 256×128 · 8920 Sterne · 5 Planeten · 27 Figuren
+     [java] Sylt: Wolken Rauschen 128³ + 32³, Karte 512², Schatten 256² über 24 km
+     [java] Sylt: Meer
+     [java] Sylt: Bauten 15.160 Häuser (Reet 829, grau 9367, rot 4964) · 2 Türme (3.370 Dreiecke) · Treppe bei N 6.089.900: 137 Stufen, 69 m · Strandlokal bei N 6.090.600 auf 5,7 m NHN · Treppe, Bohlenweg, Kiesweg, Strandlokal, 3 Rettungstürme (40.444 Dreiecke) · 495.558 Dreiecke · 91 ms · 495.558 Dreiecke, 30 MB
+     [java] Sylt: Unwetter · Regen bereit · Nebel bereit · Blitze bereit
+     [java] Sylt: Kliff Kante 3074 m (N 6.087.775 bis 6.091.723) · Wand bis 35,4 m · Wandkarte 2048² zu 2 m · Wand 0,2 %, Geröll 0,5 %, Absatz 0,3 % · 0 Fälle · Schichtkarte 1773 × 4029 zu 1,0 m · Oberkante bis 50,8 m · untere Grenze -3,0 bis 7,0 m · Decke im Mittel 1,9 m · Hohlkehle bis 0,0 m · Grasnarbe 17 Stücke, 0,2 km · 0 Findlinge in Sicht · 1241 ms
+     [java] Sylt: Farben am DOP20 geeicht (Sand 0,40): Strand 0,40 nasser Sand 0,14 Düne 0,28 Strandhafer 0,19 Heide 0,12 Gebüsch 0,09 Wiese 0,11 Dach 0,19 · Arten im Kern zu 1 m
+     [java]   Regie: Ein Abend am Kliff · 20:40: ein Sommerabend am Roten Kliff · 0:00 von 4:10 · 20.7.2026 20:40 MESZ
+     [java]   Regie: Ein Abend am Kliff · die Treppe hinunter an den Strand · 0:30 von 4:10 · 1 Fotos · 20.7.2026 20:40MESZ
+     [java]   Regie: Ein Abend am Kliff · 20:45: die Strandkörbe im letzten Licht · 1:00 von 4:10 · 3 Fotos · 20.7.202620:46 MESZ
+     [java]   Regie: Ein Abend am Kliff · mit einer Möwe im Aufwind vor der Kante · 1:30 von 4:10 · 4 Fotos · 20.7.202621:01 MESZ
+     [java]   Regie: Ein Abend am Kliff · die Sonne sinkt zur Kimm · 2:00 von 4:10 · 5 Fotos · 20.7.2026 21:17 MESZ
+     [java]   Regie: Ein Abend am Kliff · 21:52: die Sonne berührt die Kimm · 2:30 von 4:10 · 6 Fotos · 20.7.2026 21:53MESZ
+     [java]   Regie: Ein Abend am Kliff · 22:25: Kampen brennt, alle 7 Sekunden ein Blitz · 3:00 von 4:10 · 8 Fotos · 20.7.2026 22:25 MESZ
+     [java]   Regie: Ein Abend am Kliff · die Nacht kommt vom Meer · 3:30 von 4:10 · 8 Fotos · 20.7.2026 22:45 MESZ
+     [java] Regiebuch gespeichert: docs\status\Regiebuch_Ein_Abend_am_Kliff_20261028_062814.png
+     [java]   Regie: Ein Abend am Kliff · die Nacht kommt vom Meer · 4:00 von 4:10 · 9 Fotos · 20.7.2026 23:05 MESZ
+     [java] Regiebuch ?Ein Abend am Kliff?: 3405 Schritte, 10 Bilder, 92 s gewartet, 0 Mal ausgewichen, 15 s Rechenzeit· Blatt: docs\status\Regiebuch_Ein_Abend_am_Kliff_20261028_062814.png
+     [java]   Regie: Die Sturmflut · 5.12.2013, 12 Uhr: Xaver frischt aus West auf · 0:00 von 4:10 · 5.12.2013 12:00 MEZ
+     [java]   Regie: Die Sturmflut · Sturm über der Kante, die Gischt weht landeinwärts · 0:30 von 4:10 · 2 Fotos · 5.12.2013 13:00 MEZ
+     [java]   Regie: Die Sturmflut · die Brandung weiß bis zum Riff · 1:00 von 4:10 · 2 Fotos · 5.12.2013 14:00 MEZ
+     [java]   Regie: Die Sturmflut · die Nacht: Orkan aus Nordwest, der Windstau hebt das Wasser über drei Meter · 1:30von 4:10 · 3 Fotos · 5.12.2013 19:43 MEZ
+     [java]   Regie: Die Sturmflut · die Hohlkehle unter der Wand · 2:00 von 4:10 · 5 Fotos · 6.12.2013 10:03 MEZ
+     [java]   Regie: Die Sturmflut · ruhe: weiter · 2:30 von 4:10 · 8 Fotos · 6.12.2013 11:00 MEZ
+     [java]   Regie: Die Sturmflut · 7.12., der Morgen danach: Sturzkegel, Findlinge, die Linie, wo die Wand stand · 3:00 von 4:10 · 9 Fotos · 7.12.2013 10:17 MEZ
+     [java]   Regie: Die Sturmflut · die neue Wand vom Wasser aus · 3:30 von 4:10 · 9 Fotos · 7.12.2013 10:47 MEZ
+     [java] Regiebuch gespeichert: docs\status\Regiebuch_Die_Sturmflut_20261028_062838.png
+     [java]   Regie: Die Sturmflut · die neue Wand vom Wasser aus · 4:00 von 4:10 · 10 Fotos · 7.12.2013 11:10 MEZ
+     [java] Regiebuch ?Die Sturmflut?: 3307 Schritte, 11 Bilder, 82 s gewartet, 0 Mal ausgewichen, 25 s Rechenzeit · Blatt: docs\status\Regiebuch_Die_Sturmflut_20261028_062838.png
+     [java]   Regie: Ein Jahr am Kliff · Juni: Sommer am Roten Kliff · 0:00 von 4:40 · 15.6.2026 16:00 MESZ
+     [java]   Regie: Ein Jahr am Kliff · August: ein Gewitter über der See · 0:30 von 4:40 · 2 Fotos · 2.8.2026 21:15 MESZ
+     [java]   Regie: Ein Jahr am Kliff · September: die Sanderlinge ziehen durch · 1:00 von 4:40 · 4 Fotos · 20.9.2026 18:06 MESZ
+     [java]   Regie: Ein Jahr am Kliff · Oktober: der erste Herbststurm, die Strandkörbe sind fort · 1:30 von 4:40 · 6 Fotos · 25.10.2026 13:26 MEZ
+     [java]   Regie: Ein Jahr am Kliff · 6.12.: die See steht am Kliffuß · 2:00 von 4:40 · 6 Fotos · 6.12.2026 10:46 MEZ
+     [java]   Regie: Ein Jahr am Kliff · März: die Vorspülung legt Sand vor das Kliff · 2:30 von 4:40 · 8 Fotos · 10.3.2027 10:18 MEZ
+     [java]   Regie: Ein Jahr am Kliff · die Brandung formt den Sand um · 3:00 von 4:40 · 10 Fotos · 14.3.2027 04:36 MEZ
+     [java]   Regie: Ein Jahr am Kliff · Juni 2027: ein Jahr ist um, die Strandkörbe stehen wieder · 3:30 von 4:40 · 12Fotos · 15.6.2027 16:14 MESZ
+     [java]   Regie: Ein Jahr am Kliff · das Kliff ein Jahr später · 4:00 von 4:40 · 12 Fotos · 15.6.2027 16:44 MESZ
+     [java] Regiebuch gespeichert: docs\status\Regiebuch_Ein_Jahr_am_Kliff_20261028_062919.png
+     [java]   Regie: Ein Jahr am Kliff · das Kliff ein Jahr später · 4:30 von 4:40 · 13 Fotos · 15.6.2027 17:08 MESZ
+     [java] Regiebuch ?Ein Jahr am Kliff?: 5670 Schritte, 14 Bilder, 289 s gewartet, 0 Mal ausgewichen, 41 s Rechenzeit· Blatt: docs\status\Regiebuch_Ein_Jahr_am_Kliff_20261028_062919.png
+     [java]   Regie: Mit der Welle · 3. Oktober, 14 Uhr: ablandiger Wind, Dünung aus West, die Brecher stürzen · 0:00 von 1:30 · 3.10.2026 14:00 MESZ
+     [java]   Regie: Mit der Welle · noch einmal, mit der nächsten Serie · 0:30 von 1:30 · 3 Fotos · eine Serie großer Wellen läuft an · 3.10.2026 14:03 MESZ
+     [java]   Regie: Mit der Welle · von oben: die Serien kommen alle paar Minuten · 1:00 von 1:30 · 6 Fotos · eine Serie großer Wellen läuft an · 3.10.2026 14:05 MESZ
+     [java] Regiebuch gespeichert: docs\status\Regiebuch_Mit_der_Welle_20261028_062937.png
+     [java] Regiebuch ?Mit der Welle?: 3693 Schritte, 8 Bilder, 281 s gewartet, 0 Mal ausgewichen, 18 s Rechenzeit · Blatt: docs\status\Regiebuch_Mit_der_Welle_20261028_062937.png
+
+BUILD SUCCESSFUL
+Total time: 1 minute 52 seconds
+
+C:\Users\Dan40810\Documents\NetBeansProjects\Sylt>
