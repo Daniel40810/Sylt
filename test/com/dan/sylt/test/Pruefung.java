@@ -774,9 +774,22 @@ public final class Pruefung {
         com.dan.sylt.scene.Nahbrandung.Stueck st = r.nah.stueck();
         if (st == null) { check(false, "Spülsaum: kein Stück der Nahbrandung"); }
         else {
+            // ein Schritt setzt die Vögel ins Stück; dann steht der Betrachter 25 m landwärts eines Trupps Sanderlinge
+            // (Spuren gibt es nur in 40 m um das Auge, weiter weg sind die Abdrücke nicht zu sehen)
+            lb.schritt(1 / 30.0, r.camera.eye, r.camera.tx, r.camera.tz, 6, 270, 20_000, 30, clock.date(), 14, w.pegel, st, 1);
+            double[] auge = r.camera.eye.clone();
+            for (com.dan.flock.Waders.Group g : lb.strand.groups())
+                if (g.species == com.dan.flock.WaderSpecies.SANDERLING) {
+                    double ax = g.cx + com.dan.sylt.scene.Kueste.SX * 25, az = g.cz + com.dan.sylt.scene.Kueste.SZ * 25;
+                    auge = new double[]{ax, r.groundHeight(ax, az) + 1.6, az};
+                    break;
+                }
             for (int i = 0; i < 60 * 30; i++) {
                 r.nah.schritt(1 / 30.0, r.camera.eye, r.camera.tx, r.camera.tz, w.pegel);
-                lb.schritt(1 / 30.0, r.camera.eye, r.camera.tx, r.camera.tz, 6, 270, 20_000, 30, clock.date(), 14, w.pegel, r.nah.stueck(), 1);
+                // baut die Nahbrandung neu (See oder Pegel der Lage), hier warten: sonst hängt der Wechsel des Stücks
+                // von der Geschwindigkeit des Rechners ab
+                while (r.nah.baut()) { try { Thread.sleep(2); } catch (InterruptedException e) { break; } }
+                lb.schritt(1 / 30.0, auge, r.camera.tx, r.camera.tz, 6, 270, 20_000, 30, clock.date(), 14, w.pegel, r.nah.stueck(), 1);
             }
             int[] c = lb.strand.census();
             double gap = lb.strand.meanGap();
