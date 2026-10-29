@@ -17,19 +17,20 @@ import java.util.Locale;
  * Wandert der Blick die Küste entlang (mehr als {@link #WANDERN} m), wird ein neues Stück im eigenen Faden gebaut und
  * eingeschwungen (25 s Szenenzeit), das alte läuft so lange weiter.
  * <p>
- * Seit Phase 19c ist das Stück 320 statt 160 m breit, und die Brecher laufen zu den Enden hin aus ({@link #auslaufen}):
+ * Seit Phase 19c ist das Stück 640 statt 160 m breit (den Strand entlang geblickt endete es sonst mitten im Bild), und
+ * die Brecher laufen zu den Enden hin aus ({@link #auslaufen}):
  * vorher standen sie bis an die Enden voll da und brachen dort als Rechteck ab, daneben lag nur die flache See. Mit
  * Höhe und Abstand des Auges blendet das Netz weich aus ({@link #fern}): Von oben sah man es sonst aus einem Kilometer
  * als hellen Teppich mit eigenem Schaum in der See liegen.
  */
 public final class Nahbrandung {
     /** Breite des Stücks längs der Küste (m), Wanderweg bis zum Neubau (m), Einschwingzeit (s). */
-    public static final double BREITE = 320, WANDERN = 80, EINSCHWINGEN = 25;
+    public static final double BREITE = 640, WANDERN = 150, EINSCHWINGEN = 25;
     /**
      * An den Enden: so weit (m) zeichnet die See noch ganz (dort ist das Netz flach), und über so viele Meter danach
      * wachsen die Brecher auf ihre volle Höhe.
      */
-    public static final double RAND = 12, AUSLAUF = 60;
+    public static final double RAND = 12, AUSLAUF = 100;
     /**
      * Bis so weit (m) vom Auge zur Wasserlinie und so hoch (m über dem Pegel) steht das Netz voll da, bis zur Reichweite
      * und Höhe blendet es aus (seit Phase 19c; vorher hart bei 900 und 160 m). Beides geteilt durch die Vergrößerung.
@@ -95,7 +96,7 @@ public final class Nahbrandung {
     private volatile Stueck aktiv;
     private volatile Thread bau;
     /** Reihen längs (nach Qualität) und ob das Netz gezeichnet werden soll. */
-    public volatile int reihen = 72;
+    public volatile int reihen = 144;
     public volatile boolean an = true;
     /** Zeit zum Bauen des Netzes im letzten Bild (ms) und ob es zu sehen ist. */
     public volatile double netzMs, schrittMs;
