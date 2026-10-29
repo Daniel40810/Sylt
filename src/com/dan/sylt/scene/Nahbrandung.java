@@ -16,10 +16,18 @@ import java.util.Locale;
  * <p>
  * Wandert der Blick die Küste entlang (mehr als {@link #WANDERN} m), wird ein neues Stück im eigenen Faden gebaut und
  * eingeschwungen (25 s Szenenzeit), das alte läuft so lange weiter.
+ * <p>
+ * Seit Phase 19c ist das Stück 320 statt 160 m breit, und die Brecher laufen zu den Enden hin aus ({@link #auslaufen}):
+ * vorher standen sie bis an die Enden voll da und brachen dort als Rechteck ab, daneben lag nur die flache See.
  */
 public final class Nahbrandung {
     /** Breite des Stücks längs der Küste (m), Wanderweg bis zum Neubau (m), Einschwingzeit (s). */
-    public static final double BREITE = 160, WANDERN = 45, EINSCHWINGEN = 25;
+    public static final double BREITE = 320, WANDERN = 80, EINSCHWINGEN = 25;
+    /**
+     * An den Enden: so weit (m) zeichnet die See noch ganz (dort ist das Netz flach), und über so viele Meter danach
+     * wachsen die Brecher auf ihre volle Höhe.
+     */
+    public static final double RAND = 12, AUSLAUF = 60;
     /** Höchstens so weit (m) vom Auge zur Wasserlinie und so hoch (m über dem Pegel) wird das Netz gezeichnet. */
     public static final double REICHWEITE = 900, HOEHE = 160;
 
@@ -81,7 +89,7 @@ public final class Nahbrandung {
     private volatile Stueck aktiv;
     private volatile Thread bau;
     /** Reihen längs (nach Qualität) und ob das Netz gezeichnet werden soll. */
-    public volatile int reihen = 48;
+    public volatile int reihen = 72;
     public volatile boolean an = true;
     /** Zeit zum Bauen des Netzes im letzten Bild (ms) und ob es zu sehen ist. */
     public volatile double netzMs, schrittMs;
@@ -136,6 +144,7 @@ public final class Nahbrandung {
         long t1 = System.nanoTime();
         s.netz.build(s.zug, s.xEnde, s.schwall);
         anlegen(s);
+        auslaufen(s);
         netzMs = netzMs * 0.9 + (System.nanoTime() - t1) / 1e6 * 0.1;
         schrittMs = schrittMs * 0.9 + (t1 - t0) / 1e6 * 0.1;
         // seit Phase 13: ohne gezählte Spitzen (Schwall noch jung, oder er läuft bis an den Kliffuß) kein „NaN“ im HUD
@@ -211,6 +220,7 @@ public final class Nahbrandung {
             }
         st.netz.build(zug, xEnde, sw);
         anlegen(st);
+        auslaufen(st);
         return st;
     }
 
@@ -234,6 +244,46 @@ public final class Nahbrandung {
                 v[o + 1] += (float) (dd * w);
                 v[o + 9] += (float) dd;
             }
+    }
+
+    /**
+     * Die Brecher zu den Enden des Stücks hin auslaufen lassen: auf den letzten {@link #RAND} m liegt das Wasser flach
+     * (knapp unter dem mittleren Spiegel, dort zeichnet die See darüber), über {@link #AUSLAUF} m danach wachsen Kämme
+     * und Täler weich auf ihre volle Höhe, die Normalen drehen mit. Der dünne Schwall auf dem Sand bleibt, wie er ist.
+     */
+    static void auslaufen(Stueck s) {
+        float[] v = s.netz.vertices;
+        int ns = s.netz.ns;
+        double breite = s.zug.width;
+        // der mittlere Spiegel (mit Schwebung) je 2 m, nicht je Ecke
+        int nm = (int) Math.ceil(s.xEnde / 2) + 2;
+        double[] spiegel = new double[nm];
+        for (int i = 0; i < nm; i++) spiegel[i] = s.zug.meanLevel(i * 2.0);
+        // Reihen parallel wie im BreakerMesh
+        java.util.stream.IntStream.range(0, s.netz.ny).parallel().forEach(r -> {
+            // eine Reihe liegt längs an einer Stelle (auch die Lippe); die Mitte bleibt, wie sie ist
+            double d = Math.min(v[r * ns * BreakerMesh.STRIDE + 2], breite - v[r * ns * BreakerMesh.STRIDE + 2]);
+            double u = Math.max(0, Math.min(1, (d - RAND) / AUSLAUF)), aus = 1 - u * u * (3 - 2 * u);
+            if (aus <= 0) return;
+            for (int k = 0; k < ns; k++) {
+                int o = (r * ns + k) * BreakerMesh.STRIDE;
+                double t = aus * Math.max(0, Math.min(1, (v[o + 8] - 0.15) / 0.6));
+                if (t <= 0) continue;
+                double q = Math.max(0, Math.min(nm - 1.001, v[o] / 2.0));
+                int i = (int) q;
+                double flach = Math.max(v[o + 9], spiegel[i] + (spiegel[i + 1] - spiegel[i]) * (q - i) - 0.1 * t);
+                v[o + 1] += (float) ((flach - v[o + 1]) * t);
+                v[o + 8] = Math.max(0, v[o + 1] - v[o + 9]);
+                double nx = v[o + 3] * (1 - t), ny = v[o + 4] * (1 - t) + t, nz = v[o + 5] * (1 - t);
+                double l = Math.sqrt(nx * nx + ny * ny + nz * nz);
+                if (l > 1e-6) {
+                    v[o + 3] = (float) (nx / l);
+                    v[o + 4] = (float) (ny / l);
+                    v[o + 5] = (float) (nz / l);
+                }
+                v[o + 7] *= (float) (1 - t);
+            }
+        });
     }
 
     /** Mittlerer Grund über die Breite in x m landwärts (negativ: seewärts) der Wasserlinie w. */

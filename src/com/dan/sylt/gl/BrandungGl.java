@@ -91,13 +91,14 @@ final class BrandungGl {
         }
         Nahbrandung.Stueck s = nah.stueck();
         if (netzSichtbar && s != null && ok) {
-            // Loch: vom Rand zur See (+12 m) bis zum Ende, längs bis 12 m vor den Rändern, weicher Rand 10 m
+            // Loch: vom Rand zur See (+12 m) bis zum Ende, längs bis 12 m vor den Rändern (dort ist das Netz flach,
+            // Nahbrandung.RAND), weicher Rand 20 m, während die Brecher im Netz anwachsen (seit Phase 19c, vorher 10 m)
             double xa = 12, xe = s.xEnde, cx = (xa + xe) / 2, cz = s.zug.width / 2;
             double[] c = s.welt(cx, cz);
             ol.holeCenter = c;
             ol.holeAxis = new double[]{com.dan.sylt.scene.Kueste.SX, com.dan.sylt.scene.Kueste.SZ};
-            ol.holeHalf = new double[]{(xe - xa) / 2, s.zug.width / 2 - 12, 10};
-        } else ol.holeHalf = new double[]{0, 0, 10};
+            ol.holeHalf = new double[]{(xe - xa) / 2, s.zug.width / 2 - Nahbrandung.RAND, 20};
+        } else ol.holeHalf = new double[]{0, 0, 20};
     }
 
     /** Licht für die Brecher und die Pfähle in der Szene (vorbelichtet), Sonne lokal zum Stück gedreht. */
