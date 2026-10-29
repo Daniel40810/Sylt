@@ -18,7 +18,9 @@ import java.util.Locale;
  * eingeschwungen (25 s Szenenzeit), das alte läuft so lange weiter.
  * <p>
  * Seit Phase 19c ist das Stück 320 statt 160 m breit, und die Brecher laufen zu den Enden hin aus ({@link #auslaufen}):
- * vorher standen sie bis an die Enden voll da und brachen dort als Rechteck ab, daneben lag nur die flache See.
+ * vorher standen sie bis an die Enden voll da und brachen dort als Rechteck ab, daneben lag nur die flache See. Mit
+ * Höhe und Abstand des Auges blendet das Netz weich aus ({@link #fern}): Von oben sah man es sonst aus einem Kilometer
+ * als hellen Teppich mit eigenem Schaum in der See liegen.
  */
 public final class Nahbrandung {
     /** Breite des Stücks längs der Küste (m), Wanderweg bis zum Neubau (m), Einschwingzeit (s). */
@@ -28,8 +30,11 @@ public final class Nahbrandung {
      * wachsen die Brecher auf ihre volle Höhe.
      */
     public static final double RAND = 12, AUSLAUF = 60;
-    /** Höchstens so weit (m) vom Auge zur Wasserlinie und so hoch (m über dem Pegel) wird das Netz gezeichnet. */
-    public static final double REICHWEITE = 900, HOEHE = 160;
+    /**
+     * Bis so weit (m) vom Auge zur Wasserlinie und so hoch (m über dem Pegel) steht das Netz voll da, bis zur Reichweite
+     * und Höhe blendet es aus (seit Phase 19c; vorher hart bei 900 und 160 m). Beides geteilt durch die Vergrößerung.
+     */
+    public static final double NAH = 350, REICHWEITE = 650, NAH_HOEHE = 30, HOEHE = 80;
 
     /** Ein Stück Strand. */
     public static final class Stueck {
@@ -96,6 +101,8 @@ public final class Nahbrandung {
     public volatile boolean sichtbar;
     public volatile String meldung = "noch kein Stück";
     public volatile Swash.Weather wetter = Swash.Weather.OVERCAST;
+    /** Öffnung der Kamera durch die gewöhnliche (kleiner im Fernrohr) und wie weit das Netz ausgeblendet ist (0..1). */
+    public volatile double zoom = 1, fern;
 
     private final Terrain gelaende;
 
@@ -110,8 +117,10 @@ public final class Nahbrandung {
     public void schritt(double dt, double[] auge, double tx, double tz, double pegel) {
         double[] w = Kueste.waterline(tx, tz);
         double weit = Math.hypot(auge[0] - w[0], auge[2] - w[1]);
-        sichtbar = an && weit < REICHWEITE && auge[1] - pegel < HOEHE;
-        if (!sichtbar) { meldung = an ? String.format(Locale.GERMAN, "Netz aus: Auge %.0f m von der Wasserlinie", weit) : "Netz abgeschaltet"; return; }
+        double z = Math.max(0.01, Math.min(1, zoom));
+        fern = Math.max(glatt(NAH, REICHWEITE, weit * z), glatt(NAH_HOEHE, HOEHE, (auge[1] - pegel) * z));
+        sichtbar = an && fern < 1;
+        if (!sichtbar) { meldung = an ? String.format(Locale.GERMAN, "Netz aus: Auge %.0f m von der Wasserlinie, %.0f m über dem Pegel", weit, auge[1] - pegel) : "Netz abgeschaltet"; return; }
         Stueck s = aktiv;
         Surf sf = brandung.surf;
         boolean neu = s == null || Math.abs(Kueste.along(w[0], w[1]) - s.laengs) > WANDERN || Math.abs(pegel - s.pegel) > 0.4
@@ -144,7 +153,7 @@ public final class Nahbrandung {
         long t1 = System.nanoTime();
         s.netz.build(s.zug, s.xEnde, s.schwall);
         anlegen(s);
-        auslaufen(s);
+        auslaufen(s, fern);
         netzMs = netzMs * 0.9 + (System.nanoTime() - t1) / 1e6 * 0.1;
         schrittMs = schrittMs * 0.9 + (t1 - t0) / 1e6 * 0.1;
         // seit Phase 13: ohne gezählte Spitzen (Schwall noch jung, oder er läuft bis an den Kliffuß) kein „NaN“ im HUD
@@ -220,7 +229,7 @@ public final class Nahbrandung {
             }
         st.netz.build(zug, xEnde, sw);
         anlegen(st);
-        auslaufen(st);
+        auslaufen(st, fern);
         return st;
     }
 
@@ -249,9 +258,10 @@ public final class Nahbrandung {
     /**
      * Die Brecher zu den Enden des Stücks hin auslaufen lassen: auf den letzten {@link #RAND} m liegt das Wasser flach
      * (knapp unter dem mittleren Spiegel, dort zeichnet die See darüber), über {@link #AUSLAUF} m danach wachsen Kämme
-     * und Täler weich auf ihre volle Höhe, die Normalen drehen mit. Der dünne Schwall auf dem Sand bleibt, wie er ist.
+     * und Täler weich auf ihre volle Höhe, die Normalen drehen mit, der Schaum kommt mit. Der dünne Schwall auf dem Sand
+     * bleibt liegen. Mit {@code fern} (0..1) läuft das ganze Stück so aus, bei 1 liegt es flach unter der See.
      */
-    static void auslaufen(Stueck s) {
+    static void auslaufen(Stueck s, double fern) {
         float[] v = s.netz.vertices;
         int ns = s.netz.ns;
         double breite = s.zug.width;
@@ -263,10 +273,11 @@ public final class Nahbrandung {
         java.util.stream.IntStream.range(0, s.netz.ny).parallel().forEach(r -> {
             // eine Reihe liegt längs an einer Stelle (auch die Lippe); die Mitte bleibt, wie sie ist
             double d = Math.min(v[r * ns * BreakerMesh.STRIDE + 2], breite - v[r * ns * BreakerMesh.STRIDE + 2]);
-            double u = Math.max(0, Math.min(1, (d - RAND) / AUSLAUF)), aus = 1 - u * u * (3 - 2 * u);
+            double aus = Math.max(1 - glatt(RAND, RAND + AUSLAUF, d), fern);
             if (aus <= 0) return;
             for (int k = 0; k < ns; k++) {
                 int o = (r * ns + k) * BreakerMesh.STRIDE;
+                v[o + 6] *= (float) (1 - aus);
                 double t = aus * Math.max(0, Math.min(1, (v[o + 8] - 0.15) / 0.6));
                 if (t <= 0) continue;
                 double q = Math.max(0, Math.min(nm - 1.001, v[o] / 2.0));
@@ -284,6 +295,12 @@ public final class Nahbrandung {
                 v[o + 7] *= (float) (1 - t);
             }
         });
+    }
+
+    /** 0 bis a, 1 ab b, dazwischen weich. */
+    private static double glatt(double a, double b, double x) {
+        double u = Math.max(0, Math.min(1, (x - a) / (b - a)));
+        return u * u * (3 - 2 * u);
     }
 
     /** Mittlerer Grund über die Breite in x m landwärts (negativ: seewärts) der Wasserlinie w. */

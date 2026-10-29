@@ -711,6 +711,7 @@ public final class Renderer implements GLEventListener {
         double[] sp7 = clock.sun();
         nah.an = showNetz && showMeer;
         nah.wetter = new com.dan.surf.Swash.Weather(Math.max(0, Math.sin(Math.toRadians(sp7[0]))) * (1 - wiring.oktas / 8 * 0.8), wiring.windSpeed, 14, 0);
+        nah.zoom = camera.fovy / com.dan.sylt.camera.Camera.FOVY;
         nah.schritt(dt, camera.eye, camera.tx, camera.tz, wiring.pegel);
         // seit Phase 8: die Brandungsringe nur um die Buhnen nahe am Auge (die Reihen liegen über 4 km verteilt)
         meer.ocean.obstacleField = brandung.buhnen.hindernisseNahe(camera.eye[0], camera.eye[2], 900);
