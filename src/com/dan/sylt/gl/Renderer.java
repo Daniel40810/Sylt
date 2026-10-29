@@ -358,7 +358,7 @@ public final class Renderer implements GLEventListener {
         wiring.surf.quality = com.dan.surf.Surf.Quality.values()[q.ordinal()];
         wiring.dune.quality = com.dan.dune.Dune.Quality.values()[q.ordinal()];
         meer.ocean.quality = q.ocean;
-        nah.reihen = q == Quality.NIEDRIG ? 36 : q == Quality.MITTEL ? 60 : 84;   // seit Phase 19c auf 320 m (vorher 24/40/56 auf 160 m)
+        nah.reihen = q == Quality.NIEDRIG ? 72 : q == Quality.MITTEL ? 120 : 168;   // seit Phase 19c auf 640 m (vorher 24/40/56 auf 160 m)
         sand.dune.quality = q == Quality.NIEDRIG ? com.dan.dune.Dune.Quality.LOW : q == Quality.MITTEL ? com.dan.dune.Dune.Quality.MEDIUM
                 : q == Quality.HOCH ? com.dan.dune.Dune.Quality.HIGH : com.dan.dune.Dune.Quality.ULTRA;
         sand.koerner().budget = sand.dune.grainBudget();
