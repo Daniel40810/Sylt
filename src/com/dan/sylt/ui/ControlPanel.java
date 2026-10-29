@@ -1382,8 +1382,9 @@ public final class ControlPanel extends JPanel implements javax.swing.Scrollable
 
     private void put(Component c) { target.add(row(c)); }
 
+    /** n Spalten, Zeilen nach Bedarf (seit Phase 19c; vorher eine Zeile, die Vorlagen standen zu acht nebeneinander und zeigten nur „…“). */
     private static JPanel grid(int n) {
-        JPanel p = new JPanel(new java.awt.GridLayout(1, n, 6, 0));
+        JPanel p = new JPanel(new java.awt.GridLayout(0, n, 6, 4));
         p.setOpaque(false);
         return p;
     }
