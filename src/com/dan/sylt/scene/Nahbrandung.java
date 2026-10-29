@@ -33,8 +33,9 @@ public final class Nahbrandung {
     /**
      * Bis so weit (m) vom Auge zur Wasserlinie und so hoch (m über dem Pegel) steht das Netz voll da, bis zur Reichweite
      * und Höhe blendet es aus (seit Phase 19c; vorher hart bei 900 und 160 m). Beides geteilt durch die Vergrößerung.
+     * Auf der Uwe-Düne (Auge rund 54 m über dem Pegel, 350 m bis zur Wasserlinie) steht es noch voll da.
      */
-    public static final double NAH = 350, REICHWEITE = 650, NAH_HOEHE = 30, HOEHE = 80;
+    public static final double NAH = 450, REICHWEITE = 750, NAH_HOEHE = 60, HOEHE = 110;
 
     /** Ein Stück Strand. */
     public static final class Stueck {
